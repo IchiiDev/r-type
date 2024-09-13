@@ -2,17 +2,12 @@
 #include <exception>
 #include <iostream>
 
-#include "test.hpp"
-
-void run() {
-    createWindow();
-    while (update());
-    destroyWindow();
-}
+#include "App.hpp"
 
 int main() {
     try {
-        run();
+        App app;
+        app.run();
     } catch (const std::exception& e) {
         std::cerr << e.what() << std::endl;
         return EXIT_FAILURE;
