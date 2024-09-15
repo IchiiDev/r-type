@@ -2,9 +2,9 @@
 #include "Ecs/Coordinator.hpp"
 #include "Ecs/Types.hpp"
 
+#include <array>
 #include <iostream>
 #include <string>
-#include <array>
 
 Rte::Coordinator coordinator;   // NOLINT
 
