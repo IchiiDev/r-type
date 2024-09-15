@@ -3,54 +3,34 @@
 #include <bitset>
 #include <cstdint>
 
-// Source: https://gist.github.com/Lee-R/3839813
-constexpr std::uint32_t fnv1a_32(char const* s, std::size_t count) {
-    return ((count ? fnv1a_32(s, count - 1) : 2166136261u) ^ s[count]) * 16777619u; // NOLINT
-}
+namespace Rte {
 
-constexpr std::uint32_t operator "" _hash(char const* s, std::size_t count) {
-    return fnv1a_32(s, count);
-}
+    // ECS
+    using Entity = std::uint32_t;
+    const Entity MAX_ENTITIES = 5000;
 
+    using ComponentType = std::uint8_t;
+    const ComponentType MAX_COMPONENTS = 32;
 
-// ECS
-using Entity = std::uint32_t;
-const Entity MAX_ENTITIES = 5000;
-using ComponentType = std::uint8_t;
-const ComponentType MAX_COMPONENTS = 32;
-using Signature = std::bitset<MAX_COMPONENTS>;
+    using Signature = std::bitset<MAX_COMPONENTS>;
 
 
-// Input
-enum class InputButtons {
-    Z,
-    Q,
-    S,
-    D,
-    A,
-    E
-};
+    // Source: https://gist.github.com/Lee-R/3839813
+    constexpr std::uint32_t fnv1a_32(const char *s, std::size_t count) {
+        return ((static_cast<bool>(count) ? fnv1a_32(s, count - 1) : 2166136261U) ^ s[count]) * 16777619U;
+    }
+
+    constexpr std::uint32_t operator "" _hash(char const* s, std::size_t count) {
+        return fnv1a_32(s, count);
+    }
 
 
-// Events
-using EventId = std::uint32_t;
-using ParamId = std::uint32_t;
+    // Events
+    using EventType = std::uint32_t;
+    using ParamId = std::uint32_t;
 
-#define METHOD_LISTENER(EventType, Listener) EventType, std::bind(&Listener, this, std::placeholders::_1)   // NOLINT
-#define FUNCTION_LISTENER(EventType, Listener) EventType, std::bind(&Listener, std::placeholders::_1)       // NOLINT
-#define LAMBDA_LISTENER(EventType, Listener) EventType, Listener                                            // NOLINT
+    #define METHOD_LISTENER(EventType, Listener) EventType, std::bind(&(Listener), this, std::placeholders::_1)
+    #define FUNCTION_LISTENER(EventType, Listener) EventType, std::bind(&(Listener), std::placeholders::_1)
+    #define LAMBDA_LISTENER(EventType, Listener) EventType, Listener
 
-namespace Events::Window {
-    const EventId QUIT = "Events::Window::QUIT"_hash;
-    const EventId RESIZED = "Events::Window::RESIZED"_hash;
-    const EventId INPUT = "Events::Window::INPUT"_hash;
-}   // namespace Events::Window
-
-namespace Events::Window::Input {
-    const ParamId INPUT = "Events::Window::Input::INPUT"_hash;
-}   // namespace Events::Window::Input
-
-namespace Events::Window::Resized {
-    const ParamId WIDTH = "Events::Window::Resized::WIDTH"_hash;
-    const ParamId HEIGHT = "Events::Window::Resized::HEIGHT"_hash;
-}   // namespace Events::Window::Resized
+}   // namespace Rte

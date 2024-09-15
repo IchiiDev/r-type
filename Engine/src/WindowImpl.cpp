@@ -1,11 +1,13 @@
-#include "WindowImpl.hpp"
+#include "Ecs/Coordinator.hpp"
 #include "Ecs/Event.hpp"
 #include "Window.hpp"
-#include "Ecs/Coordinator.hpp"
+#include "WindowImpl.hpp"
+
+using namespace Rte;
 
 extern Coordinator coordinator;
 
-std::unique_ptr<Window> createWindow(int width, int height, const char* title) {
+std::unique_ptr<Window> Rte::createWindow(int width, int height, const char* title) {
     return std::make_unique<WindowImpl>(width, height, title);
 }
 
@@ -15,7 +17,7 @@ WindowImpl::~WindowImpl() {
 
 void WindowImpl::close() {
     m_window.close();
-    coordinator.SendEvent(Events::Window::QUIT);
+    coordinator.sendEvent(Events::Window::QUIT);
 }
 
 void WindowImpl::clear() {
@@ -32,14 +34,14 @@ void WindowImpl::update() {
         // Window closed
         if (event->is<sf::Event::Closed>()) {
             m_window.close();
-            coordinator.SendEvent(Events::Window::QUIT);
+            coordinator.sendEvent(Events::Window::QUIT);
         }
 
         // Escape key
         if (const sf::Event::KeyPressed* keyPressed = event->getIf<sf::Event::KeyPressed>()) {
             if (keyPressed->code == sf::Keyboard::Key::Escape) {
                 m_window.close();
-                coordinator.SendEvent(Events::Window::QUIT);
+                coordinator.sendEvent(Events::Window::QUIT);
             }
         }
 
@@ -53,6 +55,11 @@ void WindowImpl::update() {
                     static_cast<float>(resized->size.y)
                 )
             );
+
+            Event event(Events::Window::RESIZED);
+            event.setParameter(Events::Window::Resized::WIDTH, resized->size.x);
+            event.setParameter(Events::Window::Resized::HEIGHT, resized->size.y);
+            coordinator.sendEvent(event);
 
             m_window.setView(sf::View(visibleArea));
         }

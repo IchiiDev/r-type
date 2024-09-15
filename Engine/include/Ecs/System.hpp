@@ -4,7 +4,11 @@
 
 #include <set>
 
-class System {
-    public:
-        std::set<Entity> mEntities;
-};
+namespace Rte {
+
+    class System {
+        public:
+            std::set<Entity> entities;
+    };
+
+}   // namespace Rte

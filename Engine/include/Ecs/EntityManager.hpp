@@ -1,48 +1,84 @@
 #pragma once
 
 #include "Types.hpp"
+
 #include <array>
 #include <cassert>
 #include <queue>
 
+namespace Rte {
 
-class EntityManager {
-    public:
-        EntityManager() {
-            for (Entity entity = 0; entity < MAX_ENTITIES; ++entity)
-                mAvailableEntities.push(entity);
-        }
+    /**
+     * @brief The entity manager class is responsible for managing the entities.
+     * It is responsible for creating and destroying entities.
+     * It also provides a way to set and get the signature of an entity.
+     */
+    class EntityManager {
+        public:
+            EntityManager() {
+                // Initialize the queue with all possible entity IDs.
+                for (Entity entity = 0; entity < MAX_ENTITIES; ++entity)
+                    m_availableEntities.push(entity);
+            }
 
-        Entity CreateEntity() {
-            assert(mLivingEntityCount < MAX_ENTITIES && "Too many entities in existence.");
+            /**
+             * @brief Create a new entity by getting the first available entity ID from the queue.
+             * /!\ The living entity count must be less than the maximum number of entities.
+             *
+             * @return Entity The new entity.
+             */
+            Entity createEntity() {
+                assert(m_livingEntityCount < MAX_ENTITIES && "Cannot create entity: too many entities alive.");
 
-            Entity id = mAvailableEntities.front();
-            mAvailableEntities.pop();
-            ++mLivingEntityCount;
+                const Entity newEntity = m_availableEntities.front();
+                m_availableEntities.pop();
+                ++m_livingEntityCount;
 
-            return id;
-        }
+                return newEntity;
+            }
 
-        void DestroyEntity(Entity entity) {
-            assert(entity < MAX_ENTITIES && "Entity out of range.");
+            /**
+             * @brief Destroy an entity by putting it back in the available entities queue.
+             * /!\ The entity must be alive.
+             *
+             * @param entity The entity to destroy.
+             */
+            void destroyEntity(Entity entity) {
+                assert(entity < MAX_ENTITIES && "Cannot destroy entity: id out of range.");
 
-            mSignatures[entity].reset();
-            mAvailableEntities.push(entity);
-            --mLivingEntityCount;
-        }
+                m_signatures[entity].reset();
+                m_availableEntities.push(entity);
+                --m_livingEntityCount;
+            }
 
-        void SetSignature(Entity entity, Signature signature) {
-            assert(entity < MAX_ENTITIES && "Entity out of range.");
-            mSignatures[entity] = signature;
-        }
+            /**
+             * @brief Set the signature of an entity.
+             * /!\ The entity must be alive.
+             *
+             * @param entity The entity to set the signature of.
+             * @param signature The signature to set.
+             */
+            void setSignature(Entity entity, Signature signature) {
+                assert(entity < MAX_ENTITIES && "Cannot set entity signature: id out of range.");
+                m_signatures[entity] = signature;
+            }
 
-        Signature GetSignature(Entity entity) {
-            assert(entity < MAX_ENTITIES && "Entity out of range.");
-            return mSignatures[entity];
-        }
+            /**
+             * @brief Get the signature of an entity.
+             * /!\ The entity must be alive.
+             *
+             * @param entity The entity to get the signature of.
+             * @return Signature The signature of the entity.
+             */
+            Signature getSignature(Entity entity) {
+                assert(entity < MAX_ENTITIES && "Cannot get entity signature: id out of range.");
+                return m_signatures[entity];
+            }
 
-    private:
-        std::queue<Entity> mAvailableEntities;
-        std::array<Signature, MAX_ENTITIES> mSignatures;
-        uint32_t mLivingEntityCount{};
-};
+        private:
+            std::queue<Entity> m_availableEntities;
+            std::array<Signature, MAX_ENTITIES> m_signatures;
+            uint32_t m_livingEntityCount{};
+    };
+
+}   // namespace Rte

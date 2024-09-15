@@ -1,30 +1,57 @@
 #pragma once
 
 #include "Types.hpp"
+
 #include <any>
 #include <unordered_map>
 
+namespace Rte {
 
-class Event {
-    public:
-        Event() = delete;
-        explicit Event(EventId type) : mType(type) {}
+    /**
+     * @brief The event class is a container for an event and its parameters.
+     * It is used to send events to the event manager.
+     */
+    class Event {
+        public:
+            Event() = delete;
+            explicit Event(EventType type) : m_type(type) {}
 
-        template<typename T>
-        void SetParam(EventId id, T value) {
-            mData[id] = value;
-        }
+            /**
+             * @brief Set the parameter of an event.
+             *
+             * @tparam T The type of the parameter to set.
+             * @param id The id of the parameter to set.
+             * @param value The value of the parameter to set.
+             */
+            template<typename T>
+            void setParameter(ParamId id, T value) {
+                m_data[id] = value;
+            }
 
-        template<typename T>
-        [[nodiscard]] T GetParam(EventId id) {
-            return std::any_cast<T>(mData[id]);
-        }
+            /**
+             * @brief Get the parameter of an event.
+             *
+             * @tparam T The type of the parameter to get.
+             * @param id The id of the parameter to get.
+             * @return T The value of the parameter.
+             */
+            template<typename T>
+            [[nodiscard]] T getParameter(ParamId id) {
+                return std::any_cast<T>(m_data[id]);
+            }
 
-        [[nodiscard]] EventId GetType() const {
-            return mType;
-        }
+            /**
+             * @brief Get the type of the event.
+             *
+             * @return ParamId The type of the event.
+             */
+            [[nodiscard]] ParamId getType() const {
+                return m_type;
+            }
 
-    private:
-        EventId mType{};
-        std::unordered_map<EventId, std::any> mData;
-};
+        private:
+            EventType m_type{};
+            std::unordered_map<ParamId, std::any> m_data;
+    };
+
+}   // namespace Rte
