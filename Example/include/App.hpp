@@ -12,6 +12,9 @@ class App {
         void run();
 
     private:
+        static void ecsExample();
+
+    private:
         std::unique_ptr<Rte::Window> m_window;
         bool m_running = true;
 };
