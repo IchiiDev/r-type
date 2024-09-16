@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Types.hpp"
+#include "Rte/Ecs/Types.hpp"
 
 #include <array>
 #include <cassert>

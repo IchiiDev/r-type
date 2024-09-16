@@ -1,13 +1,13 @@
 #include "App.hpp"
 #include "Rte/Common.hpp"
-#include "Rte/Ecs/Coordinator.hpp"
+#include "Rte/Ecs/Ecs.hpp"
 #include "Rte/Ecs/Types.hpp"
 
 #include <array>
 #include <iostream>
 #include <string>
 
-Rte::Coordinator coordinator;   // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+Rte::Ecs ecs;   // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 struct TagComponent {
     std::string data;
@@ -15,8 +15,8 @@ struct TagComponent {
 
 struct TagSystem : public Rte::System {
     void update() {
-        for (const auto& entity : this->entities) {
-            const TagComponent& tag = coordinator.getComponent<TagComponent>(entity);
+        for (const auto& entity : this->m_entities) {
+            const TagComponent& tag = ecs.getComponent<TagComponent>(entity);
             std::cout << tag.data << std::endl;
         }
     }
@@ -24,22 +24,22 @@ struct TagSystem : public Rte::System {
 
 void App::ecsExample() {
     // Register the TagComponent and TagSystem
-    coordinator.registerComponent<TagComponent>();
-    const std::shared_ptr<TagSystem>& tagSystem = coordinator.registerSystem<TagSystem>();
+    ecs.registerComponent<TagComponent>();
+    const std::shared_ptr<TagSystem>& tagSystem = ecs.registerSystem<TagSystem>();
 
 
     // Set tagSystem signature to only have entities with TagComponent
     Rte::Signature signature;
-    signature.set(coordinator.getComponentType<TagComponent>());
-    coordinator.setSystemSignature<TagSystem>(signature);
+    signature.set(ecs.getComponentType<TagComponent>());
+    ecs.setSystemSignature<TagSystem>(signature);
 
 
     // Add 1000 entites with 1/2 of them having a TagComponent
     std::array<Rte::Entity, 1000> entities{};
     for (Rte::i16 i = 0; i < 1000; i++) {
-        entities[i] = coordinator.createEntity();
+        entities[i] = ecs.createEntity();
         if (i % 2 == 0)
-            coordinator.addComponent<TagComponent>(entities[i], TagComponent("Entity " + std::to_string(i)));
+            ecs.addComponent<TagComponent>(entities[i], TagComponent("Entity " + std::to_string(i)));
     }
 
 
@@ -50,7 +50,7 @@ void App::ecsExample() {
     // Remove the TagComponent from the entities
     for (Rte::i16 i = 0; i < 1000; i++) {
         if (i % 2 == 0)
-            coordinator.removeComponent<TagComponent>(entities[i]);
+            ecs.removeComponent<TagComponent>(entities[i]);
     }
 
 
@@ -60,7 +60,7 @@ void App::ecsExample() {
 
     // Destroy all the entities
     for (Rte::i16 i = 0; i < 1000; i++)
-        coordinator.destroyEntity(entities[i]);
+        ecs.destroyEntity(entities[i]);
 }
 
 App::App() {

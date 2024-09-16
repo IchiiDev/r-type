@@ -4,6 +4,7 @@
 
 #include <bitset>
 #include <cstdlib>
+#include <set>
 
 namespace Rte {
 
@@ -16,8 +17,19 @@ namespace Rte {
 
     using Signature = std::bitset<MAX_COMPONENTS>;
 
+    /**
+     * @brief A system is a collection of entities that share the same components.
+     * After registration, entities possessed by the system are updated automatically by the ECS at each entity or component update.
+     * /!\ All systems must inherit from this class.
+     */
+    class System {
+        public:
+            std::set<Entity> m_entities;
+    };
 
-    // Source: https://gist.github.com/Lee-R/3839813
+
+
+    // Hash fonctions for events (Source: https://gist.github.com/Lee-R/3839813)
     constexpr u32 fnv1a_32(const char *s, size_t count) {
         return ((static_cast<bool>(count) ? fnv1a_32(s, count - 1) : 2166136261U) ^ s[count]) * 16777619U;
     }
@@ -25,6 +37,7 @@ namespace Rte {
     constexpr u32 operator "" _hash(char const* s, size_t count) {
         return fnv1a_32(s, count);
     }
+
 
 
     // Events

@@ -1,4 +1,4 @@
-#include "Rte/Ecs/EntityManager.hpp"
+#include "Rte/Ecs/Private/EntityManager.hpp"
 #include "Rte/Ecs/Types.hpp"
 
 #include <cassert>

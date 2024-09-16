@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Event.hpp"
-#include "Types.hpp"
+#include "Rte/Ecs/Event.hpp"
+#include "Rte/Ecs/Types.hpp"
 
 #include <functional>
 #include <list>

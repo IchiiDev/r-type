@@ -1,7 +1,6 @@
 #pragma once
 
-#include "System.hpp"
-#include "Types.hpp"
+#include "Rte/Ecs/Types.hpp"
 
 #include <cassert>
 #include <memory>
@@ -56,7 +55,7 @@ namespace Rte {
              */
             void destroyEntity(Entity entity) {
                 for (const std::pair<const char *const, std::shared_ptr<System>>& system : m_systems)
-                    system.second->entities.erase(entity);
+                    system.second->m_entities.erase(entity);
             }
 
             /**
@@ -68,9 +67,9 @@ namespace Rte {
             void setEntitySignature(Entity entity, Signature entitySignature) {
                 for (const std::pair<const char *const, std::shared_ptr<Rte::System>>& system : m_systems) {
                     if ((entitySignature & m_signatures[system.first]) == m_signatures[system.first])
-                        system.second->entities.insert(entity);
+                        system.second->m_entities.insert(entity);
                     else
-                        system.second->entities.erase(entity);
+                        system.second->m_entities.erase(entity);
                 }
             }
 

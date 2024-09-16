@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Rte/Common.hpp"
-#include "Types.hpp"
+#include "Rte/Ecs/Types.hpp"
 
 #include <array>
 #include <cassert>

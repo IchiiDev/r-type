@@ -1,4 +1,4 @@
-#include "Rte/Ecs/EventManager.hpp"
+#include "Rte/Ecs/Private/EventManager.hpp"
 #include "Rte/Ecs/Event.hpp"
 #include "Rte/Ecs/Types.hpp"
 

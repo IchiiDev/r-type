@@ -1,12 +1,11 @@
 #pragma once
 
-#include "ComponentManager.hpp"
-#include "EntityManager.hpp"
-#include "EventManager.hpp"
 #include "Rte/Ecs/Event.hpp"
+#include "Rte/Ecs/Private/ComponentManager.hpp"
+#include "Rte/Ecs/Private/EntityManager.hpp"
+#include "Rte/Ecs/Private/EventManager.hpp"
+#include "Rte/Ecs/Private/SystemManager.hpp"
 #include "Rte/Ecs/Types.hpp"
-#include "SystemManager.hpp"
-#include "Types.hpp"
 
 #include <cassert>
 #include <functional>
@@ -14,9 +13,9 @@
 
 namespace Rte {
 
-    class Coordinator {
+    class Ecs {
         public:
-            Coordinator() {
+            Ecs() {
                 m_componentManager = std::make_unique<ComponentManager>();
                 m_entityManager = std::make_unique<EntityManager>();
                 m_eventManager = std::make_unique<EventManager>();
