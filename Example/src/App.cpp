@@ -1,12 +1,13 @@
 #include "App.hpp"
-#include "Ecs/Coordinator.hpp"
-#include "Ecs/Types.hpp"
+#include "Rte/Common.hpp"
+#include "Rte/Ecs/Coordinator.hpp"
+#include "Rte/Ecs/Types.hpp"
 
 #include <array>
 #include <iostream>
 #include <string>
 
-Rte::Coordinator coordinator;   // NOLINT
+Rte::Coordinator coordinator;   // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 struct TagComponent {
     std::string data;
@@ -14,7 +15,7 @@ struct TagComponent {
 
 struct TagSystem : public Rte::System {
     void update() {
-        for (auto const& entity : this->entities) {
+        for (const auto& entity : this->entities) {
             const TagComponent& tag = coordinator.getComponent<TagComponent>(entity);
             std::cout << tag.data << std::endl;
         }
@@ -35,7 +36,7 @@ void App::ecsExample() {
 
     // Add 1000 entites with 1/2 of them having a TagComponent
     std::array<Rte::Entity, 1000> entities{};
-    for (int i = 0; i < 1000; i++) {
+    for (Rte::i16 i = 0; i < 1000; i++) {
         entities[i] = coordinator.createEntity();
         if (i % 2 == 0)
             coordinator.addComponent<TagComponent>(entities[i], TagComponent("Entity " + std::to_string(i)));
@@ -47,7 +48,7 @@ void App::ecsExample() {
 
 
     // Remove the TagComponent from the entities
-    for (int i = 0; i < 1000; i++) {
+    for (Rte::i16 i = 0; i < 1000; i++) {
         if (i % 2 == 0)
             coordinator.removeComponent<TagComponent>(entities[i]);
     }
@@ -58,26 +59,13 @@ void App::ecsExample() {
 
 
     // Destroy all the entities
-    for (int i = 0; i < 1000; i++)
+    for (Rte::i16 i = 0; i < 1000; i++)
         coordinator.destroyEntity(entities[i]);
 }
 
 App::App() {
-    m_window = Rte::createWindow(800, 600, "Example");
-
-    // Lambda event listener to quit the app
-    coordinator.addEventListener(LAMBDA_LISTENER(Rte::Events::Window::QUIT, [this](const Rte::Event& /* UNUSED */) {
-        m_running = false;
-    }));
-
-    // Run the ECS example
     ecsExample();
 }
 
 void App::run() {
-    while (m_running) {
-        m_window->clear();
-        m_window->update();
-        m_window->display();
-    }
 }

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Ecs/Types.hpp"
+#include "Rte/Ecs/Types.hpp"
 
 #include <memory>
 
@@ -10,6 +10,12 @@ namespace Rte {
         public:
             Window() = default;
             virtual ~Window() = default;
+
+            Window(const Window&) = delete;
+            Window& operator=(const Window&) = delete;
+
+            Window(Window&&) = default;
+            Window& operator=(Window&&) = default;
 
             virtual void close() = 0;
             virtual void clear() = 0;

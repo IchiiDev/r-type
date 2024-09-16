@@ -1,8 +1,10 @@
 cmake_minimum_required(VERSION 3.20)
-project(Example CXX)
+project(RteCore CXX)
 
 # Options
 set(CMAKE_CXX_STANDARD 20)
+set(BUILD_SHARED_LIBS FALSE)    # Build static libraries
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Debug flags if gcc
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
@@ -13,8 +15,8 @@ endif()
 file(GLOB_RECURSE SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 
 # Link libraries and target
-add_executable(Example ${SOURCES})
-target_link_libraries(Example PRIVATE RteCore)
+add_library(RteCore STATIC ${SOURCES})
+target_link_libraries(RteCore PRIVATE)
 
 # Include directories
-target_include_directories(Example PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(RteCore PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)

@@ -21,32 +21,21 @@ namespace Rte {
              * @param eventType The type of event to listen to.
              * @param listener The listener function to be called when the event is sent.
              */
-            void addListener(EventType eventType, std::function<void(Event&)> const& listener) {
-                listeners[eventType].push_back(listener);
-            }
-
+            void addListener(EventType eventType, std::function<void(Event&)> const& listener);
 
             /**
              * @brief Send an event to all listeners of the event type.
              *
              * @param event The event to send.
              */
-            void sendEvent(Event& event) {
-                EventType type = event.getType();
-                for (const std::function<void (Rte::Event &)>& listener : listeners[type])
-                    listener(event);
-            }
+            void sendEvent(Event& event);
 
             /**
              * @brief Send an event to all listeners of the event type.
              *
              * @param eventType The type of event to send.
              */
-            void sendEvent(EventType eventType) {
-                Event event(eventType);
-                for (auto const& listener : listeners[eventType])
-                    listener(event);
-            }
+            void sendEvent(EventType eventType);
 
         private:
             std::unordered_map<EventType, std::list<std::function<void(Event&)>>> listeners;

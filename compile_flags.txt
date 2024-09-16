@@ -1,6 +1,15 @@
 -std=c++20
 
--I./Engine/include
+# Core
+-I./Engine/Core/include
+-I./Engine/Core/src
+
+# Graphic module
+-I./Engine/Modules/Graphic/include
+-I./Engine/Modules/Graphic/src
+
+# Example
 -I./Example/include
 
+# External dependencies
 -I./external/SFML/include

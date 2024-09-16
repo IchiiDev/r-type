@@ -13,7 +13,7 @@ namespace Rte {
      * @brief Interface for component arrays to inherit from.
      * This is used to allow for a vector of pointers of different templated types.
      */
-    class IComponentArray {
+    class IComponentArray { // NOLINT(cppcoreguidelines-special-member-functions)
         public:
             virtual ~IComponentArray() = default;
 

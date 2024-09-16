@@ -3,9 +3,13 @@
 #include "ComponentManager.hpp"
 #include "EntityManager.hpp"
 #include "EventManager.hpp"
+#include "Rte/Ecs/Event.hpp"
+#include "Rte/Ecs/Types.hpp"
 #include "SystemManager.hpp"
 #include "Types.hpp"
 
+#include <cassert>
+#include <functional>
 #include <memory>
 
 namespace Rte {

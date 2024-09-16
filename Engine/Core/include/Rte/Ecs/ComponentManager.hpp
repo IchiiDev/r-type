@@ -1,8 +1,10 @@
 #pragma once
 
 #include "ComponentArray.hpp"
+#include "Rte/Ecs/Types.hpp"
 #include "Types.hpp"
 
+#include <cassert>
 #include <memory>
 #include <unordered_map>
 

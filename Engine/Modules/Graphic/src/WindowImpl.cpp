@@ -1,14 +1,28 @@
-#include "Ecs/Coordinator.hpp"
-#include "Ecs/Event.hpp"
+#include "Rte/Common.hpp"
+#include "Rte/Ecs/Coordinator.hpp"
+#include "Rte/Ecs/Event.hpp"
 #include "Window.hpp"
 #include "WindowImpl.hpp"
 
+#include "SFML/Graphics/Rect.hpp"
+#include "SFML/Graphics/View.hpp"
+#include "SFML/System/Vector2.hpp"
+#include "SFML/Window/Event.hpp"
+#include "SFML/Window/Keyboard.hpp"
+#include "SFML/Window/VideoMode.hpp"
+
+#include <memory>
+#include <optional>
+
 using namespace Rte;
 
-extern Coordinator coordinator;
+extern Coordinator coordinator; // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 std::unique_ptr<Window> Rte::createWindow(int width, int height, const char* title) {
     return std::make_unique<WindowImpl>(width, height, title);
+}
+
+WindowImpl::WindowImpl(int width, int height, const char* title) : m_window(sf::VideoMode({static_cast<u32>(width), static_cast<u32>(height)}), title) {
 }
 
 WindowImpl::~WindowImpl() {
