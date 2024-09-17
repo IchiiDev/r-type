@@ -1,5 +1,4 @@
 #include "Rte/ModuleManager.hpp"
-#include "Rte/IModule.hpp"
 
 #ifdef _WIN32
     #include <Windows.h>
@@ -10,6 +9,8 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+
+using namespace Rte;
 
 ModuleManager::~ModuleManager() {
     for (const auto &module : m_modules) {

@@ -1,16 +1,20 @@
 #include "GraphicModule.hpp"
 #include "Rte/Ecs/Ecs.hpp"
-#include "Rte/IModule.hpp"
+#include "Rte/ModuleManager.hpp"
 
 #include <iostream>
 
-extern Rte::Ecs ecs;    // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+using namespace Rte;
 
 IModule *createModule() {
     return new GraphicModule(); // NOLINT(cppcoreguidelines-owning-memory)
 }
 
+void GraphicModule::init(const std::shared_ptr<Ecs>& ecs) {
+    m_ecs = ecs;
+    std::cout << "GraphicModule::init()\n";
+}
+
 void GraphicModule::update() {
-    ecs.createEntity();
     std::cout << "GraphicModule::update()\n";
 }

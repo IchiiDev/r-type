@@ -4,5 +4,5 @@ class App {
     public:
         App();
 
-        void run();
+        static void run();
 };

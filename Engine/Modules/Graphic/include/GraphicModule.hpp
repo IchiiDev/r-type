@@ -1,10 +1,21 @@
 #pragma once
 
-#include "Rte/IModule.hpp"
+#include "Rte/ModuleManager.hpp"
+#include "Rte/Ecs/Ecs.hpp"
 
-class GraphicModule : public IModule {
-    public:
-        void update() override;
-};
+#include <memory>
 
-extern "C" IModule* createModule();
+namespace Rte {
+
+    class GraphicModule : public IModule {
+        public:
+            void init(const std::shared_ptr<Ecs>& ecs) override;
+            void update() override;
+
+        private:
+            std::shared_ptr<Ecs> m_ecs;
+    };
+
+}   // namespace Rte
+
+extern "C" Rte::IModule* createModule();

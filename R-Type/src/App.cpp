@@ -1,20 +1,19 @@
 #include "App.hpp"
 
 #include "Rte/Ecs/Ecs.hpp"
-#include "Rte/IModule.hpp"
 #include "Rte/ModuleManager.hpp"
 
 #include <memory>
-
-Rte::Ecs ecs;   // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 App::App() {
 }
 
 void App::run() {
-    ecs.createEntity();
+    Rte::ModuleManager moduleManager;
+    const std::shared_ptr<Rte::Ecs> ecs = std::make_shared<Rte::Ecs>();
 
-    ModuleManager moduleManager;
-    std::unique_ptr<IModule> graphicModule = moduleManager.loadModule("RteGraphic");
+    // Load the graphic module
+    const std::unique_ptr<Rte::IModule> graphicModule = moduleManager.loadModule("RteGraphic");
+    graphicModule->init(ecs);
     graphicModule->update();
 }
