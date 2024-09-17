@@ -1,7 +1,8 @@
 #pragma once
 
-#include "Rte/ModuleManager.hpp"
+#include "Rte/Common.hpp"
 #include "Rte/Ecs/Ecs.hpp"
+#include "Rte/ModuleManager.hpp"
 
 #include <memory>
 
@@ -18,4 +19,4 @@ namespace Rte {
 
 }   // namespace Rte
 
-extern "C" Rte::IModule* createModule();
+extern "C" EXPORT Rte::IModule* createModule();
