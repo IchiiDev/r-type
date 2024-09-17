@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Rte/Ecs/Types.hpp"
 #include "Rte/Ecs/Private/ComponentArray.hpp"
+#include "Rte/Ecs/Types.hpp"
 
 #include <cassert>
 #include <memory>

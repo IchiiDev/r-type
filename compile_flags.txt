@@ -8,8 +8,8 @@
 -I./Engine/Modules/Graphic/include
 -I./Engine/Modules/Graphic/src
 
-# Example
--I./Example/include
+# R-Type
+-I./R-Type/include
 
 # External dependencies
 -I./external/SFML/include
