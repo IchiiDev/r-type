@@ -22,13 +22,16 @@ jobs:
             - name: Build
               run: cmake --build build --parallel
 
+            - name: Package bins in tar.gz
+              run: |
+                FILES=$(find build -type f \( -name "*.dll" -o -name "R-Type-*.exe" \))
+                tar -czf rtype-win.tar.gz $FILES
+
             - name: Upload binaries
               uses: actions/upload-artifact@v4
               with:
                   name: windows-binaries_${{ github.sha }}
-                  path: |
-                        build/**/*.exe
-                        build/**/*.dll
+                  path: rtype-win.tar.gz
 
     build-linux: # Linux build
         name: Build on Linux
@@ -55,14 +58,16 @@ jobs:
             - name: Build
               run: cmake --build build
 
+            - name: Package bins in tar.gz
+              run: |
+                FILES=$(find build -type f \( -name "*.so" -o -name "R-Type-server" -o -name "R-Type-client" \))
+                tar -czf rtype-linux.tar.gz $FILES
+
             - name: Upload binaries
               uses: actions/upload-artifact@v4
               with:
                   name: ubuntu-binaries_${{ github.sha }}
-                  path: |
-                        build/R-Type-server/R-Type-server
-                        build/R-Type-client/R-Type-client
-                        build/**/*.so
+                  path: rtype-linux.tar.gz
 
     release:
         name: Create Release
@@ -89,20 +94,15 @@ jobs:
             - name: Debug Tree
               run: tree .
 
-            - name: List files
-              run: |
-                RES=$(find . -type f \( -name "*.so" -o -name "*.dll" -o -name "*.exe" -o -name "R-Type-server" -o -name "R-Type-client" \))
-                echo "RELEASE_FILES<<EOF" >> $GITHUB_ENV
-                echo "$RES" >> $GITHUB_ENV
-                echo "EOF" >> $GITHUB_ENV
-
             - name: Create Release
               uses: softprops/action-gh-release@v2
               with:
                 name: R-Type ${{ env.RELEASE_VERSION }}
                 tag_name: ${{ env.RELEASE_VERSION }}
                 token: ${{ secrets.PAT }}
-                files: ${{ env.RELEASE_FILES }}
+                files: |
+                    rtype-win.tar.gz
+                    rtype-linux.tar.gz
 
     mirror:
         name: Mirror to Epitech
