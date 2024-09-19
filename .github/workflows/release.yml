@@ -91,7 +91,7 @@ jobs:
 
             - name: List files
               run: |
-                RES=$(find . -name "*.exe" -o -name "*.dll" -o -name "*.so" -o -name "R-Type")
+                RES=$(find . -type f \( -name "*.so" -o -name "*.dll" -o -name "*.exe" -o -name "R-Type-server" -o -name "R-Type-client" \))
                 echo "RELEASE_FILES=$RES" >> $GITHUB_ENV
 
             - name: Create Release
