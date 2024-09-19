@@ -1,0 +1,37 @@
+on:
+    push:
+        branches: [ main ]
+        tags: [ "v[0-9]+.[0-9]+.[0-9]" ]
+        paths-ignore: [ "**/*.md" ]
+
+env:
+    MIRROR_URL: ""
+
+jobs:
+
+    build-linux:
+        name: Build on Linux
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Setup CMake
+              uses: ssrobins/install-cmake@v1
+              with:
+                version: 3.22.0
+
+            - name: Build
+              run: cmake -B build -S .
+
+
+    build-windows:
+        name: Build on Windows
+        runs-on: windows-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Setup CMake
+              run: cmake -B build -S .
+
+            - name: Build
+              run: cmake --build build
