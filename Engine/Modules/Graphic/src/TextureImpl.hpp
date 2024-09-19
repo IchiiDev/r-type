@@ -21,11 +21,10 @@ namespace Rte::Graphic {
             TextureImpl(TextureImpl&&) noexcept = default;
             TextureImpl& operator=(TextureImpl&&) noexcept = default;
 
-            void create(const Vec2<u16>& size) override;
 
+            // Overriden methods
             void loadFromFile(const std::string& filename) override;
             void loadFromMemory(const u8* data, const Vec2<u16>& size) override;
-            void update(const u8* data) override;
 
             void setSmooth(bool smooth) override;
             void generateMipmap() override;
@@ -33,6 +32,10 @@ namespace Rte::Graphic {
             [[nodiscard]] Vec2<u16> getSize() const override;
             [[nodiscard]] std::vector<u8> getPixels() const override;
             [[nodiscard]] bool isSmooth() const override;
+
+
+            // Non-virtual functions
+            [[nodiscard]] const sf::Texture& getHandle() const;
 
 
         private:

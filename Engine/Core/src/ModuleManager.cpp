@@ -54,7 +54,7 @@ std::shared_ptr<IModule> ModuleManager::loadModule(const std::string& moduleName
 std::string ModuleManager::findLibrary(const std::string& moduleName) {
     for (const auto &entry : std::filesystem::recursive_directory_iterator(".")) {
         if (entry.is_regular_file()) {
-            const std::string path = entry.path().string();
+            std::string path = entry.path().string();
             const std::string filename = entry.path().filename().string();
             const std::string basename = filename.substr(0, filename.find_last_of('.'));
             #ifdef _WIN32

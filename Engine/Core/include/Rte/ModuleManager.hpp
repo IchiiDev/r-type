@@ -71,7 +71,7 @@ namespace Rte {
         private:
             static std::string findLibrary(const std::string &moduleName);
 
-            std::map<const char *, void *> m_modules;
+            std::map<std::string, void *> m_modules;
     };
 
 }   // namespace Rte

@@ -39,8 +39,16 @@ namespace Rte {
         T w;
     };
 
+
+    /**
+     * @brief Casts a shared pointer of type void to a shared pointer of type T.
+     *
+     * @tparam T Type to cast to.
+     * @param ptr Shared pointer of type void.
+     * @return std::shared_ptr<T> Shared pointer of type T.
+     */
     template<typename T>
-    std::shared_ptr<T> moduleCast(std::shared_ptr<void> ptr) {
+    std::shared_ptr<T> interfaceCast(std::shared_ptr<void> ptr) {
         return std::reinterpret_pointer_cast<T>(ptr);
     }
 

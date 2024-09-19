@@ -1,5 +1,6 @@
 #pragma once
 
+#include "RenderSystem.hpp"
 #include "Rte/Common.hpp"
 #include "Rte/Ecs/Ecs.hpp"
 #include "Rte/Graphic/GraphicModule.hpp"
@@ -25,7 +26,9 @@ namespace Rte::Graphic {
 
         private:
             std::shared_ptr<Ecs> m_ecs;
+
             sf::RenderWindow m_window;
+            std::shared_ptr<RenderSystem> m_renderSystem;
     };
 
 }   // namespace Rte::Graphic
