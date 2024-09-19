@@ -24,8 +24,9 @@ jobs:
 
             - name: Package bins in tar.gz
               run: |
-                FILES=$(find build -type f \( -name "*.dll" -o -name "R-Type-*.exe" \))
-                tar -czf rtype-win.tar.gz $FILES
+                $files = Get-ChildItem -Path build -Filter *.dll -Recurse
+                $files += Get-ChildItem -Path build -Filter R-Type-*.exe -Recurse
+                tar -czf rtype-win.tar.gz -C build $files
 
             - name: Upload binaries
               uses: actions/upload-artifact@v4
