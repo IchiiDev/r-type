@@ -4,10 +4,10 @@
 
 namespace Rte::BasicComponents {
 
-    class Transform {
-        Vec3<float> position;
-        Vec3<float> rotation;
-        Vec3<float> scale;
+    struct Transform {
+        Vec3<float> position{0, 0, 0};
+        Vec3<float> rotation{0, 0, 0};
+        Vec3<float> scale{1, 1, 1};
     };
 
 }   // namespace Rte::BasicComponents

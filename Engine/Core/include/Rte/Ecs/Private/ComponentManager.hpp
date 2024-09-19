@@ -5,6 +5,7 @@
 
 #include <cassert>
 #include <memory>
+#include <string>
 #include <unordered_map>
 
 namespace Rte {
@@ -24,7 +25,7 @@ namespace Rte {
              */
             template<typename T>
             void registerComponent() {
-                const char* typeName = typeid(T).name();
+                const std::string typeName = typeid(T).name();
                 assert(m_componentTypes.find(typeName) == m_componentTypes.end() && "Cannot register component: already registered.");
 
                 m_componentTypes.insert({typeName, m_nextComponentType});
@@ -42,7 +43,7 @@ namespace Rte {
              */
             template<typename T>
             ComponentType getComponentType() {
-                const char* typeName = typeid(T).name();
+                const std::string typeName = typeid(T).name();
                 assert(m_componentTypes.find(typeName) != m_componentTypes.end() && "Cannot get component type: component not registered before use.");
                 return m_componentTypes[typeName];
             }
@@ -111,14 +112,14 @@ namespace Rte {
              */
             template<typename T>
             std::shared_ptr<ComponentArray<T>> getComponentArray() {
-                const char* typeName = typeid(T).name();
+                const std::string typeName = typeid(T).name();
                 assert(m_componentTypes.find(typeName) != m_componentTypes.end() && "Cannot get component array: no component array of this type found.");
                 return std::static_pointer_cast<ComponentArray<T>>(m_componentArrays[typeName]);
             }
 
         private:
-            std::unordered_map<const char*, ComponentType> m_componentTypes;
-            std::unordered_map<const char*, std::shared_ptr<IComponentArray>> m_componentArrays;
+            std::unordered_map<std::string, ComponentType> m_componentTypes;
+            std::unordered_map<std::string, std::shared_ptr<IComponentArray>> m_componentArrays;
             ComponentType m_nextComponentType{};
 
     };

@@ -6,7 +6,7 @@
 
 namespace Rte::Graphic::Components {
 
-    class Sprite {
+    struct Sprite {
         std::shared_ptr<Texture> texture;
     };
 

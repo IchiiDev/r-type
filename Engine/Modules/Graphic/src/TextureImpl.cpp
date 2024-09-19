@@ -11,22 +11,15 @@
 
 using namespace Rte::Graphic;
 
-void TextureImpl::create(const Vec2<u16>& size) {
-    if (!m_texture.resize({size.x, size.y}))
-        throw std::runtime_error("Failed to create texture");
-}
-
 void TextureImpl::loadFromFile(const std::string& filename) {
     if (!m_texture.loadFromFile(filename))
         throw std::runtime_error("Failed to load texture from file");
 }
 
 void TextureImpl::loadFromMemory(const u8* data, const Vec2<u16>& size) {
-    if (!m_texture.loadFromMemory(data, static_cast<i16>(size.x * size.y * 4)))
-        throw std::runtime_error("Failed to load texture from memory");
-}
+    if (!m_texture.resize({size.x, size.y}))
+        throw std::runtime_error("Failed to create texture");
 
-void TextureImpl::update(const u8* data) {
     m_texture.update(data);
 }
 
@@ -53,4 +46,8 @@ bool TextureImpl::isSmooth() const {
 void TextureImpl::generateMipmap() {
     if (!m_texture.generateMipmap())
         throw std::runtime_error("Failed to generate mipmap");
+}
+
+const sf::Texture& TextureImpl::getHandle() const {
+    return m_texture;
 }

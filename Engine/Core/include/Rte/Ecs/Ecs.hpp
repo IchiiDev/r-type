@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Rte/BasicComponents.hpp"
 #include "Rte/Ecs/Event.hpp"
 #include "Rte/Ecs/Private/ComponentManager.hpp"
 #include "Rte/Ecs/Private/EntityManager.hpp"
@@ -20,6 +21,8 @@ namespace Rte {
                 m_entityManager = std::make_unique<EntityManager>();
                 m_eventManager = std::make_unique<EventManager>();
                 m_systemManager = std::make_unique<SystemManager>();
+
+                this->registerComponent<BasicComponents::Transform>();
             }
 
 

@@ -4,6 +4,7 @@
 
 #include <cassert>
 #include <memory>
+#include <string>
 #include <unordered_map>
 #include <utility>
 
@@ -25,7 +26,7 @@ namespace Rte {
              */
             template<typename T>
             std::shared_ptr<T> registerSystem() {
-                const char* typeName = typeid(T).name();
+                const std::string typeName = typeid(T).name();
                 assert(m_systems.find(typeName) == m_systems.end() && "Cannot register system: already registered.");
 
                 std::shared_ptr<T> system = std::make_shared<T>();
@@ -42,7 +43,7 @@ namespace Rte {
              */
             template<typename T>
             void setSignature(Signature signature) {
-                const char* typeName = typeid(T).name();
+                const std::string typeName = typeid(T).name();
                 assert(m_systems.find(typeName) != m_systems.end() && "Cannot set system signature: system not registered.");
 
                 m_signatures.insert({typeName, signature});
@@ -54,7 +55,7 @@ namespace Rte {
              * @param entity The entity that has been destroyed.
              */
             void destroyEntity(Entity entity) {
-                for (const std::pair<const char *const, std::shared_ptr<System>>& system : m_systems)
+                for (const std::pair<const std::string, std::shared_ptr<System>>& system : m_systems)
                     system.second->m_entities.erase(entity);
             }
 
@@ -65,7 +66,7 @@ namespace Rte {
              * @param entitySignature The new signature of the entity.
              */
             void setEntitySignature(Entity entity, Signature entitySignature) {
-                for (const std::pair<const char *const, std::shared_ptr<Rte::System>>& system : m_systems) {
+                for (const std::pair<const std::string, std::shared_ptr<Rte::System>>& system : m_systems) {
                     if ((entitySignature & m_signatures[system.first]) == m_signatures[system.first])
                         system.second->m_entities.insert(entity);
                     else
@@ -74,8 +75,8 @@ namespace Rte {
             }
 
         private:
-            std::unordered_map<const char*, Signature> m_signatures;
-            std::unordered_map<const char*, std::shared_ptr<System>> m_systems;
+            std::unordered_map<std::string, Signature> m_signatures;
+            std::unordered_map<std::string, std::shared_ptr<System>> m_systems;
     };
 
 }   // namespace Rte
