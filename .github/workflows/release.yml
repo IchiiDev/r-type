@@ -24,9 +24,9 @@ jobs:
 
             - name: Package bins in tar.gz
               run: |
-                $files = Get-ChildItem -Path build -Filter *.dll -Recurse
-                $files += Get-ChildItem -Path build -Filter R-Type-*.exe -Recurse
-                tar -czf rtype-win.tar.gz -C build $files
+                FOR /F "tokens=*" %G IN ('dir /b /s build\*.dll build\R-Type-server.exe build\R-Type-client.exe') DO (
+                    tar -czf rtype-win.tar.gz -C %G
+                )
 
             - name: Upload binaries
               uses: actions/upload-artifact@v4
