@@ -60,8 +60,8 @@ jobs:
               with:
                   name: ubuntu-binaries_${{ github.sha }}
                   path: |
-                        build/R-Type/R-Type-server
-                        build/R-Type/R-Type-client
+                        build/R-Type-server/R-Type-server
+                        build/R-Type-client/R-Type-client
                         build/**/*.so
 
     release:
@@ -92,7 +92,9 @@ jobs:
             - name: List files
               run: |
                 RES=$(find . -type f \( -name "*.so" -o -name "*.dll" -o -name "*.exe" -o -name "R-Type-server" -o -name "R-Type-client" \))
-                echo "RELEASE_FILES=$RES" >> $GITHUB_ENV
+                echo "RELEASE_FILES<<EOF" >> $GITHUB_ENV
+                echo "$RES" >> $GITHUB_ENV
+                echo "EOF" >> $GITHUB_ENV
 
             - name: Create Release
               uses: softprops/action-gh-release@v2
