@@ -27,7 +27,7 @@ jobs:
               with:
                   name: windows-binaries_${{ github.sha }}
                   path: |
-                        build/**/R-Type.exe
+                        build/**/*.exe
                         build/**/*.dll
 
     build-linux: # Linux build
@@ -60,7 +60,8 @@ jobs:
               with:
                   name: ubuntu-binaries_${{ github.sha }}
                   path: |
-                        build/R-Type/R-Type
+                        build/R-Type/R-Type-server
+                        build/R-Type/R-Type-client
                         build/**/*.so
 
     release:
