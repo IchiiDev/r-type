@@ -6,6 +6,7 @@
 #include "SFML/Graphics/Texture.hpp"
 
 #include <string>
+#include <vector>
 
 namespace Rte::Graphic {
 
@@ -30,7 +31,7 @@ namespace Rte::Graphic {
             void generateMipmap() override;
 
             [[nodiscard]] Vec2<u16> getSize() const override;
-            [[nodiscard]] const u8* getPixels() const override;
+            [[nodiscard]] std::vector<u8> getPixels() const override;
             [[nodiscard]] bool isSmooth() const override;
 
 
