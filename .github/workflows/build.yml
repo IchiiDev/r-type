@@ -1,0 +1,70 @@
+
+on:
+    push:
+      branches-ignore:
+        - main
+    pull_request:
+      branches-ignore:
+        - main
+
+env:
+    BINARIES: "bin1 bin2"
+
+jobs:
+
+    tidy:
+
+        name: Run Clang-Tidy
+
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Install deps
+              run: |
+                sudo apt-get update
+                sudo apt-get install -y libx11-dev libxrandr-dev libxcursor-dev libxi-dev
+                sudo apt-get install -y freeglut3-dev libudev-dev libvorbis-dev libflac-dev
+
+            - name: Setup CMake
+              uses: ssrobins/install-cmake@v1
+              with:
+                version: 3.22.0
+
+            - name: Build
+              run: cmake -B build -S .
+
+            - name: Run Clang-Tidy
+              run: clang-tidy --config-file=.clang-tidy $(find Engine R-Type -name "*.cpp" -or -name "*.hpp")
+
+    build-windows: # Windows build
+        name: Build on Windows
+        runs-on: windows-latest
+        # needs: tidy
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Setup CMake
+              run: cmake -B build -S .
+
+            - name: Build
+              run: cmake --build build
+
+    build-linux: # Linux build
+        name: Build on Linux
+        runs-on: ubuntu-latest
+        needs: tidy
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Setup CMake
+              uses: ssrobins/install-cmake@v1
+              with:
+                version: 3.22.0
+
+            - name: Setup CMake
+              run: cmake -B build -S .
+
+            - name: Build
+              run: cmake --build build
