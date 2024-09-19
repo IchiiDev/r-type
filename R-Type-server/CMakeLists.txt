@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(R-Type CXX)
+project(R-Type-server CXX)
 
 # Options
 set(CMAKE_CXX_STANDARD 20)
@@ -13,8 +13,8 @@ endif()
 file(GLOB_RECURSE SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 
 # Link libraries and target
-add_executable(R-Type ${SOURCES})
-target_link_libraries(R-Type PRIVATE RteCore)
+add_executable(R-Type-server ${SOURCES})
+target_link_libraries(R-Type-server PRIVATE RteCore)
 
 # Include directories
-target_include_directories(R-Type PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(R-Type-server PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)

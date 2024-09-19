@@ -2,14 +2,14 @@
 #include <exception>
 #include <iostream>
 
-#include "App.hpp"
+#include "ClientApp.hpp"
 
 int main() {
     try {
-        App app;
-        app.run();
+        ClientApp clientApp;
+        clientApp.run();
     } catch (const std::exception& e) {
-        std::cerr << e.what() << std::endl;
+        std::cerr << e.what() << "\n";
         return EXIT_FAILURE;
     }
 }

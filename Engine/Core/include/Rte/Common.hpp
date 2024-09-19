@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 
 namespace Rte {
 
@@ -37,6 +38,11 @@ namespace Rte {
         T z;
         T w;
     };
+
+    template<typename T>
+    std::shared_ptr<T> moduleCast(std::shared_ptr<void> ptr) {
+        return std::reinterpret_pointer_cast<T>(ptr);
+    }
 
 }   // namespace Rte
 

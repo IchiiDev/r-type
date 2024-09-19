@@ -22,7 +22,7 @@ ModuleManager::~ModuleManager() {
     }
 }
 
-std::unique_ptr<IModule> ModuleManager::loadModule(const std::string& moduleName) {
+std::shared_ptr<IModule> ModuleManager::loadModule(const std::string& moduleName) {
     const std::string modulePath = findLibrary(moduleName);
     if (modulePath.empty())
         throw std::runtime_error("Failed to find module: " + moduleName);
@@ -48,7 +48,7 @@ std::unique_ptr<IModule> ModuleManager::loadModule(const std::string& moduleName
     #endif
 
     m_modules[moduleName.c_str()] = moduleHandle;
-    return std::unique_ptr<IModule>(create());
+    return std::shared_ptr<IModule>(create());
 }
 
 std::string ModuleManager::findLibrary(const std::string& moduleName) {

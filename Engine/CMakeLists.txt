@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
 project(Engine CXX)
 
-add_subdirectory(Core)
+# Modules
 add_subdirectory(Modules/Graphic)
+
+# Core
+add_subdirectory(Core)
