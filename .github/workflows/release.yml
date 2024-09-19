@@ -27,7 +27,7 @@ jobs:
               with:
                   name: windows-binaries_${{ github.sha }}
                   path: |
-                        build/R-Type/release/R-Type
+                        build/R-Type/release/R-Type.exe
                         build/**/*.dll
 
     build-linux: # Linux build
@@ -85,17 +85,21 @@ jobs:
                 IFS=":" read -r version _ <<< "${{ github.event.head_commit.message }}"
                 echo "RELEASE_VERSION=$version" >> $GITHUB_ENV
 
+            - name: Debug Tree
+              run: tree .
+
+            - name: List files
+              run: |
+                RES=$(find . -name "*.exe" -o -name "*.dll" -o -name "*.so" -o -name "R-Type")
+                echo "RELEASE_FILES=$RES" >> $GITHUB_ENV
+
             - name: Create Release
               uses: softprops/action-gh-release@v2
               with:
                 name: R-Type ${{ env.RELEASE_VERSION }}
                 tag_name: ${{ env.RELEASE_VERSION }}
                 token: ${{ secrets.PAT }}
-                files: |
-                    build/R-Type/release/R-Type
-                    build/**/*.dll
-                    build/R-Type/R-Type
-                    build/**/*.so
+                files: ${{ env.RELEASE_FILES }}
 
 
     mirror:
