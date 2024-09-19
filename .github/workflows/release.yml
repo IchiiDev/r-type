@@ -1,6 +1,6 @@
 on:
     push:
-        branches: [ main, feat/ci ]
+        branches: [ main ]
         paths-ignore: [ "**/*.md" ]
 
 env:
