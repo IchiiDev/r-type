@@ -3,6 +3,7 @@
 #include "Rte/Common.hpp"
 
 #include <string>
+#include <vector>
 
 namespace Rte::Graphic {
 
@@ -26,7 +27,7 @@ namespace Rte::Graphic {
             virtual void generateMipmap() = 0;
 
             [[nodiscard]] virtual Vec2<u16> getSize() const = 0;
-            [[nodiscard]] virtual const u8* getPixels() const = 0;
+            [[nodiscard]] virtual std::vector<u8> getPixels() const = 0;
             [[nodiscard]] virtual bool isSmooth() const = 0;
     };
 

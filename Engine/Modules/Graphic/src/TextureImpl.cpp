@@ -4,8 +4,10 @@
 #include "SFML/Graphics/Image.hpp"
 #include "SFML/Graphics/Texture.hpp"
 
+#include <cstdlib>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 using namespace Rte::Graphic;
 
@@ -20,7 +22,7 @@ void TextureImpl::loadFromFile(const std::string& filename) {
 }
 
 void TextureImpl::loadFromMemory(const u8* data, const Vec2<u16>& size) {
-    if (!m_texture.loadFromMemory(data, static_cast<i16>(size.x * size.y) * sizeof(u8)))
+    if (!m_texture.loadFromMemory(data, static_cast<i16>(size.x * size.y * 4)))
         throw std::runtime_error("Failed to load texture from memory");
 }
 
@@ -37,8 +39,11 @@ Rte::Vec2<Rte::u16> TextureImpl::getSize() const {
     return {static_cast<u16>(size.x), static_cast<u16>(size.y)};
 }
 
-const Rte::u8* TextureImpl::getPixels() const {
-    return m_texture.copyToImage().getPixelsPtr();
+std::vector<Rte::u8> TextureImpl::getPixels() const {
+    return {
+        m_texture.copyToImage().getPixelsPtr(),
+        m_texture.copyToImage().getPixelsPtr() + static_cast<size_t>(m_texture.getSize().x * m_texture.getSize().y) * 4
+    };
 }
 
 bool TextureImpl::isSmooth() const {
