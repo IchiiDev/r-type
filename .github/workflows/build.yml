@@ -64,6 +64,12 @@ jobs:
               with:
                 submodules: recursive
 
+            - name: Install deps
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y libx11-dev libxrandr-dev libxcursor-dev libxi-dev
+                  sudo apt-get install -y freeglut3-dev libudev-dev libvorbis-dev libflac-dev
+
             - name: Setup CMake
               uses: ssrobins/install-cmake@v1
               with:
