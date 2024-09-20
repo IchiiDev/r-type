@@ -7,6 +7,7 @@
 #include "Rte/Graphic/Texture.hpp"
 
 #include "SFML/Graphics/RenderWindow.hpp"
+#include "SFML/Graphics/Shader.hpp"
 
 #include <memory>
 #include <string>
@@ -20,6 +21,8 @@ namespace Rte::Graphic {
 
             void setWindowTitle(const std::string& title) override;
             void setWindowSize(const Vec2<u16>& size) override;
+            void setDaltonismMode(DaltonismMode mode) override;
+
             [[nodiscard]] Vec2<u16> getWindowSize() const override;
 
             [[nodiscard]] std::shared_ptr<Texture> createTexture() const override;
@@ -29,6 +32,8 @@ namespace Rte::Graphic {
 
             sf::RenderWindow m_window;
             std::shared_ptr<RenderSystem> m_renderSystem;
+
+            sf::Shader m_shader;
     };
 
 }   // namespace Rte::Graphic
