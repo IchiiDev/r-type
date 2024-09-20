@@ -4,6 +4,7 @@
 #include "Rte/Ecs/Ecs.hpp"
 #include "Rte/Ecs/Types.hpp"
 #include "Rte/Graphic/Components.hpp"
+#include "SFML/Graphics/Shader.hpp"
 #include "TextureImpl.hpp"
 
 #include "SFML/Graphics/RenderWindow.hpp"
@@ -19,7 +20,7 @@ void RenderSystem::init(const std::shared_ptr<Rte::Ecs>& ecs) {
     m_ecs = ecs;
 }
 
-void RenderSystem::update(sf::RenderWindow& window) {
+void RenderSystem::update(sf::RenderWindow& window, sf::Shader& shader) {
     assert(m_ecs != nullptr && "Cannot update render system: Not initialized.");
 
     for (const Entity entity : m_entities) {
@@ -31,12 +32,12 @@ void RenderSystem::update(sf::RenderWindow& window) {
         sf::Sprite sprite(texture->getHandle());
 
         // Transform
-        const sf::Angle angle = sf::degrees(transformComponent.rotation.x);
+        const sf::Angle angle = sf::degrees(transformComponent.rotation);
         sprite.setPosition({transformComponent.position.x, transformComponent.position.y});
         sprite.setScale({transformComponent.scale.x, transformComponent.scale.y});
         sprite.setRotation(angle);
 
         // Draw
-        window.draw(sprite);
+        window.draw(sprite, &shader);
     }
 }

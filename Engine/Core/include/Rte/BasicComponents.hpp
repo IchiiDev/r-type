@@ -5,9 +5,9 @@
 namespace Rte::BasicComponents {
 
     struct Transform {
-        Vec3<float> position{0, 0, 0};
-        Vec3<float> rotation{0, 0, 0};
-        Vec3<float> scale{1, 1, 1};
+        Vec2<float> position{0, 0};
+        Vec2<float> scale{1, 1};
+        float rotation{0};
     };
 
 }   // namespace Rte::BasicComponents

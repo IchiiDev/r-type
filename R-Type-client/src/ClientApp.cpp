@@ -23,6 +23,7 @@ void ClientApp::run() {
     graphicModule->init(m_ecs);
     graphicModule->setWindowTitle("R-Type");
     graphicModule->setWindowSize({1280, 720});
+    graphicModule->setDaltonismMode(Rte::Graphic::DaltonismMode::NONE);
 
 
     // Creation of a 1*1 red texture
@@ -31,12 +32,18 @@ void ClientApp::run() {
 
 
     // Creation of a drawable entity
+    constexpr Rte::Vec2<float> entityScale = {100, 100};
+    const Rte::Vec2<Rte::u16> windowSize = graphicModule->getWindowSize();
     const Rte::Entity entity = m_ecs->createEntity();
+
     m_ecs->addComponent<Rte::Graphic::Components::Sprite>(entity, Rte::Graphic::Components::Sprite(texture));
     m_ecs->addComponent<Rte::BasicComponents::Transform>(entity, Rte::BasicComponents::Transform{
-        .position = {500, 500, 500},
-        .rotation = {0, 0, 0},
-        .scale = {100, 100, 100}
+        .position = {
+            (static_cast<float>(windowSize.x) / 2) - (entityScale.x / 2),
+            (static_cast<float>(windowSize.y) / 2) - (entityScale.y / 2)
+        },
+        .scale = entityScale,
+        .rotation = 0
     });
 
 
@@ -53,13 +60,13 @@ void ClientApp::run() {
     m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Graphic::Events::Window::RESIZED,
         [&](Rte::Event& event) {
             // Get parameters from the event
-            const Rte::u16 width = event.getParameter<Rte::u16>(Rte::Graphic::Events::Window::Resized::WIDTH);
-            const Rte::u16 height = event.getParameter<Rte::u16>(Rte::Graphic::Events::Window::Resized::HEIGHT);
+            const float width = event.getParameter<Rte::u16>(Rte::Graphic::Events::Window::Resized::WIDTH);
+            const float height = event.getParameter<Rte::u16>(Rte::Graphic::Events::Window::Resized::HEIGHT);
 
             // Update the sprite position
             Rte::BasicComponents::Transform& transform = m_ecs->getComponent<Rte::BasicComponents::Transform>(entity);
-            transform.position.x = (width / 2.0) - 50;
-            transform.position.y = (height / 2.0) - 50;
+            transform.position.x = (width / 2) - (entityScale.x / 2);
+            transform.position.y = (height / 2) - (entityScale.y / 2);
         }
     ));
 

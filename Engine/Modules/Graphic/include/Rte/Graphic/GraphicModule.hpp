@@ -11,6 +11,13 @@
 
 namespace Rte::Graphic {
 
+    enum DaltonismMode : u8 {
+        NONE = 0,
+        PROTANOPIA = 1,
+        DEUTERANOPIA = 2,
+        TRITANOPIA = 3
+    };
+
     class GraphicModule : public IModule {
         public: // Overridden methods
             /**
@@ -43,6 +50,13 @@ namespace Rte::Graphic {
              * @param size Size of the window.
              */
             virtual void setWindowSize(const Vec2<u16>& size) = 0;
+
+            /**
+             * @brief Set the Daltonism mode.
+             *
+             * @param mode Daltonism mode (NONE, PROTANOPIA, DEUTERANOPIA, TRITANOPIA).
+             */
+            virtual void setDaltonismMode(DaltonismMode mode) = 0;
 
             /**
              * @brief Get the size of the window.
