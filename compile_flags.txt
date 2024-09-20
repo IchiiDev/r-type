@@ -14,3 +14,4 @@
 
 # External dependencies
 -I./external/SFML/include
+-I./external/spdlog/include

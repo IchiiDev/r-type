@@ -8,6 +8,7 @@
 #include "Rte/Graphic/Components.hpp"
 #include "Rte/Graphic/GraphicModule.hpp"
 #include "Rte/Graphic/Texture.hpp"
+#include "Rte/Logger.hpp"
 #include "Rte/ModuleManager.hpp"
 
 #include <memory>
