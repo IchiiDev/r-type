@@ -38,6 +38,8 @@ void GraphicModuleImpl::init(const std::shared_ptr<Ecs>& ecs) {
     if (!sf::Shader::isAvailable())
         throw std::runtime_error("Failed to load graphic module: Shaders are not available on this system.");
 
+
+    // Daltonian filter shader (source: https://godotshaders.com/shader/colorblindness-correction-shader)
     const std::string fragmentSource = R"(
         uniform sampler2D texture;
         uniform int mode;
