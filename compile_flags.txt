@@ -8,9 +8,15 @@
 -I./Engine/Modules/Graphic/include
 -I./Engine/Modules/Graphic/src
 
+# Physics module
+-I./Engine/Modules/Physics/include
+-I./Engine/Modules/Physics/src
+
 # R-Type
 -I./R-Type-client/include
 -I./R-Type-server/include
 
 # External dependencies
 -I./external/SFML/include
+-I./external/box2d/include
+-I./external/poly2tri
