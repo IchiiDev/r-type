@@ -26,16 +26,15 @@ void PhysicsSystem::init(const std::shared_ptr<Rte::Ecs>& ecs, b2WorldId worldId
 void PhysicsSystem::update() {
     assert(m_ecs != nullptr && "Cannot update render system: Not initialized.");
 
+    b2World_Step(m_worldId, m_timeStep, m_subStepCount);
     for (const Entity entity : m_entities) {
         const std::shared_ptr<RigidBodyImpl>& rigidBody = interfaceCast<RigidBodyImpl>(m_ecs->getComponent<Components::Physics>(entity).rigidBody);
         BasicComponents::Transform& transformComponent = m_ecs->getComponent<BasicComponents::Transform>(entity);
         
-        b2World_Step(m_worldId, m_timeStep, m_subStepCount);
         b2Vec2 position = b2Body_GetPosition(rigidBody->getBodyId());
         b2Rot rotation = b2Body_GetRotation(rigidBody->getBodyId());
 
-        std::cout << "Position: " << position.x << ", " << position.y << std::endl;
-        transformComponent.position = {(position.x + 1920 / 2.F), -(position.y - 1080 / 2.F)};
+        transformComponent.position = {(position.x * 8.F * PPM + 1920 / 2.F), -(position.y * 8.F * PPM - 1080 / 2.F)};
         transformComponent.rotation = -b2Rot_GetAngle(rotation) * 180 / b2_pi;
     }
 }

@@ -13,7 +13,7 @@ namespace Rte::Physics {
 
     class RigidBodyImpl : public RigidBody {
         public:
-            RigidBodyImpl(BodyType type, const std::vector<u8>& pixels, float density, float friction, b2WorldId worldId, Vec2<float> pos, Vec2<float> size);
+            RigidBodyImpl(BodyType type, const u8* pixels, Rte::Vec2<u16> size, float density, float friction, b2WorldId worldId, Vec2<float> pos, Vec2<float> scale, float rotation);
             ~RigidBodyImpl() override = default;
 
             RigidBodyImpl(const RigidBodyImpl&) = delete;
@@ -25,10 +25,6 @@ namespace Rte::Physics {
             [[nodiscard]] b2BodyId getBodyId() const;
         private:
             b2BodyId m_bodyId;
-            BodyType m_type;
-            std::vector<u8> m_pixels;
-            float m_density;
-            float m_friction;
     };
 
 }   // namespace Rte::Physics

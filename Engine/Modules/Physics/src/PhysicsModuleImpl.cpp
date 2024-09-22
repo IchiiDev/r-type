@@ -10,6 +10,7 @@
 #include "Rte/Physics/RigidBody.hpp"
 #include "RigidBodyImpl.hpp"
 
+#include <iostream>
 #include <memory>
 #include <optional>
 #include <string>
@@ -52,7 +53,8 @@ void PhysicsModuleImpl::update() {
     m_physicsSystem->update();
 }
 
-std::shared_ptr<RigidBody> PhysicsModuleImpl::createRigidBody(BodyType type, const std::vector<Rte::u8>& pixels, float density, float friction, Vec2<float> pos, Vec2<float> size) {
-    std::shared_ptr<RigidBodyImpl> rigidBody = std::make_shared<RigidBodyImpl>(type, pixels, density, friction, m_worldId, pos, size);
+std::shared_ptr<RigidBody> PhysicsModuleImpl::createRigidBody(BodyType type, const u8* pixels, Rte::Vec2<u16> size, float density, float friction, Vec2<float> pos, Vec2<float> scale, float rotation) {
+    
+    std::shared_ptr<RigidBodyImpl> rigidBody = std::make_shared<RigidBodyImpl>(type, pixels, size, density, friction, m_worldId, pos, scale, rotation);
     return rigidBody;
 }

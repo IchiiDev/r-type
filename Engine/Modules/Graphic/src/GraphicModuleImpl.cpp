@@ -29,8 +29,8 @@ Rte::IModule *createModule() {
 }
 
 void GraphicModuleImpl::init(const std::shared_ptr<Ecs>& ecs) {
-    m_window = sf::RenderWindow(sf::VideoMode({800, 600}), "Rte window");
-    m_window.setFramerateLimit(144);
+    m_window = sf::RenderWindow(sf::VideoMode({1920, 1080}), "Rte window");
+    m_window.setFramerateLimit(60);
     m_ecs = ecs;
 
 

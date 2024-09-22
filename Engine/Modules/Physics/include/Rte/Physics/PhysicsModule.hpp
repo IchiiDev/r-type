@@ -28,7 +28,7 @@ namespace Rte::Physics {
              */
             void update() override = 0;
 
-            virtual std::shared_ptr<RigidBody> createRigidBody(BodyType type, const std::vector<u8>& pixels, float density, float friction, Vec2<float> pos, Vec2<float> size) = 0;
+            virtual std::shared_ptr<RigidBody> createRigidBody(BodyType type, const u8* pixels, Rte::Vec2<u16> size, float density, float friction, Vec2<float> pos, Vec2<float> scale, float rotation) = 0;
     };
 }   // namespace Rte::Physics
 

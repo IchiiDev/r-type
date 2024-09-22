@@ -1,3 +1,3 @@
 #pragma once
 
-#define PPM 100.0F
+#define PPM 10.0F

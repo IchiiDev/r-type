@@ -3,7 +3,6 @@
 #include "Rte/Common.hpp"
 
 #include <string>
-#include <vector>
 
 namespace Rte::Graphic {
 
@@ -56,9 +55,9 @@ namespace Rte::Graphic {
             /**
              * @brief Get the pixels of the texture.
              *
-             * @return std::vector<u8> Pixels of the texture.
+             * @return u8* Pixels of the texture.
              */
-            [[nodiscard]] virtual std::vector<u8> getPixels() const = 0;
+            [[nodiscard]] virtual const u8 *getPixels() const = 0;
 
             /**
              * @brief Check if the texture is smooth.
