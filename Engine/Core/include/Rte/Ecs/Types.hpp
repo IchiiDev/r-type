@@ -24,6 +24,19 @@ namespace Rte {
      */
     class System {
         public:
+            System() = default;
+            virtual ~System() = default;
+
+            System(const System&) = delete;
+            System& operator=(const System&) = delete;
+            System(System&&) noexcept = default;
+            System& operator=(System&&) noexcept= default;
+
+        public:
+            /**
+             * @brief Entities possessed by the system.
+             * They will be updated automatically by the ECS.
+             */
             std::set<Entity> m_entities;
     };
 

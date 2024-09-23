@@ -10,6 +10,7 @@
 #include "Rte/Graphic/Texture.hpp"
 #include "Rte/ModuleManager.hpp"
 
+#include <iostream>
 #include <memory>
 #include <vector>
 
@@ -49,24 +50,38 @@ void ServerApp::run() {
 
     // Callback to close the window
     bool running = true;
-    m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Graphic::Events::Window::QUIT,
+    m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Graphic::Events::QUIT,
         [&](const Rte::Event& /* UNUSED */) {
             running = false;
         }
     ));
 
 
+    // Callback to print the key pressed
+    m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Graphic::Events::KEY_PRESSED, [&](Rte::Event& event) {
+        const Rte::Graphic::Key key = event.getParameter<Rte::Graphic::Key>(Rte::Graphic::Events::Params::KEY_PRESSED);
+        std::cout << "Key pressed: " << static_cast<int>(key) << "\n";
+    }));
+
+
+    // Callback to print mouse button pressed
+    m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Graphic::Events::MOUSE_BUTTON_PRESSED, [&](Rte::Event& event) {
+        const Rte::Graphic::MouseButton button = event.getParameter<Rte::Graphic::MouseButton>(Rte::Graphic::Events::Params::MOUSE_BUTTON_PRESSED);
+        const Rte::Vec2<Rte::u16> position = event.getParameter<Rte::Vec2<Rte::u16>>(Rte::Graphic::Events::Params::MOUSE_BUTTON_PRESSED_POSITION);
+        std::cout << "Mouse button pressed: " << static_cast<int>(button) << " at position (" << position.x << ", " << position.y << ")\n";
+    }));
+
+
     // Callback to move the sprite and make it at the center of the window
-    m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Graphic::Events::Window::RESIZED,
+    m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Graphic::Events::RESIZED,
         [&](Rte::Event& event) {
             // Get parameters from the event
-            const float width = event.getParameter<Rte::u16>(Rte::Graphic::Events::Window::Resized::WIDTH);
-            const float height = event.getParameter<Rte::u16>(Rte::Graphic::Events::Window::Resized::HEIGHT);
+            const Rte::Vec2<Rte::u16> newSize = event.getParameter<Rte::Vec2<Rte::u16>>(Rte::Graphic::Events::Params::NEW_WINDOW_SIZE);
 
             // Update the sprite position
             Rte::BasicComponents::Transform& transform = m_ecs->getComponent<Rte::BasicComponents::Transform>(entity);
-            transform.position.x = (width / 2) - (entityScale.x / 2);
-            transform.position.y = (height / 2) - (entityScale.y / 2);
+            transform.position.x = (static_cast<float>(newSize.x) / 2) - (entityScale.x / 2);
+            transform.position.y = (static_cast<float>(newSize.y) / 2) - (entityScale.y / 2);
         }
     ));
 

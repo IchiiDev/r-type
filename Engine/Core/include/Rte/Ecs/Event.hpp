@@ -15,6 +15,14 @@ namespace Rte {
         public:
             Event() = delete;
             explicit Event(EventType type) : m_type(type) {}
+            ~Event() = default;
+
+            Event(const Event&) = delete;
+            Event& operator=(const Event&) = delete;
+
+            Event(Event&&) noexcept = default;
+            Event& operator=(Event&&) noexcept = default;
+
 
             /**
              * @brief Set the parameter of an event.
