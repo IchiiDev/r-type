@@ -36,8 +36,6 @@ Rte::Vec2<Rte::u16> TextureImpl::getSize() const {
 
 const Rte::u8 *TextureImpl::getPixels() const {
     return m_image.getPixelsPtr();
-const Rte::u8 *TextureImpl::getPixels() const {
-    return m_image.getPixelsPtr();
 }
 
 bool TextureImpl::isSmooth() const {

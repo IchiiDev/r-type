@@ -60,7 +60,6 @@ namespace Rte::Graphic {
              * @return u8* Pixels of the texture.
              */
             [[nodiscard]] virtual const u8 *getPixels() const = 0;
-            [[nodiscard]] virtual const u8 *getPixels() const = 0;
 
             /**
              * @brief Check if the texture is smooth.

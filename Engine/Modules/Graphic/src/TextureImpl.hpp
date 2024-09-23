@@ -32,7 +32,6 @@ namespace Rte::Graphic {
 
             [[nodiscard]] Vec2<u16> getSize() const override;
             [[nodiscard]] const u8 *getPixels() const override;
-            [[nodiscard]] const u8 *getPixels() const override;
             [[nodiscard]] bool isSmooth() const override;
 
 
@@ -42,7 +41,6 @@ namespace Rte::Graphic {
 
         private:
             sf::Texture m_texture;
-            sf::Image m_image;
             sf::Image m_image;
     };
 
