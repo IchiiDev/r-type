@@ -137,6 +137,38 @@ namespace Rte::Graphic {
 
 
     /**
+     * @brief Enumeration of mouse buttons code
+     */
+    enum MouseButton : u8 {
+        Left,
+        Right,
+        Middle,
+        Extra1,
+        Extra2
+    };
+
+
+    // Event types
+    namespace Events {
+        const EventType QUIT = "Events::QUIT"_hash;
+        const EventType RESIZED = "Events::RESIZED"_hash;
+        const EventType KEY_PRESSED = "Events::KEY_PRESSED"_hash;
+        const EventType TIMED_KEY_PRESSED = "Events::TIMED_KEY_PRESSED"_hash;
+        const EventType MOUSE_BUTTON_PRESSED = "Events::MOUSE_BUTTON_PRESSED"_hash;
+    }   // namespace Events
+
+
+    // Input event parameters
+    namespace Events::Params {
+        const ParamId NEW_WINDOW_SIZE = "Events::Params::NEW_WINDOW_SIZE"_hash;
+        const ParamId KEY_PRESSED = "Events::Params::KEY_PRESSED"_hash;
+        const ParamId TIMED_KEY_PRESSED = "Events::Params::TIMED_KEY_PRESSED"_hash;
+        const ParamId MOUSE_BUTTON_PRESSED = "Events::Params::MOUSE_BUTTON_PRESSED"_hash;
+        const ParamId MOUSE_BUTTON_PRESSED_POSITION = "Events::Params::MOUSE_BUTTON_PRESSED_POSITION"_hash;
+    }   // namespace Events::Params
+
+
+    /**
      * @brief Graphic module interface.
      * This module is responsible for rendering entities to the window.
      * It uses the RenderSystem to render all the entities that have a transform and a sprite component.
@@ -206,29 +238,6 @@ namespace Rte::Graphic {
              */
             [[nodiscard]] virtual std::shared_ptr<Texture> createTexture() const = 0;
     };
-
-
-    // Event types
-    namespace Events {
-        const EventType QUIT = "Events::QUIT"_hash;
-        const EventType RESIZED = "Events::RESIZED"_hash;
-        const EventType KEY_PRESSED = "Events::KEY_PRESSED"_hash;
-        const EventType TIMED_KEY_PRESSED = "Events::TIMED_KEY_PRESSED"_hash;
-    }   // namespace Events
-
-
-    // Resized event parameters
-    namespace Events::Params::Resized {
-        const ParamId WIDTH = "Events::Params::Resized::WIDTH"_hash;
-        const ParamId HEIGHT = "Events::Params::Resized::HEIGHT"_hash;
-    }   // namespace Events::Params::Resized
-
-
-    // Input event parameters
-    namespace Events::Params {
-        const ParamId KEY_PRESSED = "Events::Params::KEY_PRESSED"_hash;
-        const ParamId TIMED_KEY_PRESSED = "Events::Params::TIMED_KEY_PRESSED"_hash;
-    }   // namespace Events::Params
 
 }   // namespace Rte::Graphic
 

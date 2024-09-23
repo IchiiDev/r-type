@@ -138,8 +138,7 @@ void GraphicModuleImpl::update() {
 
             // Send event with new size
             Event event(Events::RESIZED);
-            event.setParameter<Rte::u16>(Events::Params::Resized::WIDTH, resized->size.x);
-            event.setParameter<Rte::u16>(Events::Params::Resized::HEIGHT, resized->size.y);
+            event.setParameter<Vec2<u16>>(Events::Params::NEW_WINDOW_SIZE, Vec2<u16>(resized->size.x, resized->size.y));
             m_ecs->sendEvent(event);
         }
 
@@ -148,6 +147,15 @@ void GraphicModuleImpl::update() {
         if (const sf::Event::KeyPressed *keyPressed = event->getIf<sf::Event::KeyPressed>()) {
             Event event(Events::TIMED_KEY_PRESSED);
             event.setParameter<Key>(Events::Params::TIMED_KEY_PRESSED, sfmlKeyToRteKey.at(keyPressed->code));
+            m_ecs->sendEvent(event);
+        }
+
+
+        // Check for mouse button pressed
+        if (const sf::Event::MouseButtonPressed *mouseButtonPressed = event->getIf<sf::Event::MouseButtonPressed>()) {
+            Event event(Events::MOUSE_BUTTON_PRESSED);
+            event.setParameter<MouseButton>(Events::Params::MOUSE_BUTTON_PRESSED, sfmlMouseButtonToRteMouseButton.at(mouseButtonPressed->button));
+            event.setParameter<Vec2<u16>>(Events::Params::MOUSE_BUTTON_PRESSED_POSITION, Vec2<u16>(mouseButtonPressed->position.x, mouseButtonPressed->position.y));
             m_ecs->sendEvent(event);
         }
     }

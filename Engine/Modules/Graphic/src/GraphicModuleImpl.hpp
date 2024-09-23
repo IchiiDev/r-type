@@ -9,6 +9,7 @@
 #include "SFML/Graphics/RenderWindow.hpp"
 #include "SFML/Graphics/Shader.hpp"
 #include "SFML/Window/Keyboard.hpp"
+#include "SFML/Window/Mouse.hpp"
 
 #include <memory>
 #include <string>
@@ -124,6 +125,15 @@ namespace Rte::Graphic {
         {sf::Keyboard::Key::F14, Key::F14},
         {sf::Keyboard::Key::F15, Key::F15},
         {sf::Keyboard::Key::Pause, Key::Pause}
+    };
+
+
+    static const std::unordered_map<sf::Mouse::Button, MouseButton> sfmlMouseButtonToRteMouseButton = {
+        {sf::Mouse::Button::Left, MouseButton::Left},
+        {sf::Mouse::Button::Right, MouseButton::Right},
+        {sf::Mouse::Button::Middle, MouseButton::Middle},
+        {sf::Mouse::Button::Extra1, MouseButton::Extra1},
+        {sf::Mouse::Button::Extra2, MouseButton::Extra2}
     };
 
 

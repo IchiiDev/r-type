@@ -60,13 +60,12 @@ void ClientApp::run() {
     m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Graphic::Events::RESIZED,
         [&](Rte::Event& event) {
             // Get parameters from the event
-            const float width = event.getParameter<Rte::u16>(Rte::Graphic::Events::Params::Resized::WIDTH);
-            const float height = event.getParameter<Rte::u16>(Rte::Graphic::Events::Params::Resized::HEIGHT);
+            const Rte::Vec2<Rte::u16> newSize = event.getParameter<Rte::Vec2<Rte::u16>>(Rte::Graphic::Events::Params::NEW_WINDOW_SIZE);
 
             // Update the sprite position
             Rte::BasicComponents::Transform& transform = m_ecs->getComponent<Rte::BasicComponents::Transform>(entity);
-            transform.position.x = (width / 2) - (entityScale.x / 2);
-            transform.position.y = (height / 2) - (entityScale.y / 2);
+            transform.position.x = (static_cast<float>(newSize.x) / 2) - (entityScale.x / 2);
+            transform.position.y = (static_cast<float>(newSize.y) / 2) - (entityScale.y / 2);
         }
     ));
 
