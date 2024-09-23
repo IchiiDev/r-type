@@ -30,9 +30,9 @@ void PhysicsSystem::update() {
     for (const Entity entity : m_entities) {
         const std::shared_ptr<RigidBodyImpl>& rigidBody = interfaceCast<RigidBodyImpl>(m_ecs->getComponent<Components::Physics>(entity).rigidBody);
         BasicComponents::Transform& transformComponent = m_ecs->getComponent<BasicComponents::Transform>(entity);
-        
         b2Vec2 position = b2Body_GetPosition(rigidBody->getBodyId());
         b2Rot rotation = b2Body_GetRotation(rigidBody->getBodyId());
+        
 
         transformComponent.position = {(position.x * 8.F * PPM + 1920 / 2.F), -(position.y * 8.F * PPM - 1080 / 2.F)};
         transformComponent.rotation = -b2Rot_GetAngle(rotation) * 180 / b2_pi;

@@ -24,9 +24,9 @@ using Tri = struct {
 //Where image is an array of pixels in rgba format
 std::vector<int> convertToBinary(const Rte::u8* image, Rte::Vec2<Rte::u16> size) {
     std::vector<int> binaryImage;
-    for (int i = 0; i < size.x * size.y; i++)
+    for (int i = 1; i < size.x * size.y + 1; i++)
     {
-        if (image[i * 4] == 0)
+        if (image[i * 4 - 1] == 0)
         {
             binaryImage.push_back(0);
             std::cout << " ";
@@ -41,20 +41,59 @@ std::vector<int> convertToBinary(const Rte::u8* image, Rte::Vec2<Rte::u16> size)
             std::cout << std::endl;
         }
     }
+    std::cout << "jjaj" << std::endl;
     return binaryImage;
 }
 
 // Using the marching squares algorithm to generate outline of the binary image
-std::vector<std::vector<Rte::Vec2<float>>> marchingSquares (const std::vector<int> binaryImage, Rte::Vec2<Rte::u16> size) {
+std::vector<std::vector<Rte::Vec2<float>>> marchingSquares (std::vector<int> binaryImage, Rte::Vec2<Rte::u16> size) {
     std::vector<std::vector<Rte::Vec2<float>>> vertices;
-    for (float y = 0; y < size.y - 1; y++)
+    for (float y = -1; y < size.y + 1; y++)
     {
-        for (float x = 0; x < size.x - 1; x++)
+        for (float x = -1; x < size.x + 1; x++)
         {
-            int topLeft = binaryImage[y * size.x + x];
-            int topRight = binaryImage[y * size.x + x + 1];
-            int bottomLeft = binaryImage[(y + 1) * size.x + x];
-            int bottomRight = binaryImage[(y + 1) * size.x + x + 1];
+            int topLeft = 0;
+            int topRight = 0;
+            int bottomLeft = 0;
+            int bottomRight = 0;
+            if (x >= 0 && x < size.x && y >= 0 && y < size.y)
+            {
+                topLeft = binaryImage[y * size.x + x];
+                if (x + 1 < size.x) topRight = binaryImage[y * size.x + x + 1];
+                if (y + 1 < size.y) bottomLeft = binaryImage[(y + 1) * size.x + x];
+                if (x + 1 < size.x && y + 1 < size.y) bottomRight = binaryImage[(y + 1) * size.x + x + 1];
+            }
+            else
+            {
+                if (x < 0)
+                {
+                    topLeft = 0;
+                    bottomLeft = 0;
+                    if (x + 1 < size.x && y >= 0 && y < size.y) topRight = binaryImage[y * size.x + x + 1];
+                    if (x + 1 < size.x && y + 1 < size.y) bottomRight = binaryImage[(y + 1) * size.x + x + 1];
+                }
+                if (x >= size.x)
+                {
+                    topRight = 0;
+                    bottomRight = 0;
+                    if (x - 1 >= 0 && y >= 0 && y < size.y) topLeft = binaryImage[y * size.x + x - 1];
+                    if (x - 1 >= 0 && y + 1 < size.y) bottomLeft = binaryImage[(y + 1) * size.x + x - 1];
+                }
+                if (y < 0)
+                {
+                    topLeft = 0;
+                    topRight = 0;
+                    if (y + 1 < size.y && x >= 0 && x < size.x) bottomLeft = binaryImage[(y + 1) * size.x + x];
+                    if (y + 1 < size.y && x + 1 < size.x) bottomRight = binaryImage[(y + 1) * size.x + x + 1];
+                }
+                if (y >= size.y)
+                {
+                    bottomLeft = 0;
+                    bottomRight = 0;
+                    if (y - 1 >= 0 && x >= 0 && x < size.x) topLeft = binaryImage[(y - 1) * size.x + x];
+                    if (y - 1 >= 0 && x + 1 < size.x) topRight = binaryImage[(y - 1) * size.x + x + 1];
+                }
+            }
             int configuration = topLeft * 8 + topRight * 4 + bottomRight * 2 + bottomLeft;
             switch (configuration)
             {
@@ -133,7 +172,6 @@ std::vector<std::vector<Rte::Vec2<float>>> marchingSquares (const std::vector<in
     }
     return vertices;
 }
-
 
 bool isVertexInList(Rte::Vec2<float> vertex, std::vector<Rte::Vec2<float>> vertices) {
     for (size_t i = 0; i < vertices.size(); i++)
@@ -331,6 +369,41 @@ std::vector<Tri> polygoneToTriangles(std::vector<Rte::Vec2<float>> polygone) {
     return convertedTriangles;
 }
 
+
+bool isPointInPolygon(const Rte::Vec2<float>& point, const std::vector<Rte::Vec2<float>>& polygon) {
+    bool inside = false;
+    size_t n = polygon.size();
+    for (size_t i = 0, j = n - 1; i < n; j = i++) {
+        if (((polygon[i].y > point.y) != (polygon[j].y > point.y)) &&
+            (point.x < (polygon[j].x - polygon[i].x) * (point.y - polygon[i].y) / (polygon[j].y - polygon[i].y) + polygon[i].x)) {
+            inside = !inside;
+        }
+    }
+    return inside;
+}
+
+bool isPolygonInsidePolygon(const std::vector<Rte::Vec2<float>>& polygon1, const std::vector<Rte::Vec2<float>>& polygon2) {
+    for (const auto& point : polygon2) {
+        if (!isPointInPolygon(point, polygon1)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+std::vector<std::vector<Rte::Vec2<float>>> findHolesInPolygons(std::vector<std::vector<Rte::Vec2<float>>>& polygons) {
+    for (size_t i = 0; i < polygons.size(); i++) {
+        for (size_t j = 0; j < polygons.size(); j++) {
+            if (i != j && isPolygonInsidePolygon(polygons[i], polygons[j])) {
+                polygons.erase(polygons.begin() + j);
+                i = 0;
+            }
+        }
+    }
+    return polygons;
+}
+
+
 RigidBodyImpl::RigidBodyImpl(BodyType type, const u8* pixels, Rte::Vec2<u16> size, float density, float friction, b2WorldId worldId, Vec2<float> pos, Vec2<float> scale, float rotation) {
     
     // Create a body definition
@@ -342,15 +415,16 @@ RigidBodyImpl::RigidBodyImpl(BodyType type, const u8* pixels, Rte::Vec2<u16> siz
     } else if (type == BodyType::KINEMATIC) {
         bodyDef.type = b2BodyType::b2_kinematicBody;
     }
-    
 
     bodyDef.position = {(pos.x - 1920 / 2.F) / 8.F / PPM, -(pos.y - 1080 / 2.F) / 8.F / PPM};
     bodyDef.rotation = b2MakeRot(rotation * b2_pi / 180.F);
     std::cout << "Position: " << bodyDef.position.x << ", " << bodyDef.position.y << std::endl;
-    // Create the body
+    
+    // Create the polygons from the image
     std::vector<int> binaryImage = convertToBinary(pixels, size);
     std::vector<std::vector<Rte::Vec2<float>>> vertices = marchingSquares(binaryImage, size);
     std::vector<std::vector<Rte::Vec2<float>>> continuousLines = createContinuousLines(vertices);
+    continuousLines = findHolesInPolygons(continuousLines); 
     for (size_t i = 0; i < continuousLines.size(); i++)
     {
         continuousLines[i] = douglasPeucker(continuousLines[i], 0.75);
@@ -359,7 +433,7 @@ RigidBodyImpl::RigidBodyImpl(BodyType type, const u8* pixels, Rte::Vec2<u16> siz
 
     m_bodyId = b2CreateBody(worldId, &bodyDef);
 
-    // Create a polygon shape
+    // Create attach the triangles to the body
     for (const auto& tri : triangles) {
         b2Vec2 vertices[3];
         vertices[0] = {(tri.a.x - size.x / 2) / PPM, -(tri.a.y - size.y / 2) / PPM};

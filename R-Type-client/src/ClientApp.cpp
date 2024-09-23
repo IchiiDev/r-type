@@ -41,7 +41,7 @@ void ClientApp::run() {
     constexpr Rte::Vec2<float> entityScale = {8, 8};
     const Rte::Vec2<Rte::u16> windowSize = graphicModule->getWindowSize();
     const Rte::Vec2<float> entityPosition = {
-        (static_cast<float>(windowSize.x) / 2) - (entityScale.x / 2) + 120,
+        (static_cast<float>(windowSize.x) / 2) - (entityScale.x / 2),
         (static_cast<float>(windowSize.y) / 2) - (entityScale.y / 2)
     };
     Rte::Entity entity = m_ecs->createEntity();
@@ -74,8 +74,8 @@ void ClientApp::run() {
 
     constexpr Rte::Vec2<float> entityScale2 = {8, 8};
     const Rte::Vec2<float> entityPosition2 = {
-        (static_cast<float>(windowSize.x) / 2) - (entityScale.x / 2) + 00,
-        (static_cast<float>(windowSize.y) / 2) - (entityScale.y / 2)
+        (static_cast<float>(windowSize.x) / 2) - (entityScale.x / 2),
+        (static_cast<float>(windowSize.y) / 2) - (entityScale.y / 2) + 400
     };
     Rte::Entity entity2 = m_ecs->createEntity();
 
