@@ -15,6 +15,7 @@
 #include "SFML/System/Vector2.hpp"
 #include "SFML/Window/Event.hpp"
 #include "SFML/Window/Keyboard.hpp"
+#include "SFML/Window/Mouse.hpp"
 #include "SFML/Window/VideoMode.hpp"
 #include "TextureImpl.hpp"
 
@@ -143,10 +144,10 @@ void GraphicModuleImpl::update() {
         }
 
 
-        // Check for key pressed (timed)
+        // Check for key pressed
         if (const sf::Event::KeyPressed *keyPressed = event->getIf<sf::Event::KeyPressed>()) {
-            Event event(Events::TIMED_KEY_PRESSED);
-            event.setParameter<Key>(Events::Params::TIMED_KEY_PRESSED, sfmlKeyToRteKey.at(keyPressed->code));
+            Event event(Events::KEY_PRESSED);
+            event.setParameter<Key>(Events::Params::KEY_PRESSED, sfmlKeyToRteKey.at(keyPressed->code));
             m_ecs->sendEvent(event);
         }
 
@@ -161,20 +162,23 @@ void GraphicModuleImpl::update() {
     }
 
 
-    // Check if a key is pressed
-    for (u8 i = 0; i < sf::Keyboard::KeyCount - 1; ++i) {
-        if (sf::Keyboard::isKeyPressed(static_cast<sf::Keyboard::Key>(i))) {
-            Event event(Events::KEY_PRESSED);
-            event.setParameter<Key>(Events::Params::KEY_PRESSED, sfmlKeyToRteKey.at(static_cast<sf::Keyboard::Key>(i)));
-            m_ecs->sendEvent(event);
-        }
-    }
-
-
     // Clear & display
     m_window.clear();
     m_renderSystem->update(m_window, m_shader);
     m_window.display();
+}
+
+bool GraphicModuleImpl::isKeyPressed(Key key) const {
+    return sf::Keyboard::isKeyPressed(rteKeyToSfmlKey.at(key));
+}
+
+bool GraphicModuleImpl::isMouseButtonPressed(MouseButton button) const {
+    return sf::Mouse::isButtonPressed(rteMouseButtonToSfmlMouseButton.at(button));
+}
+
+Rte::Vec2<Rte::u16> GraphicModuleImpl::getMousePosition() const {
+    const sf::Vector2<i32> position = sf::Mouse::getPosition(m_window);
+    return {static_cast<u16>(position.x), static_cast<u16>(position.y)};
 }
 
 void GraphicModuleImpl::setDaltonismMode(DaltonismMode mode) {

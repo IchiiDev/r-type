@@ -153,7 +153,6 @@ namespace Rte::Graphic {
         const EventType QUIT = "Events::QUIT"_hash;
         const EventType RESIZED = "Events::RESIZED"_hash;
         const EventType KEY_PRESSED = "Events::KEY_PRESSED"_hash;
-        const EventType TIMED_KEY_PRESSED = "Events::TIMED_KEY_PRESSED"_hash;
         const EventType MOUSE_BUTTON_PRESSED = "Events::MOUSE_BUTTON_PRESSED"_hash;
     }   // namespace Events
 
@@ -162,7 +161,6 @@ namespace Rte::Graphic {
     namespace Events::Params {
         const ParamId NEW_WINDOW_SIZE = "Events::Params::NEW_WINDOW_SIZE"_hash;
         const ParamId KEY_PRESSED = "Events::Params::KEY_PRESSED"_hash;
-        const ParamId TIMED_KEY_PRESSED = "Events::Params::TIMED_KEY_PRESSED"_hash;
         const ParamId MOUSE_BUTTON_PRESSED = "Events::Params::MOUSE_BUTTON_PRESSED"_hash;
         const ParamId MOUSE_BUTTON_PRESSED_POSITION = "Events::Params::MOUSE_BUTTON_PRESSED_POSITION"_hash;
     }   // namespace Events::Params
@@ -185,6 +183,8 @@ namespace Rte::Graphic {
             GraphicModule& operator=(GraphicModule&&) = default;
 
 
+
+
         public: // Overridden methods
             /**
              * @brief Initializes the module.
@@ -200,6 +200,8 @@ namespace Rte::Graphic {
              * It will render all the entities to the window using the RenderSystem.
              */
             void update() override = 0;
+
+
 
 
         public: // Specific methods
@@ -237,6 +239,33 @@ namespace Rte::Graphic {
              * @return std::shared_ptr<Texture> Shared pointer to the texture.
              */
             [[nodiscard]] virtual std::shared_ptr<Texture> createTexture() const = 0;
+
+
+
+
+        public:  // Input methods
+            /**
+             * @brief Check if a key is pressed.
+             *
+             * @param key Key to check.
+             * @return true if the key is pressed, false otherwise.
+             */
+            [[nodiscard]] virtual bool isKeyPressed(Key key) const = 0;
+
+            /**
+             * @brief Check if a mouse button is pressed.
+             *
+             * @param button Mouse button to check.
+             * @return true if the mouse button is pressed, false otherwise.
+             */
+            [[nodiscard]] virtual bool isMouseButtonPressed(MouseButton button) const = 0;
+
+            /**
+             * @brief Get the position of the mouse.
+             *
+             * @return Vec2<u16> Position of the mouse.
+             */
+            [[nodiscard]] virtual Vec2<u16> getMousePosition() const = 0;
     };
 
 }   // namespace Rte::Graphic

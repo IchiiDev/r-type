@@ -128,6 +128,118 @@ namespace Rte::Graphic {
     };
 
 
+    static const std::unordered_map<Key, sf::Keyboard::Key> rteKeyToSfmlKey = {
+        {Key::Unknown, sf::Keyboard::Key::Unknown},
+
+        {Key::A, sf::Keyboard::Key::A},
+        {Key::B, sf::Keyboard::Key::B},
+        {Key::C, sf::Keyboard::Key::C},
+        {Key::D, sf::Keyboard::Key::D},
+        {Key::E, sf::Keyboard::Key::E},
+        {Key::F, sf::Keyboard::Key::F},
+        {Key::G, sf::Keyboard::Key::G},
+        {Key::H, sf::Keyboard::Key::H},
+        {Key::I, sf::Keyboard::Key::I},
+        {Key::J, sf::Keyboard::Key::J},
+        {Key::K, sf::Keyboard::Key::K},
+        {Key::L, sf::Keyboard::Key::L},
+        {Key::M, sf::Keyboard::Key::M},
+        {Key::N, sf::Keyboard::Key::N},
+        {Key::O, sf::Keyboard::Key::O},
+        {Key::P, sf::Keyboard::Key::P},
+        {Key::Q, sf::Keyboard::Key::Q},
+        {Key::R, sf::Keyboard::Key::R},
+        {Key::S, sf::Keyboard::Key::S},
+        {Key::T, sf::Keyboard::Key::T},
+        {Key::U, sf::Keyboard::Key::U},
+        {Key::V, sf::Keyboard::Key::V},
+        {Key::W, sf::Keyboard::Key::W},
+        {Key::X, sf::Keyboard::Key::X},
+        {Key::Y, sf::Keyboard::Key::Y},
+        {Key::Z, sf::Keyboard::Key::Z},
+        {Key::Num0, sf::Keyboard::Key::Num0},
+        {Key::Num1, sf::Keyboard::Key::Num1},
+        {Key::Num2, sf::Keyboard::Key::Num2},
+        {Key::Num3, sf::Keyboard::Key::Num3},
+        {Key::Num4, sf::Keyboard::Key::Num4},
+        {Key::Num5, sf::Keyboard::Key::Num5},
+        {Key::Num6, sf::Keyboard::Key::Num6},
+        {Key::Num7, sf::Keyboard::Key::Num7},
+        {Key::Num8, sf::Keyboard::Key::Num8},
+        {Key::Num9, sf::Keyboard::Key::Num9},
+
+        {Key::Escape, sf::Keyboard::Key::Escape},
+        {Key::LControl, sf::Keyboard::Key::LControl},
+        {Key::LShift, sf::Keyboard::Key::LShift},
+        {Key::LAlt, sf::Keyboard::Key::LAlt},
+        {Key::LSystem, sf::Keyboard::Key::LSystem},
+        {Key::RControl, sf::Keyboard::Key::RControl},
+        {Key::RShift, sf::Keyboard::Key::RShift},
+        {Key::RAlt, sf::Keyboard::Key::RAlt},
+        {Key::RSystem, sf::Keyboard::Key::RSystem},
+        {Key::Menu, sf::Keyboard::Key::Menu},
+        {Key::LBracket, sf::Keyboard::Key::LBracket},
+        {Key::RBracket, sf::Keyboard::Key::RBracket},
+        {Key::Semicolon, sf::Keyboard::Key::Semicolon},
+        {Key::Comma, sf::Keyboard::Key::Comma},
+        {Key::Period, sf::Keyboard::Key::Period},
+        {Key::Apostrophe, sf::Keyboard::Key::Apostrophe},
+        {Key::Slash, sf::Keyboard::Key::Slash},
+        {Key::Backslash, sf::Keyboard::Key::Backslash},
+        {Key::Grave, sf::Keyboard::Key::Grave},
+        {Key::Equal, sf::Keyboard::Key::Equal},
+        {Key::Hyphen, sf::Keyboard::Key::Hyphen},
+        {Key::Space, sf::Keyboard::Key::Space},
+        {Key::Enter, sf::Keyboard::Key::Enter},
+        {Key::Backspace, sf::Keyboard::Key::Backspace},
+        {Key::Tab, sf::Keyboard::Key::Tab},
+        {Key::PageUp, sf::Keyboard::Key::PageUp},
+        {Key::PageDown, sf::Keyboard::Key::PageDown},
+        {Key::End, sf::Keyboard::Key::End},
+        {Key::Home, sf::Keyboard::Key::Home},
+        {Key::Insert, sf::Keyboard::Key::Insert},
+        {Key::Delete, sf::Keyboard::Key::Delete},
+        {Key::Add, sf::Keyboard::Key::Add},
+        {Key::Subtract, sf::Keyboard::Key::Subtract},
+        {Key::Multiply, sf::Keyboard::Key::Multiply},
+        {Key::Divide, sf::Keyboard::Key::Divide},
+
+        {Key::Left, sf::Keyboard::Key::Left},
+        {Key::Right, sf::Keyboard::Key::Right},
+        {Key::Up, sf::Keyboard::Key::Up},
+        {Key::Down, sf::Keyboard::Key::Down},
+
+        {Key::Numpad0, sf::Keyboard::Key::Numpad0},
+        {Key::Numpad1, sf::Keyboard::Key::Numpad1},
+        {Key::Numpad2, sf::Keyboard::Key::Numpad2},
+        {Key::Numpad3, sf::Keyboard::Key::Numpad3},
+        {Key::Numpad4, sf::Keyboard::Key::Numpad4},
+        {Key::Numpad5, sf::Keyboard::Key::Numpad5},
+        {Key::Numpad6, sf::Keyboard::Key::Numpad6},
+        {Key::Numpad7, sf::Keyboard::Key::Numpad7},
+        {Key::Numpad8, sf::Keyboard::Key::Numpad8},
+        {Key::Numpad9, sf::Keyboard::Key::Numpad9},
+
+        {Key::F1, sf::Keyboard::Key::F1},
+        {Key::F2, sf::Keyboard::Key::F2},
+        {Key::F3, sf::Keyboard::Key::F3},
+        {Key::F4, sf::Keyboard::Key::F4},
+        {Key::F5, sf::Keyboard::Key::F5},
+        {Key::F6, sf::Keyboard::Key::F6},
+        {Key::F7, sf::Keyboard::Key::F7},
+        {Key::F8, sf::Keyboard::Key::F8},
+        {Key::F9, sf::Keyboard::Key::F9},
+        {Key::F10, sf::Keyboard::Key::F10},
+        {Key::F11, sf::Keyboard::Key::F11},
+        {Key::F12, sf::Keyboard::Key::F12},
+        {Key::F13, sf::Keyboard::Key::F13},
+        {Key::F14, sf::Keyboard::Key::F14},
+        {Key::F15, sf::Keyboard::Key::F15},
+        {Key::Pause, sf::Keyboard::Key::Pause}
+    };
+
+
+
     static const std::unordered_map<sf::Mouse::Button, MouseButton> sfmlMouseButtonToRteMouseButton = {
         {sf::Mouse::Button::Left, MouseButton::Left},
         {sf::Mouse::Button::Right, MouseButton::Right},
@@ -137,11 +249,24 @@ namespace Rte::Graphic {
     };
 
 
+    static const std::unordered_map<MouseButton, sf::Mouse::Button> rteMouseButtonToSfmlMouseButton = {
+        {MouseButton::Left, sf::Mouse::Button::Left},
+        {MouseButton::Right, sf::Mouse::Button::Right},
+        {MouseButton::Middle, sf::Mouse::Button::Middle},
+        {MouseButton::Extra1, sf::Mouse::Button::Extra1},
+        {MouseButton::Extra2, sf::Mouse::Button::Extra2}
+    };
+
+
+
     class GraphicModuleImpl : public GraphicModule {
         public:
+            // Module methods
             void init(const std::shared_ptr<Ecs>& ecs) override;
             void update() override;
 
+
+            // Specific methods
             void setWindowTitle(const std::string& title) override;
             void setWindowSize(const Vec2<u16>& size) override;
             void setDaltonismMode(DaltonismMode mode) override;
@@ -151,13 +276,19 @@ namespace Rte::Graphic {
             [[nodiscard]] std::shared_ptr<Texture> createTexture() const override;
 
 
+            // Input methods
+            [[nodiscard]] bool isKeyPressed(Key key) const override;
+            [[nodiscard]] bool isMouseButtonPressed(MouseButton button) const override;
+            [[nodiscard]] Vec2<u16> getMousePosition() const override;
+
+
         private:
             std::shared_ptr<Ecs> m_ecs;
 
             sf::RenderWindow m_window;
-            std::shared_ptr<RenderSystem> m_renderSystem;
-
             sf::Shader m_shader;
+
+            std::shared_ptr<RenderSystem> m_renderSystem;
     };
 
 }   // namespace Rte::Graphic
