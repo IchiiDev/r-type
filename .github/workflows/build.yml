@@ -36,7 +36,7 @@ jobs:
               run: cmake -B build -S .
 
             - name: Run Clang-Tidy
-              run: clang-tidy --config-file=.clang-tidy $(find Engine R-Type-server R-Type-client -name "*.cpp" -or -name "*.hpp")
+              run: clang-tidy $(find Engine R-Type-server R-Type-client -name "*.cpp" -or -name "*.hpp")
 
     build-windows: # Windows build
         name: Build on Windows

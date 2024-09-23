@@ -34,6 +34,16 @@ namespace Rte {
     template<typename T>
     class ComponentArray : public IComponentArray {
         public:
+            ComponentArray() = default;
+            ~ComponentArray() override = default;
+
+            ComponentArray(const ComponentArray&) = delete;
+            ComponentArray& operator=(const ComponentArray&) = delete;
+
+            ComponentArray(ComponentArray&&) noexcept = default;
+            ComponentArray& operator=(ComponentArray&&) noexcept = default;
+
+
             /**
              * @brief Insert the datas of an entity into the array.
              * /!\ The entity must not already have a component of this type.

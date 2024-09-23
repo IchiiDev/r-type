@@ -13,6 +13,7 @@ namespace Rte::Graphic {
 
             Texture(const Texture&) = delete;
             Texture& operator=(const Texture&) = delete;
+
             Texture(Texture&&) noexcept = default;
             Texture& operator=(Texture&&) noexcept = default;
 
@@ -56,7 +57,9 @@ namespace Rte::Graphic {
              * @brief Get the pixels of the texture.
              *
              * @return u8* Pixels of the texture.
+             * @return u8* Pixels of the texture.
              */
+            [[nodiscard]] virtual const u8 *getPixels() const = 0;
             [[nodiscard]] virtual const u8 *getPixels() const = 0;
 
             /**

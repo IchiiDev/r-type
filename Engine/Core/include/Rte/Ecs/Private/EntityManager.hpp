@@ -17,6 +17,15 @@ namespace Rte {
     class EntityManager {
         public:
             EntityManager();
+            ~EntityManager() = default;
+
+            EntityManager(const EntityManager&) = delete;
+            EntityManager& operator=(const EntityManager&) = delete;
+
+            EntityManager(EntityManager&&) noexcept = default;
+            EntityManager& operator=(EntityManager&&) noexcept = default;
+
+
 
             /**
              * @brief Create a new entity by getting the first available entity ID from the queue.

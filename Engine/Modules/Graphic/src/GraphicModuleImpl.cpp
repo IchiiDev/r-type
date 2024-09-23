@@ -14,6 +14,8 @@
 #include "SFML/Graphics/View.hpp"
 #include "SFML/System/Vector2.hpp"
 #include "SFML/Window/Event.hpp"
+#include "SFML/Window/Keyboard.hpp"
+#include "SFML/Window/Mouse.hpp"
 #include "SFML/Window/VideoMode.hpp"
 #include "TextureImpl.hpp"
 
@@ -38,6 +40,8 @@ void GraphicModuleImpl::init(const std::shared_ptr<Ecs>& ecs) {
     if (!sf::Shader::isAvailable())
         throw std::runtime_error("Failed to load graphic module: Shaders are not available on this system.");
 
+
+    // Daltonian filter shader (source: https://godotshaders.com/shader/colorblindness-correction-shader)
     const std::string fragmentSource = R"(
         uniform sampler2D texture;
         uniform int mode;
@@ -115,13 +119,13 @@ void GraphicModuleImpl::update() {
 
         // Check window closed
         if (event->is<sf::Event::Closed>()) {
-            m_ecs->sendEvent(Events::Window::QUIT);
+            m_ecs->sendEvent(Events::QUIT);
             m_window.close();
         }
 
 
         // Check resize
-        if (const sf::Event::Resized* resized = event->getIf<sf::Event::Resized>()) {
+        if (const sf::Event::Resized *resized = event->getIf<sf::Event::Resized>()) {
             // Change view for the window
             const sf::FloatRect visibleArea(
                 sf::Vector2<float>(0, 0),
@@ -134,9 +138,25 @@ void GraphicModuleImpl::update() {
 
 
             // Send event with new size
-            Event event(Events::Window::RESIZED);
-            event.setParameter<Rte::u16>(Events::Window::Resized::WIDTH, resized->size.x);
-            event.setParameter<Rte::u16>(Events::Window::Resized::HEIGHT, resized->size.y);
+            Event event(Events::RESIZED);
+            event.setParameter<Vec2<u16>>(Events::Params::NEW_WINDOW_SIZE, Vec2<u16>(resized->size.x, resized->size.y));
+            m_ecs->sendEvent(event);
+        }
+
+
+        // Check for key pressed
+        if (const sf::Event::KeyPressed *keyPressed = event->getIf<sf::Event::KeyPressed>()) {
+            Event event(Events::KEY_PRESSED);
+            event.setParameter<Key>(Events::Params::KEY_PRESSED, sfmlKeyToRteKey.at(keyPressed->code));
+            m_ecs->sendEvent(event);
+        }
+
+
+        // Check for mouse button pressed
+        if (const sf::Event::MouseButtonPressed *mouseButtonPressed = event->getIf<sf::Event::MouseButtonPressed>()) {
+            Event event(Events::MOUSE_BUTTON_PRESSED);
+            event.setParameter<MouseButton>(Events::Params::MOUSE_BUTTON_PRESSED, sfmlMouseButtonToRteMouseButton.at(mouseButtonPressed->button));
+            event.setParameter<Vec2<u16>>(Events::Params::MOUSE_BUTTON_PRESSED_POSITION, Vec2<u16>(mouseButtonPressed->position.x, mouseButtonPressed->position.y));
             m_ecs->sendEvent(event);
         }
     }
@@ -146,6 +166,19 @@ void GraphicModuleImpl::update() {
     m_window.clear();
     m_renderSystem->update(m_window, m_shader);
     m_window.display();
+}
+
+bool GraphicModuleImpl::isKeyPressed(Key key) const {
+    return sf::Keyboard::isKeyPressed(rteKeyToSfmlKey.at(key));
+}
+
+bool GraphicModuleImpl::isMouseButtonPressed(MouseButton button) const {
+    return sf::Mouse::isButtonPressed(rteMouseButtonToSfmlMouseButton.at(button));
+}
+
+Rte::Vec2<Rte::u16> GraphicModuleImpl::getMousePosition() const {
+    const sf::Vector2<i32> position = sf::Mouse::getPosition(m_window);
+    return {static_cast<u16>(position.x), static_cast<u16>(position.y)};
 }
 
 void GraphicModuleImpl::setDaltonismMode(DaltonismMode mode) {

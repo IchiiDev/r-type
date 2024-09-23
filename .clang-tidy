@@ -39,6 +39,6 @@ CheckOptions:
     value:           20
   - key:             cppcoreguidelines-pro-type-member-init.Standard
     value:           C++20
-HeaderFilterRegex: '.*'
+HeaderFilterRegex: ''
 FormatStyle:       'file'
 UseColor:          true
