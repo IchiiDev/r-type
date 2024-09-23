@@ -11,6 +11,9 @@
 
 namespace Rte::Graphic {
 
+    /**
+     * @brief Enumeration of Daltonism modes.
+     */
     enum DaltonismMode : u8 {
         NONE = 0,
         PROTANOPIA = 1,
@@ -18,7 +21,138 @@ namespace Rte::Graphic {
         TRITANOPIA = 3
     };
 
+
+    /**
+     * @brief Enumeration of key codes for keyboard input.
+     */
+    enum class Key : u8 {
+        Unknown,
+
+        A,
+        B,
+        C,
+        D,
+        E,
+        F,
+        G,
+        H,
+        I,
+        J,
+        K,
+        L,
+        M,
+        N,
+        O,
+        P,
+        Q,
+        R,
+        S,
+        T,
+        U,
+        V,
+        W,
+        X,
+        Y,
+        Z,
+        Num0,
+        Num1,
+        Num2,
+        Num3,
+        Num4,
+        Num5,
+        Num6,
+        Num7,
+        Num8,
+        Num9,
+
+        Escape,
+        LControl,
+        LShift,
+        LAlt,
+        LSystem,
+        RControl,
+        RShift,
+        RAlt,
+        RSystem,
+        Menu,
+        LBracket,   /* { */
+        RBracket,   /* } */
+        Semicolon,  /* ; */
+        Comma,      /* , */
+        Period,     /* . */
+        Apostrophe, /* ' */
+        Slash,      /* / */
+        Backslash,  /* \ */
+        Grave,      /* ` */
+        Equal,      /* = */
+        Hyphen,     /* - */
+        Space,
+        Enter,
+        Backspace,
+        Tab,
+        PageUp,
+        PageDown,
+        End,
+        Home,
+        Insert,
+        Delete,
+        Add,
+        Subtract,   /* - */
+        Multiply,   /* * */
+        Divide,     /* / */
+
+        Left,
+        Right,
+        Up,
+        Down,
+
+        Numpad0,
+        Numpad1,
+        Numpad2,
+        Numpad3,
+        Numpad4,
+        Numpad5,
+        Numpad6,
+        Numpad7,
+        Numpad8,
+        Numpad9,
+
+        F1,
+        F2,
+        F3,
+        F4,
+        F5,
+        F6,
+        F7,
+        F8,
+        F9,
+        F10,
+        F11,
+        F12,
+        F13,
+        F14,
+        F15,
+        Pause
+    };
+
+
+    /**
+     * @brief Graphic module interface.
+     * This module is responsible for rendering entities to the window.
+     * It uses the RenderSystem to render all the entities that have a transform and a sprite component.
+     */
     class GraphicModule : public IModule {
+        public:
+            GraphicModule() = default;
+            ~GraphicModule() override = default;
+
+            GraphicModule(const GraphicModule&) = delete;
+            GraphicModule& operator=(const GraphicModule&) = delete;
+
+            GraphicModule(GraphicModule&&) = default;
+            GraphicModule& operator=(GraphicModule&&) = default;
+
+
         public: // Overridden methods
             /**
              * @brief Initializes the module.
@@ -74,20 +208,27 @@ namespace Rte::Graphic {
     };
 
 
-    namespace Events::Window {
-        const EventType QUIT = "Events::Window::QUIT"_hash;
-        const EventType RESIZED = "Events::Window::RESIZED"_hash;
-        const EventType INPUT = "Events::Window::INPUT"_hash;
-    }   // namespace Events::Window
+    // Event types
+    namespace Events {
+        const EventType QUIT = "Events::QUIT"_hash;
+        const EventType RESIZED = "Events::RESIZED"_hash;
+        const EventType KEY_PRESSED = "Events::KEY_PRESSED"_hash;
+        const EventType TIMED_KEY_PRESSED = "Events::TIMED_KEY_PRESSED"_hash;
+    }   // namespace Events
 
-    namespace Events::Window::Input {
-        const ParamId INPUT = "Events::Window::Input::INPUT"_hash;
-    }   // namespace Events::Window::Input
 
-    namespace Events::Window::Resized {
-        const ParamId WIDTH = "Events::Window::Resized::WIDTH"_hash;
-        const ParamId HEIGHT = "Events::Window::Resized::HEIGHT"_hash;
-    }   // namespace Events::Window::Resized
+    // Resized event parameters
+    namespace Events::Params::Resized {
+        const ParamId WIDTH = "Events::Params::Resized::WIDTH"_hash;
+        const ParamId HEIGHT = "Events::Params::Resized::HEIGHT"_hash;
+    }   // namespace Events::Params::Resized
+
+
+    // Input event parameters
+    namespace Events::Params {
+        const ParamId KEY_PRESSED = "Events::Params::KEY_PRESSED"_hash;
+        const ParamId TIMED_KEY_PRESSED = "Events::Params::TIMED_KEY_PRESSED"_hash;
+    }   // namespace Events::Params
 
 }   // namespace Rte::Graphic
 

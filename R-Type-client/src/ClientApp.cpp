@@ -49,7 +49,7 @@ void ClientApp::run() {
 
     // Callback to close the window
     bool running = true;
-    m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Graphic::Events::Window::QUIT,
+    m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Graphic::Events::QUIT,
         [&](const Rte::Event& /* UNUSED */) {
             running = false;
         }
@@ -57,11 +57,11 @@ void ClientApp::run() {
 
 
     // Callback to move the sprite and make it at the center of the window
-    m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Graphic::Events::Window::RESIZED,
+    m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Graphic::Events::RESIZED,
         [&](Rte::Event& event) {
             // Get parameters from the event
-            const float width = event.getParameter<Rte::u16>(Rte::Graphic::Events::Window::Resized::WIDTH);
-            const float height = event.getParameter<Rte::u16>(Rte::Graphic::Events::Window::Resized::HEIGHT);
+            const float width = event.getParameter<Rte::u16>(Rte::Graphic::Events::Params::Resized::WIDTH);
+            const float height = event.getParameter<Rte::u16>(Rte::Graphic::Events::Params::Resized::HEIGHT);
 
             // Update the sprite position
             Rte::BasicComponents::Transform& transform = m_ecs->getComponent<Rte::BasicComponents::Transform>(entity);

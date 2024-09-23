@@ -14,6 +14,7 @@
 #include "SFML/Graphics/View.hpp"
 #include "SFML/System/Vector2.hpp"
 #include "SFML/Window/Event.hpp"
+#include "SFML/Window/Keyboard.hpp"
 #include "SFML/Window/VideoMode.hpp"
 #include "TextureImpl.hpp"
 
@@ -117,13 +118,13 @@ void GraphicModuleImpl::update() {
 
         // Check window closed
         if (event->is<sf::Event::Closed>()) {
-            m_ecs->sendEvent(Events::Window::QUIT);
+            m_ecs->sendEvent(Events::QUIT);
             m_window.close();
         }
 
 
         // Check resize
-        if (const sf::Event::Resized* resized = event->getIf<sf::Event::Resized>()) {
+        if (const sf::Event::Resized *resized = event->getIf<sf::Event::Resized>()) {
             // Change view for the window
             const sf::FloatRect visibleArea(
                 sf::Vector2<float>(0, 0),
@@ -136,9 +137,27 @@ void GraphicModuleImpl::update() {
 
 
             // Send event with new size
-            Event event(Events::Window::RESIZED);
-            event.setParameter<Rte::u16>(Events::Window::Resized::WIDTH, resized->size.x);
-            event.setParameter<Rte::u16>(Events::Window::Resized::HEIGHT, resized->size.y);
+            Event event(Events::RESIZED);
+            event.setParameter<Rte::u16>(Events::Params::Resized::WIDTH, resized->size.x);
+            event.setParameter<Rte::u16>(Events::Params::Resized::HEIGHT, resized->size.y);
+            m_ecs->sendEvent(event);
+        }
+
+
+        // Check for key pressed (timed)
+        if (const sf::Event::KeyPressed *keyPressed = event->getIf<sf::Event::KeyPressed>()) {
+            Event event(Events::TIMED_KEY_PRESSED);
+            event.setParameter<Key>(Events::Params::TIMED_KEY_PRESSED, sfmlKeyToRteKey.at(keyPressed->code));
+            m_ecs->sendEvent(event);
+        }
+    }
+
+
+    // Check if a key is pressed
+    for (u8 i = 0; i < sf::Keyboard::KeyCount - 1; ++i) {
+        if (sf::Keyboard::isKeyPressed(static_cast<sf::Keyboard::Key>(i))) {
+            Event event(Events::KEY_PRESSED);
+            event.setParameter<Key>(Events::Params::KEY_PRESSED, sfmlKeyToRteKey.at(static_cast<sf::Keyboard::Key>(i)));
             m_ecs->sendEvent(event);
         }
     }
