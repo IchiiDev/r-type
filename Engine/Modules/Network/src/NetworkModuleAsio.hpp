@@ -38,6 +38,7 @@ class NetworkModuleAsio : public Rte::Network::NetworkModule {
     public:
         // server only methods
         bool start_as_server(const std::string& port) override;
+        void receive_as_server() override;
     
     private:
         // utils methods

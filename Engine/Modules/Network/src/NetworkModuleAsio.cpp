@@ -120,7 +120,6 @@ bool NetworkModuleAsio::connect_as_client(const std::string& host, const std::st
     }
 }
 
-
 bool NetworkModuleAsio::send_as_client(const std::string& data) {
     try {
         asio::write(m_socket.value(), asio::buffer(data, sizeof(std::string)));
@@ -133,6 +132,21 @@ bool NetworkModuleAsio::send_as_client(const std::string& data) {
     }
 }
 
+void NetworkModuleAsio::receive_as_server() {
+    // Create a buffer to hold incoming data
+    auto buffer = std::make_shared<std::array<char, 1024>>();
+    
+    // Asynchronously receive data
+    m_socket.value().async_receive(asio::buffer(*buffer), 
+        [this, buffer](std::error_code ec, std::size_t length) {
+            if (!ec) {
+                std::string data(buffer->data(), length);
+                std::cout << "Received message: " << data << std::endl;
+            } else {
+                std::cerr << "Receive error: " << ec.message() << std::endl;
+            }
+        });
+}
 
 bool NetworkModuleAsio::start_as_server(const std::string& port) {
     try {

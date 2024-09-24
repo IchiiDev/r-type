@@ -81,5 +81,6 @@ void ServerApp::run() {
     while (running) {
         graphicModule->update();
         networkModule->update();
+        networkModule->receive_as_server();
     }
 }

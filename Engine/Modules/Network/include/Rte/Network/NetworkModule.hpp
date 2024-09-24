@@ -27,6 +27,7 @@ namespace Rte::Network {
     public:
         virtual bool connect_as_client(const std::string& host, const std::string& port) = 0;
         virtual bool send_as_client(const std::string& data) = 0;
+        virtual void receive_as_server() = 0;
     
     // server only methods ----------------------------------------------------------------
     public:

@@ -80,5 +80,7 @@ void ClientApp::run() {
     // Main loop
     while (running) {
         graphicModule->update();
+        networkModule->update();
+        networkModule->send_as_client("zootopia");
     }
 }
