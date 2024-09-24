@@ -8,9 +8,14 @@
 -I./Engine/Modules/Graphic/include
 -I./Engine/Modules/Graphic/src
 
+# Network module
+-I./Engine/Modules/Network/include
+-I./Engine/Modules/Network/src
+
 # R-Type
 -I./R-Type-client/include
 -I./R-Type-server/include
 
 # External dependencies
 -I./external/SFML/include
+-I./external/asio/asio/include

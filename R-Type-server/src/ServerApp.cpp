@@ -7,11 +7,13 @@
 #include "Rte/Ecs/Types.hpp"
 #include "Rte/Graphic/Components.hpp"
 #include "Rte/Graphic/GraphicModule.hpp"
+#include "Rte/Network/NetworkModule.hpp"
 #include "Rte/Graphic/Texture.hpp"
 #include "Rte/ModuleManager.hpp"
 
 #include <memory>
 #include <vector>
+#include <iostream>
 
 ServerApp::ServerApp() {
     m_ecs = std::make_shared<Rte::Ecs>();
@@ -25,6 +27,10 @@ void ServerApp::run() {
     graphicModule->setWindowSize({1280, 720});
     graphicModule->setDaltonismMode(Rte::Graphic::DaltonismMode::NONE);
 
+    const std::shared_ptr<Rte::Network::NetworkModule> networkModule = Rte::interfaceCast<Rte::Network::NetworkModule>(moduleManager.loadModule("RteNetwork"));
+    networkModule->init(m_ecs);
+    networkModule->setUpConnection(Rte::Network::connectionType::Server, Rte::Network::connectionProtocol::TCP);
+    bool result = networkModule->start_as_server("8081");
 
     // Creation of a 1*1 red texture
     const std::shared_ptr<Rte::Graphic::Texture> texture = graphicModule->createTexture();
@@ -74,5 +80,6 @@ void ServerApp::run() {
     // Main loop
     while (running) {
         graphicModule->update();
+        networkModule->update();
     }
 }

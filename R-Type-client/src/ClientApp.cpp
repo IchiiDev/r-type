@@ -9,6 +9,8 @@
 #include "Rte/Graphic/GraphicModule.hpp"
 #include "Rte/Graphic/Texture.hpp"
 #include "Rte/ModuleManager.hpp"
+#include "Rte/Network/NetworkModule.hpp"
+
 
 #include <memory>
 #include <vector>
@@ -25,6 +27,10 @@ void ClientApp::run() {
     graphicModule->setWindowSize({1280, 720});
     graphicModule->setDaltonismMode(Rte::Graphic::DaltonismMode::NONE);
 
+    const std::shared_ptr<Rte::Network::NetworkModule> networkModule = Rte::interfaceCast<Rte::Network::NetworkModule>(moduleManager.loadModule("RteNetwork"));
+    networkModule->init(m_ecs);
+    networkModule->setUpConnection(Rte::Network::connectionType::Client, Rte::Network::connectionProtocol::TCP);
+    networkModule->connect_as_client("127.0.0.1", "8081");
 
     // Creation of a 1*1 red texture
     const std::shared_ptr<Rte::Graphic::Texture> texture = graphicModule->createTexture();
