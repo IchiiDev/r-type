@@ -11,7 +11,7 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/external/SFML ${CMAKE_BINARY_DIR}/SFML)
 
 # Debug flags if gcc
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g3")   # TODO: remove this
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g3 -fsanitize=address")   # TODO: remove this
 endif()
 
 # Source files

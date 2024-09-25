@@ -14,11 +14,21 @@ namespace Rte::Graphic {
     /**
      * @brief Enumeration of Daltonism modes.
      */
-    enum DaltonismMode : u8 {
+    enum class DaltonismMode : u8 {
         NONE = 0,
         PROTANOPIA = 1,
         DEUTERANOPIA = 2,
         TRITANOPIA = 3
+    };
+
+
+    /**
+     * @brief Enumeration of button states.
+     */
+    enum class ButtonState : u8 {
+        NONE = 0,
+        HOVERED = 1,
+        PRESSED = 2
     };
 
 
@@ -139,7 +149,7 @@ namespace Rte::Graphic {
     /**
      * @brief Enumeration of mouse buttons code
      */
-    enum MouseButton : u8 {
+    enum class MouseButton : u8 {
         Left,
         Right,
         Middle,
@@ -236,9 +246,9 @@ namespace Rte::Graphic {
             /**
              * @brief Create a texture.
              *
-             * @return std::shared_ptr<Texture> Shared pointer to the texture.
+             * @return std::unique_ptr<Texture> unique pointer to the texture.
              */
-            [[nodiscard]] virtual std::shared_ptr<Texture> createTexture() const = 0;
+            [[nodiscard]] virtual std::unique_ptr<Texture> createTexture() const = 0;
 
 
 

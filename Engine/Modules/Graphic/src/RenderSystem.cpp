@@ -28,7 +28,7 @@ void RenderSystem::update(sf::RenderWindow& window, sf::Shader& shader) {
         const BasicComponents::Transform& transformComponent = m_ecs->getComponent<BasicComponents::Transform>(entity);
 
         // Texture
-        const std::shared_ptr<TextureImpl> texture = interfaceCast<TextureImpl>(spriteComponent.texture);
+        const std::shared_ptr<TextureImpl>& texture = interfaceCast<TextureImpl>(spriteComponent.texture);
         sf::Sprite sprite(texture->getHandle());
 
         // Transform
