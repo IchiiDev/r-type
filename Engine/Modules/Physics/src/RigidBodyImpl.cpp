@@ -486,7 +486,7 @@ RigidBodyImpl::RigidBodyImpl(BodyType type, const u8* pixels, Rte::Vec2<u16> siz
     }
 }
 
-RigidBodyImpl::RigidBodyImpl(std::shared_ptr<RigidBodyImpl> rigidBody, const u8* pixels, Rte::Vec2<u16> size) : m_pixels(pixels), m_size(size) {
+RigidBodyImpl::RigidBodyImpl(std::shared_ptr<RigidBodyImpl> rigidBody, const u8* pixels, Rte::Vec2<u16> size, b2WorldId worldId) : m_pixels(pixels), m_size(size), m_worldId(worldId) {
     // Copy the body definition from the existing rigid body
     b2BodyDef bodyDef = b2DefaultBodyDef();
     bodyDef.type = b2Body_GetType(rigidBody->getBodyId());
@@ -499,7 +499,6 @@ RigidBodyImpl::RigidBodyImpl(std::shared_ptr<RigidBodyImpl> rigidBody, const u8*
     bodyDef.fixedRotation = b2Body_IsFixedRotation(rigidBody->getBodyId());
     bodyDef.gravityScale = b2Body_GetGravityScale(rigidBody->getBodyId());
 
-
     // Create the polygons from the image
     std::vector<int> binaryImage = convertToBinary(m_pixels, size);
     std::vector<std::vector<Rte::Vec2<float>>> vertices = marchingSquares(binaryImage, size);
@@ -511,7 +510,7 @@ RigidBodyImpl::RigidBodyImpl(std::shared_ptr<RigidBodyImpl> rigidBody, const u8*
     }
     std::vector<Tri> triangles = polygoneToTriangles(continuousLines[0]);
 
-    m_bodyId = b2CreateBody(rigidBody->m_worldId, &bodyDef);
+    m_bodyId = b2CreateBody(m_worldId, &bodyDef);
 
     // Create attach the triangles to the body
     for (const auto& tri : triangles) {

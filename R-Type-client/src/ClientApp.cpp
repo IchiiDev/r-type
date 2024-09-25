@@ -124,6 +124,31 @@ Rte::u8* andImage(Rte::u8* image, std::vector<int> binaryImage, Rte::Vec2<Rte::u
     return newImage;
 }
 
+void breakEntities(const std::shared_ptr<Rte::Graphic::GraphicModule>& graphicModule, const std::shared_ptr<Rte::Physics::PhysicsModule>& physicsModule, std::vector<Rte::Entity>& breakableEntities, const Rte::Vec2<Rte::u16>& position, const std::shared_ptr<Rte::Ecs>& ecs) {
+    for (int i = 0; i < breakableEntities.size(); i++) {
+        const std::shared_ptr<Rte::Graphic::Texture> newTexture = graphicModule->createTexture();
+        bool hasChanged = false;
+        Rte::u8 *newPixels = physicsModule->fractureRigidBody(ecs->getComponent<Rte::Physics::Components::Physics>(breakableEntities[i]).rigidBody, position, hasChanged);
+        Rte::Vec2<Rte::u16> size = ecs->getComponent<Rte::Graphic::Components::Sprite>(breakableEntities[i]).texture->getSize();
+        if (hasChanged) {
+            std::vector<std::vector<int>> components = connectedComponentLabeling(convertToBinary(newPixels, size), size);
+            for (const auto & component : components) {
+                const std::shared_ptr<Rte::Graphic::Texture> newTexture = graphicModule->createTexture();
+                Rte::u8 *componentsPixels =  andImage(newPixels, component, size);
+                newTexture->loadFromMemory(componentsPixels, size);
+                breakableEntities.push_back(ecs->createEntity());
+                ecs->addComponent<Rte::Graphic::Components::Sprite>(breakableEntities[breakableEntities.size() - 1], Rte::Graphic::Components::Sprite(newTexture));
+                std::shared_ptr<Rte::Physics::RigidBody> newRigidBody = physicsModule->createRigidBody(ecs->getComponent<Rte::Physics::Components::Physics>(breakableEntities[i]).rigidBody, componentsPixels, size);
+                ecs->addComponent<Rte::Physics::Components::Physics>(breakableEntities[breakableEntities.size() - 1], Rte::Physics::Components::Physics{newRigidBody});
+                ecs->addComponent<Rte::BasicComponents::Transform>(breakableEntities[breakableEntities.size() - 1], Rte::BasicComponents::Transform{ecs->getComponent<Rte::BasicComponents::Transform>(breakableEntities[i])});
+            }
+            physicsModule->destroyRigidBody(ecs->getComponent<Rte::Physics::Components::Physics>(breakableEntities[i]).rigidBody);
+            ecs->destroyEntity(breakableEntities[i]);
+            breakableEntities.erase(std::remove(breakableEntities.begin(), breakableEntities.end(), breakableEntities[i]), breakableEntities.end());
+        }
+    }
+}
+
 void ClientApp::run() {
     // Load the graphic module
     const std::shared_ptr<Rte::Graphic::GraphicModule> graphicModule = Rte::interfaceCast<Rte::Graphic::GraphicModule>(moduleManager.loadModule("RteGraphic"));
@@ -131,7 +156,7 @@ void ClientApp::run() {
     graphicModule->setWindowTitle("R-Type");
     graphicModule->setWindowSize({1920, 1080});
     graphicModule->setDaltonismMode(Rte::Graphic::DaltonismMode::NONE);
-
+    std::vector<Rte::Entity> breakableEntities;
     //load the physics module
     const std::shared_ptr<Rte::Physics::PhysicsModule> physicsModule = Rte::interfaceCast<Rte::Physics::PhysicsModule>(moduleManager.loadModule("RtePhysics"));
     physicsModule->init(m_ecs);
@@ -139,7 +164,7 @@ void ClientApp::run() {
     // Creation of a drawable entity
     // Creation of a texture
     const std::shared_ptr<Rte::Graphic::Texture> texture = graphicModule->createTexture();
-    texture->loadFromFile("../sprite4.png");
+    texture->loadFromFile("../sprite2.png");
     
     constexpr Rte::Vec2<float> entityScale = {8, 8};
     const Rte::Vec2<Rte::u16> windowSize = graphicModule->getWindowSize();
@@ -147,27 +172,26 @@ void ClientApp::run() {
         (static_cast<float>(windowSize.x) / 2) - (entityScale.x / 2),
         (static_cast<float>(windowSize.y) / 2) - (entityScale.y / 2)
     };
-    Rte::Entity entity = m_ecs->createEntity();
+    breakableEntities.push_back(m_ecs->createEntity());
 
-    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(entity, Rte::Graphic::Components::Sprite(texture));
-    m_ecs->addComponent<Rte::BasicComponents::Transform>(entity, Rte::BasicComponents::Transform{
+    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(breakableEntities[breakableEntities.size() - 1], Rte::Graphic::Components::Sprite(texture));
+    m_ecs->addComponent<Rte::BasicComponents::Transform>(breakableEntities[breakableEntities.size() - 1], Rte::BasicComponents::Transform{
         .position = entityPosition,
         .scale = entityScale,
         .rotation = 0
     });
     
-    std::shared_ptr<Rte::Physics::RigidBody> rigidBody = physicsModule->createRigidBody(
+
+    m_ecs->addComponent<Rte::Physics::Components::Physics>(breakableEntities[breakableEntities.size() - 1], Rte::Physics::Components::Physics{physicsModule->createRigidBody(
         Rte::Physics::BodyType::DYNAMIC,
-        m_ecs->getComponent<Rte::Graphic::Components::Sprite>(entity).texture->getPixels(),
-        m_ecs->getComponent<Rte::Graphic::Components::Sprite>(entity).texture->getSize(),
+        m_ecs->getComponent<Rte::Graphic::Components::Sprite>(breakableEntities[breakableEntities.size() - 1]).texture->getPixels(),
+        m_ecs->getComponent<Rte::Graphic::Components::Sprite>(breakableEntities[breakableEntities.size() - 1]).texture->getSize(),
         1,
         0.3,
-        m_ecs->getComponent<Rte::BasicComponents::Transform>(entity).position,
-        m_ecs->getComponent<Rte::BasicComponents::Transform>(entity).scale,
-        m_ecs->getComponent<Rte::BasicComponents::Transform>(entity).rotation
-    );
-
-    m_ecs->addComponent<Rte::Physics::Components::Physics>(entity, Rte::Physics::Components::Physics{rigidBody});
+        m_ecs->getComponent<Rte::BasicComponents::Transform>(breakableEntities[breakableEntities.size() - 1]).position,
+        m_ecs->getComponent<Rte::BasicComponents::Transform>(breakableEntities[breakableEntities.size() - 1]).scale,
+        m_ecs->getComponent<Rte::BasicComponents::Transform>(breakableEntities[breakableEntities.size() - 1]).rotation
+    )});
 
     //creation of a second entity
     const std::shared_ptr<Rte::Graphic::Texture> texture2 = graphicModule->createTexture();
@@ -180,27 +204,25 @@ void ClientApp::run() {
         (static_cast<float>(windowSize.x) / 2) - (entityScale.x / 2),
         (static_cast<float>(windowSize.y) / 2) - (entityScale.y / 2) + 400
     };
-    Rte::Entity entity2 = m_ecs->createEntity();
+    breakableEntities.push_back(m_ecs->createEntity());
 
-    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(entity2, Rte::Graphic::Components::Sprite(texture2));
-    m_ecs->addComponent<Rte::BasicComponents::Transform>(entity2, Rte::BasicComponents::Transform{
+    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(breakableEntities[breakableEntities.size() - 1], Rte::Graphic::Components::Sprite(texture2));
+    m_ecs->addComponent<Rte::BasicComponents::Transform>(breakableEntities[breakableEntities.size() - 1], Rte::BasicComponents::Transform{
         .position = entityPosition2,
         .scale = entityScale2,
         .rotation = 0
     });
 
-    std::shared_ptr<Rte::Physics::RigidBody> rigidBody2 = physicsModule->createRigidBody(
+    m_ecs->addComponent<Rte::Physics::Components::Physics>(breakableEntities[1], Rte::Physics::Components::Physics{physicsModule->createRigidBody(
         Rte::Physics::BodyType::STATIC,
-        m_ecs->getComponent<Rte::Graphic::Components::Sprite>(entity2).texture->getPixels(),
-        m_ecs->getComponent<Rte::Graphic::Components::Sprite>(entity2).texture->getSize(),
+        m_ecs->getComponent<Rte::Graphic::Components::Sprite>(breakableEntities[breakableEntities.size() - 1]).texture->getPixels(),
+        m_ecs->getComponent<Rte::Graphic::Components::Sprite>(breakableEntities[breakableEntities.size() - 1]).texture->getSize(),
         1,
         0.3,
-        m_ecs->getComponent<Rte::BasicComponents::Transform>(entity2).position,
-        m_ecs->getComponent<Rte::BasicComponents::Transform>(entity2).scale,
-        m_ecs->getComponent<Rte::BasicComponents::Transform>(entity2).rotation
-    );
-
-    m_ecs->addComponent<Rte::Physics::Components::Physics>(entity2, Rte::Physics::Components::Physics{rigidBody2});
+        m_ecs->getComponent<Rte::BasicComponents::Transform>(breakableEntities[breakableEntities.size() - 1]).position,
+        m_ecs->getComponent<Rte::BasicComponents::Transform>(breakableEntities[breakableEntities.size() - 1]).scale,
+        m_ecs->getComponent<Rte::BasicComponents::Transform>(breakableEntities[breakableEntities.size() - 1]).rotation
+    )});
 
     // Callback to close the window
     bool running = true;
@@ -218,7 +240,7 @@ void ClientApp::run() {
             const Rte::Vec2<Rte::u16> newSize = event.getParameter<Rte::Vec2<Rte::u16>>(Rte::Graphic::Events::Params::NEW_WINDOW_SIZE);
 
             // Update the sprite position
-            Rte::BasicComponents::Transform& transform = m_ecs->getComponent<Rte::BasicComponents::Transform>(entity);
+            Rte::BasicComponents::Transform& transform = m_ecs->getComponent<Rte::BasicComponents::Transform>(breakableEntities[0]);
             transform.position.x = (static_cast<float>(newSize.x) / 2) - (entityScale.x / 2);
             transform.position.y = (static_cast<float>(newSize.y) / 2) - (entityScale.y / 2);
         }
@@ -229,32 +251,7 @@ void ClientApp::run() {
         const Rte::Graphic::MouseButton button = event.getParameter<Rte::Graphic::MouseButton>(Rte::Graphic::Events::Params::MOUSE_BUTTON_PRESSED);
         const Rte::Vec2<Rte::u16> position = event.getParameter<Rte::Vec2<Rte::u16>>(Rte::Graphic::Events::Params::MOUSE_BUTTON_PRESSED_POSITION);
         std::cout << "Mouse button pressed: " << static_cast<int>(button) << " at position (" << position.x << ", " << position.y << ")\n";
-        
-        const std::shared_ptr<Rte::Graphic::Texture> newTexture = graphicModule->createTexture();
-        bool hasChanged = false;
-        Rte::u8 *newPixels = physicsModule->fractureRigidBody(rigidBody, position, hasChanged);
-        Rte::Vec2<Rte::u16> size = m_ecs->getComponent<Rte::Graphic::Components::Sprite>(entity).texture->getSize();
-        if (hasChanged) {
-            std::cout << "Fracture" << std::endl;
-            std::vector<int> binaryPixels = convertToBinary(newPixels, size);
-            std::vector<std::vector<int>> components = connectedComponentLabeling(binaryPixels, size);
-            for (int i = 0; i < components.size(); i++) {
-                const std::shared_ptr<Rte::Graphic::Texture> newTexture = graphicModule->createTexture();
-                Rte::u8 *componentsPixels =  andImage(newPixels, components[i], size);
-                newTexture->loadFromMemory(componentsPixels, size);
-                Rte::Entity newEntity = m_ecs->createEntity();
-                m_ecs->addComponent<Rte::Graphic::Components::Sprite>(newEntity, Rte::Graphic::Components::Sprite(newTexture));
-                std::shared_ptr<Rte::Physics::RigidBody> newRigidBody = physicsModule->createRigidBody(rigidBody, componentsPixels, size);
-                m_ecs->addComponent<Rte::Physics::Components::Physics>(newEntity, Rte::Physics::Components::Physics{newRigidBody});
-                m_ecs->addComponent<Rte::BasicComponents::Transform>(newEntity, Rte::BasicComponents::Transform{
-                    .position = entityPosition,
-                    .scale = entityScale,
-                    .rotation = 0
-                });
-            }
-            physicsModule->destroyRigidBody(rigidBody);
-            m_ecs->destroyEntity(entity);
-        }
+        breakEntities(graphicModule, physicsModule, breakableEntities, position, m_ecs);
     }));
 
     // Main loop

@@ -63,7 +63,6 @@ void ServerApp::run() {
         std::cout << "Key pressed: " << static_cast<int>(key) << "\n";
     }));
 
-
     // Callback to print mouse button pressed
     m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Graphic::Events::MOUSE_BUTTON_PRESSED, [&](Rte::Event& event) {
         const Rte::Graphic::MouseButton button = event.getParameter<Rte::Graphic::MouseButton>(Rte::Graphic::Events::Params::MOUSE_BUTTON_PRESSED);

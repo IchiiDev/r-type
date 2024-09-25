@@ -15,7 +15,7 @@ namespace Rte::Physics {
     class RigidBodyImpl : public RigidBody {
         public:
             RigidBodyImpl(BodyType type, const u8* pixels, Rte::Vec2<u16> size, float density, float friction, b2WorldId worldId, Vec2<float> pos, Vec2<float> scale, float rotation);
-            RigidBodyImpl(std::shared_ptr<RigidBodyImpl> rigidBody, const u8* pixels, Rte::Vec2<u16> size);
+            RigidBodyImpl(std::shared_ptr<RigidBodyImpl> rigidBody, const u8* pixels, Rte::Vec2<u16> size, b2WorldId worldId);
             ~RigidBodyImpl();
 
             RigidBodyImpl(const RigidBodyImpl&) = delete;

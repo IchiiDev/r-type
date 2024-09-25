@@ -73,7 +73,8 @@ Rte::u8 *PhysicsModuleImpl::fractureRigidBody(const std::shared_ptr<RigidBody>& 
     std::vector<std::vector<pixel>> rotatedPixels = rigidBodyImpl->getRotatedPixels();
     for (int i = 0; i < rotatedPixels.size(); i++) {
         for (int j = 0; j < rotatedPixels[i].size(); j++) {
-            if (std::round((rotatedPixels[i][j].pos.x + bodyPos.x)) == pixelPos.x && std::round(rotatedPixels[i][j].pos.y + bodyPos.y) == pixelPos.y) {
+            if (rotatedPixels[i][j].pos.x + bodyPos.x - 2 <= pixelPos.x && rotatedPixels[i][j].pos.x + bodyPos.x + 2 >= pixelPos.x
+            && rotatedPixels[i][j].pos.y + bodyPos.y - 2 <= pixelPos.y && rotatedPixels[i][j].pos.y + bodyPos.y + 2 >= pixelPos.y) {
                 if (rotatedPixels[i][j].a == 255) {
                     std::cout << "hit !" << std::endl;
                     hasChanged = true;
@@ -102,7 +103,7 @@ std::shared_ptr<RigidBody> PhysicsModuleImpl::createRigidBody(BodyType type, con
 
 std::shared_ptr<RigidBody> PhysicsModuleImpl::createRigidBody(std::shared_ptr<RigidBody> rigidBody, const u8* pixels, Rte::Vec2<u16> size) {
     auto rigidBodyImpl = std::dynamic_pointer_cast<RigidBodyImpl>(rigidBody);
-    std::shared_ptr<RigidBodyImpl> newRigidBody = std::make_shared<RigidBodyImpl>(rigidBodyImpl, pixels, size);
+    std::shared_ptr<RigidBodyImpl> newRigidBody = std::make_shared<RigidBodyImpl>(rigidBodyImpl, pixels, size, m_worldId);
     return newRigidBody;
 }
 
