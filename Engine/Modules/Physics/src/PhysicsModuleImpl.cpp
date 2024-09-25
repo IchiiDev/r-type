@@ -9,11 +9,14 @@
 #include "Rte/ModuleManager.hpp"
 #include "Rte/Physics/RigidBody.hpp"
 #include "RigidBodyImpl.hpp"
+#include "Rte/Physics/Tool.hpp"
 
+#include <cmath>
 #include <iostream>
 #include <memory>
 #include <optional>
 #include <string>
+#include <vector>
 
 using namespace Rte::Physics;
 
@@ -53,8 +56,56 @@ void PhysicsModuleImpl::update() {
     m_physicsSystem->update();
 }
 
+Rte::u8 *PhysicsModuleImpl::fractureRigidBody(const std::shared_ptr<RigidBody>& rigidBody, Vec2<u16> pixelPos, bool &hasChanged) {
+    auto rigidBodyImpl = std::dynamic_pointer_cast<RigidBodyImpl>(rigidBody);
+    if (!rigidBodyImpl) {
+        std::cerr << "Failed to cast RigidBody to RigidBodyImpl" << std::endl;
+        return {};
+    }
+    pixelPos.x = static_cast<int>(std::round(pixelPos.x / 8.F));
+    pixelPos.y = static_cast<int>(std::round(pixelPos.y / 8.F));
+    Vec2<float> bodyPos = rigidBodyImpl->getPosition();
+    bodyPos.x = (bodyPos.x * 8 * PPM) + 1920 / 2;
+    bodyPos.y = (-bodyPos.y * 8 * PPM) + 1080 / 2;
+    bodyPos.x = std::round(bodyPos.x / 8.F);
+    bodyPos.y = std::round(bodyPos.y / 8.F);
+
+    std::vector<std::vector<pixel>> rotatedPixels = rigidBodyImpl->getRotatedPixels();
+    for (int i = 0; i < rotatedPixels.size(); i++) {
+        for (int j = 0; j < rotatedPixels[i].size(); j++) {
+            if (std::round((rotatedPixels[i][j].pos.x + bodyPos.x)) == pixelPos.x && std::round(rotatedPixels[i][j].pos.y + bodyPos.y) == pixelPos.y) {
+                if (rotatedPixels[i][j].a == 255) {
+                    std::cout << "hit !" << std::endl;
+                    hasChanged = true;
+                    rotatedPixels[i][j].a = 0;
+                }
+            }
+        }
+    }
+    u8 *newPixels = new u8[rotatedPixels.size() * rotatedPixels[0].size() * 4];
+    for (int i = 0; i < rotatedPixels.size(); i++) {
+        for (int j = 0; j < rotatedPixels[i].size(); j++) {
+            newPixels[(i * rotatedPixels[i].size() + j) * 4] = rotatedPixels[i][j].r;
+            newPixels[(i * rotatedPixels[i].size() + j) * 4 + 1] = rotatedPixels[i][j].g;
+            newPixels[(i * rotatedPixels[i].size() + j) * 4 + 2] = rotatedPixels[i][j].b;
+            newPixels[(i * rotatedPixels[i].size() + j) * 4 + 3] = rotatedPixels[i][j].a;
+        }
+    }
+    return newPixels;
+}
+
 std::shared_ptr<RigidBody> PhysicsModuleImpl::createRigidBody(BodyType type, const u8* pixels, Rte::Vec2<u16> size, float density, float friction, Vec2<float> pos, Vec2<float> scale, float rotation) {
     
     std::shared_ptr<RigidBodyImpl> rigidBody = std::make_shared<RigidBodyImpl>(type, pixels, size, density, friction, m_worldId, pos, scale, rotation);
     return rigidBody;
+}
+
+std::shared_ptr<RigidBody> PhysicsModuleImpl::createRigidBody(std::shared_ptr<RigidBody> rigidBody, const u8* pixels, Rte::Vec2<u16> size) {
+    auto rigidBodyImpl = std::dynamic_pointer_cast<RigidBodyImpl>(rigidBody);
+    std::shared_ptr<RigidBodyImpl> newRigidBody = std::make_shared<RigidBodyImpl>(rigidBodyImpl, pixels, size);
+    return newRigidBody;
+}
+
+void PhysicsModuleImpl::destroyRigidBody(std::shared_ptr<RigidBody>& rigidBody) {
+    rigidBody.reset();
 }

@@ -29,6 +29,9 @@ namespace Rte::Physics {
             void update() override = 0;
 
             virtual std::shared_ptr<RigidBody> createRigidBody(BodyType type, const u8* pixels, Rte::Vec2<u16> size, float density, float friction, Vec2<float> pos, Vec2<float> scale, float rotation) = 0;
+            virtual std::shared_ptr<RigidBody> createRigidBody(std::shared_ptr<RigidBody> rigidBody, const u8* pixels, Rte::Vec2<u16> size) = 0;
+            virtual void destroyRigidBody(std::shared_ptr<RigidBody>& rigidBody) = 0;
+            virtual u8 *fractureRigidBody(const std::shared_ptr<RigidBody>& rigidBody, Vec2<u16> pixelPos, bool &hasChanged) = 0;
     };
 }   // namespace Rte::Physics
 

@@ -2,10 +2,12 @@
 
 #include "RigidBodyImpl.hpp"
 #include "Rte/Physics/Tool.hpp"
+#include "box2d/box2d.h"
 #include "box2d/collision.h"
 #include "box2d/math_functions.h"
 #include "poly2tri/poly2tri.h"
 
+#include <cstddef>
 #include <cstdlib>
 #include <iostream>
 #include <stdexcept>
@@ -29,19 +31,16 @@ std::vector<int> convertToBinary(const Rte::u8* image, Rte::Vec2<Rte::u16> size)
         if (image[i * 4 - 1] == 0)
         {
             binaryImage.push_back(0);
-            std::cout << " ";
         }
         else
         {
             binaryImage.push_back(1);
-            std::cout << "X";
         }
         if (i % size.x == 0)
         {
             std::cout << std::endl;
         }
     }
-    std::cout << "jjaj" << std::endl;
     return binaryImage;
 }
 
@@ -290,7 +289,6 @@ std::vector<std::vector<Rte::Vec2<float>>> createContinuousLines(std::vector<std
     }
 }
 
-
 float perpendicularDistance(Rte::Vec2<float> point, Rte::Vec2<float> lineStart, Rte::Vec2<float> lineEnd) {
     float dx = lineEnd.x - lineStart.x;
     float dy = lineEnd.y - lineStart.y;
@@ -403,8 +401,44 @@ std::vector<std::vector<Rte::Vec2<float>>> findHolesInPolygons(std::vector<std::
     return polygons;
 }
 
+Rte::Vec2<float> rotate(Rte::Vec2<float> point, Rte::Vec2<float> center, float angle) {
+    float s = std::sin(angle);
+    float c = std::cos(angle);
+    point.x -= center.x;
+    point.y -= center.y;
+    float xnew = point.x * c - point.y * s;
+    float ynew = point.x * s + point.y * c;
+    point.x = xnew + center.x;
+    point.y = ynew + center.y;
+    return point;
+}
 
-RigidBodyImpl::RigidBodyImpl(BodyType type, const u8* pixels, Rte::Vec2<u16> size, float density, float friction, b2WorldId worldId, Vec2<float> pos, Vec2<float> scale, float rotation) {
+//where m_pixel is an array of uint8 in rgba format and pixel is an array of struct containing r,g,b and a and the pos of each pixel
+std::vector<std::vector<pixel>> RigidBodyImpl::getRotatedPixels() const {
+    Rte::Vec2<float> center = {static_cast<float>(m_size.x) / 2.0F, static_cast<float>(m_size.y) / 2.0F};
+    float angle = -getRotation();
+    std::vector<std::vector<pixel>> rotatedPixels(m_size.y, std::vector<pixel>(m_size.x));
+    
+    for (int y = 0; y < m_size.y; y++) {
+        for (int x = 0; x < m_size.x; x++) {
+            Rte::Vec2<float> rotatedPos = rotate({static_cast<float>(x), static_cast<float>(y)}, center, angle);
+            rotatedPixels[y][x] = {m_pixels[(y * m_size.x + x) * 4], m_pixels[(y * m_size.x + x) * 4 + 1], m_pixels[(y * m_size.x + x) * 4 + 2], m_pixels[(y * m_size.x + x) * 4 + 3], (rotatedPos.x - center.x), (rotatedPos.y - center.y)};
+        }
+    }
+    return rotatedPixels;
+}
+
+float RigidBodyImpl::getRotation() const {
+    b2Rot rotation = b2Body_GetRotation(m_bodyId);
+    return b2Rot_GetAngle(rotation);
+}
+
+Rte::Vec2<float> RigidBodyImpl::getPosition() const {
+    b2Vec2 position = b2Body_GetPosition(m_bodyId);
+    return {position.x, position.y};
+}
+
+RigidBodyImpl::RigidBodyImpl(BodyType type, const u8* pixels, Rte::Vec2<u16> size, float density, float friction, b2WorldId worldId, Vec2<float> pos, Vec2<float> scale, float rotation) : m_pixels(pixels), m_size(size), m_worldId(worldId) {
     
     // Create a body definition
     b2BodyDef bodyDef = b2DefaultBodyDef();
@@ -439,7 +473,6 @@ RigidBodyImpl::RigidBodyImpl(BodyType type, const u8* pixels, Rte::Vec2<u16> siz
         vertices[0] = {(tri.a.x - size.x / 2) / PPM, -(tri.a.y - size.y / 2) / PPM};
         vertices[1] = {(tri.b.x - size.x / 2) / PPM, -(tri.b.y - size.y / 2) / PPM};
         vertices[2] = {(tri.c.x - size.x / 2) / PPM, -(tri.c.y - size.y / 2) / PPM};
-        std::cout << "Triangle: " << vertices[0].x << ", " << vertices[0].y << " " << vertices[1].x << ", " << vertices[1].y << " " << vertices[2].x << ", " << vertices[2].y << std::endl;
         b2Hull hull = b2ComputeHull(vertices, 3);
         b2Polygon triangle = b2MakePolygon(&hull, 0);
 
@@ -451,6 +484,57 @@ RigidBodyImpl::RigidBodyImpl(BodyType type, const u8* pixels, Rte::Vec2<u16> siz
         // Create the shape
         b2CreatePolygonShape(m_bodyId, &shapeDef, &triangle);
     }
+}
+
+RigidBodyImpl::RigidBodyImpl(std::shared_ptr<RigidBodyImpl> rigidBody, const u8* pixels, Rte::Vec2<u16> size) : m_pixels(pixels), m_size(size) {
+    // Copy the body definition from the existing rigid body
+    b2BodyDef bodyDef = b2DefaultBodyDef();
+    bodyDef.type = b2Body_GetType(rigidBody->getBodyId());
+    bodyDef.position = b2Body_GetPosition(rigidBody->getBodyId());
+    bodyDef.rotation = b2Body_GetRotation(rigidBody->getBodyId());
+    bodyDef.linearVelocity = b2Body_GetLinearVelocity(rigidBody->getBodyId());
+    bodyDef.angularVelocity = b2Body_GetAngularVelocity(rigidBody->getBodyId());
+    bodyDef.linearDamping = b2Body_GetLinearDamping(rigidBody->getBodyId());
+    bodyDef.angularDamping = b2Body_GetAngularDamping(rigidBody->getBodyId());
+    bodyDef.fixedRotation = b2Body_IsFixedRotation(rigidBody->getBodyId());
+    bodyDef.gravityScale = b2Body_GetGravityScale(rigidBody->getBodyId());
+
+
+    // Create the polygons from the image
+    std::vector<int> binaryImage = convertToBinary(m_pixels, size);
+    std::vector<std::vector<Rte::Vec2<float>>> vertices = marchingSquares(binaryImage, size);
+    std::vector<std::vector<Rte::Vec2<float>>> continuousLines = createContinuousLines(vertices);
+    continuousLines = findHolesInPolygons(continuousLines); 
+    for (size_t i = 0; i < continuousLines.size(); i++)
+    {
+        continuousLines[i] = douglasPeucker(continuousLines[i], 0.75);
+    }
+    std::vector<Tri> triangles = polygoneToTriangles(continuousLines[0]);
+
+    m_bodyId = b2CreateBody(rigidBody->m_worldId, &bodyDef);
+
+    // Create attach the triangles to the body
+    for (const auto& tri : triangles) {
+        b2Vec2 vertices[3];
+        vertices[0] = {(tri.a.x - size.x / 2) / PPM, -(tri.a.y - size.y / 2) / PPM};
+        vertices[1] = {(tri.b.x - size.x / 2) / PPM, -(tri.b.y - size.y / 2) / PPM};
+        vertices[2] = {(tri.c.x - size.x / 2) / PPM, -(tri.c.y - size.y / 2) / PPM};
+        b2Hull hull = b2ComputeHull(vertices, 3);
+        b2Polygon triangle = b2MakePolygon(&hull, 0);
+
+        // Create a shape definition
+        b2ShapeDef shapeDef = b2DefaultShapeDef();
+        
+        shapeDef.density = 1;
+        shapeDef.friction = 0.3;
+
+        // Create the shape
+        b2CreatePolygonShape(m_bodyId, &shapeDef, &triangle);
+    }
+}
+
+RigidBodyImpl::~RigidBodyImpl() {
+    b2DestroyBody(m_bodyId);
 }
 
 b2BodyId RigidBodyImpl::getBodyId() const {
