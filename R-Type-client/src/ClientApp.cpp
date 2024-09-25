@@ -12,6 +12,7 @@
 #include <chrono>
 #include <cmath>
 #include <memory>
+#include <numbers>
 #include <vector>
 
 ClientApp::ClientApp() {
@@ -132,7 +133,7 @@ void ClientApp::run() {
             // Rotation update
             const float deltaX = static_cast<float>(mousePosition.x) - (playerTransform.position.x + playerTransform.scale.x / 2);
             const float deltaY = static_cast<float>(mousePosition.y) - (playerTransform.position.y + playerTransform.scale.y / 2);
-            sightLineTransform.rotation = static_cast<float>(std::atan2(deltaY, deltaX) * 180.0 / static_cast<float>(M_PI) - 90.0);
+            sightLineTransform.rotation = static_cast<float>(std::atan2(deltaY, deltaX) * 180.0 / std::numbers::pi_v<float> - 90.0);
         }
 
 
