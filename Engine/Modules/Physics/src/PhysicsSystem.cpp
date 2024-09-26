@@ -5,6 +5,7 @@
 #include "Rte/Ecs/Types.hpp"
 #include "Rte/Physics/Components.hpp"
 #include "RigidBodyImpl.hpp"
+#include "PlayerBodyImpl.hpp"
 #include "Rte/Physics/Tool.hpp"
 
 #include "box2d/box2d.h"
@@ -28,13 +29,23 @@ void PhysicsSystem::update() {
 
     b2World_Step(m_worldId, m_timeStep, m_subStepCount);
     for (const Entity entity : m_entities) {
-        const std::shared_ptr<RigidBodyImpl>& rigidBody = interfaceCast<RigidBodyImpl>(m_ecs->getComponent<Components::Physics>(entity).rigidBody);
-        BasicComponents::Transform& transformComponent = m_ecs->getComponent<BasicComponents::Transform>(entity);
-        b2Vec2 position = b2Body_GetPosition(rigidBody->getBodyId());
-        b2Rot rotation = b2Body_GetRotation(rigidBody->getBodyId());
-        
+        if (m_ecs->getComponent<Rte::Physics::Components::Physics>(entity).rigidBody) {
+            const std::shared_ptr<RigidBodyImpl>& rigidBody = interfaceCast<RigidBodyImpl>(m_ecs->getComponent<Components::Physics>(entity).rigidBody);
+            BasicComponents::Transform& transformComponent = m_ecs->getComponent<BasicComponents::Transform>(entity);
+            b2Vec2 position = b2Body_GetPosition(rigidBody->getBodyId());
+            b2Rot rotation = b2Body_GetRotation(rigidBody->getBodyId());
 
-        transformComponent.position = {(position.x * 8.F * PPM + 1920 / 2.F), -(position.y * 8.F * PPM - 1080 / 2.F)};
-        transformComponent.rotation = -b2Rot_GetAngle(rotation) * 180 / b2_pi;
+            transformComponent.position = {(position.x * 8.F * PPM + 1920 / 2.F), -(position.y * 8.F * PPM - 1080 / 2.F)};
+            transformComponent.rotation = -b2Rot_GetAngle(rotation) * 180 / b2_pi;
+        }
+        if (m_ecs->getComponent<Rte::Physics::Components::Physics>(entity).playerBody) {
+            const std::shared_ptr<PlayerBodyImpl>& playerBody = interfaceCast<PlayerBodyImpl>(m_ecs->getComponent<Components::Physics>(entity).playerBody);
+            BasicComponents::Transform& transformComponent = m_ecs->getComponent<BasicComponents::Transform>(entity);
+            b2Vec2 position = b2Body_GetPosition(playerBody->getBodyId());
+            b2Rot rotation = b2Body_GetRotation(playerBody->getBodyId());
+
+            transformComponent.position = {(position.x * 8.F * PPM + 1920 / 2.F), -(position.y * 8.F * PPM - 1080 / 2.F)};
+            transformComponent.rotation = -b2Rot_GetAngle(rotation) * 180 / b2_pi;
+        }
     }
 }

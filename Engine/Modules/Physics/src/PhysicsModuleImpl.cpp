@@ -1,4 +1,5 @@
 #include "PhysicsModuleImpl.hpp"
+#include "PlayerBodyImpl.hpp"
 #include "Rte/BasicComponents.hpp"
 #include "Rte/Common.hpp"
 #include "Rte/Ecs/Ecs.hpp"
@@ -96,7 +97,6 @@ Rte::u8 *PhysicsModuleImpl::fractureRigidBody(const std::shared_ptr<RigidBody>& 
 }
 
 std::shared_ptr<RigidBody> PhysicsModuleImpl::createRigidBody(BodyType type, const u8* pixels, Rte::Vec2<u16> size, float density, float friction, Vec2<float> pos, Vec2<float> scale, float rotation) {
-    
     std::shared_ptr<RigidBodyImpl> rigidBody = std::make_shared<RigidBodyImpl>(type, pixels, size, density, friction, m_worldId, pos, scale, rotation);
     return rigidBody;
 }
@@ -109,4 +109,14 @@ std::shared_ptr<RigidBody> PhysicsModuleImpl::createRigidBody(std::shared_ptr<Ri
 
 void PhysicsModuleImpl::destroyRigidBody(std::shared_ptr<RigidBody>& rigidBody) {
     rigidBody.reset();
+}
+
+std::shared_ptr<PlayerBody> PhysicsModuleImpl::createPlayerBody(Rte::Vec2<Rte::u16> size, float density, float friction, Rte::Vec2<float> pos, Rte::Vec2<float> scale, float rotation) {
+    std::shared_ptr<PlayerBodyImpl> playerBody = std::make_shared<PlayerBodyImpl>(size, density, friction, m_worldId, pos, scale, rotation);
+    return playerBody;
+}
+
+void PhysicsModuleImpl::applyForce(std::shared_ptr<PlayerBody> playerBody, Vec2<float> force) {
+    auto playerBodyImpl = std::dynamic_pointer_cast<PlayerBodyImpl>(playerBody);
+    playerBodyImpl->applyForce(force);
 }

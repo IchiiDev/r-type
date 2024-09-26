@@ -12,6 +12,7 @@
 #include "Rte/Graphic/Texture.hpp"
 #include "Rte/ModuleManager.hpp"
 #include "Rte/Physics/RigidBody.hpp"
+#include "Rte/Physics/PlayerBody.hpp"
 
 #include <iostream>
 #include <memory>
@@ -164,7 +165,7 @@ void ClientApp::run() {
     // Creation of a drawable entity
     // Creation of a texture
     const std::shared_ptr<Rte::Graphic::Texture> texture = graphicModule->createTexture();
-    texture->loadFromFile("../sprite2.png");
+    texture->loadFromFile("../mushroom.png");
     
     constexpr Rte::Vec2<float> entityScale = {8, 8};
     const Rte::Vec2<Rte::u16> windowSize = graphicModule->getWindowSize();
@@ -213,7 +214,7 @@ void ClientApp::run() {
         .rotation = 0
     });
 
-    m_ecs->addComponent<Rte::Physics::Components::Physics>(breakableEntities[1], Rte::Physics::Components::Physics{physicsModule->createRigidBody(
+    m_ecs->addComponent<Rte::Physics::Components::Physics>(breakableEntities[breakableEntities.size() - 1], Rte::Physics::Components::Physics{physicsModule->createRigidBody(
         Rte::Physics::BodyType::STATIC,
         m_ecs->getComponent<Rte::Graphic::Components::Sprite>(breakableEntities[breakableEntities.size() - 1]).texture->getPixels(),
         m_ecs->getComponent<Rte::Graphic::Components::Sprite>(breakableEntities[breakableEntities.size() - 1]).texture->getSize(),
@@ -223,6 +224,35 @@ void ClientApp::run() {
         m_ecs->getComponent<Rte::BasicComponents::Transform>(breakableEntities[breakableEntities.size() - 1]).scale,
         m_ecs->getComponent<Rte::BasicComponents::Transform>(breakableEntities[breakableEntities.size() - 1]).rotation
     )});
+
+    // Creation of a player entity
+    const std::shared_ptr<Rte::Graphic::Texture> playerTexture = graphicModule->createTexture();
+    playerTexture->loadFromFile("../player.png");
+
+    constexpr Rte::Vec2<float> playerScale = {8, 8};
+    const Rte::Vec2<float> playerPosition = {
+        (static_cast<float>(windowSize.x) / 2) - (playerScale.x / 2),
+        (static_cast<float>(windowSize.y) / 2) - (playerScale.y / 2) - 400
+    };
+    Rte::Entity playerEntity = m_ecs->createEntity();
+
+    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(playerEntity, Rte::Graphic::Components::Sprite(playerTexture));
+    m_ecs->addComponent<Rte::BasicComponents::Transform>(playerEntity, Rte::BasicComponents::Transform{
+        .position = playerPosition,
+        .scale = playerScale,
+        .rotation = 0
+    });
+
+    std::shared_ptr<Rte::Physics::PlayerBody> playerBody = physicsModule->createPlayerBody(
+        {50, 100},
+        1,
+        0.3,
+        m_ecs->getComponent<Rte::BasicComponents::Transform>(playerEntity).position,
+        m_ecs->getComponent<Rte::BasicComponents::Transform>(playerEntity).scale,
+        m_ecs->getComponent<Rte::BasicComponents::Transform>(playerEntity).rotation
+    ); 
+
+    m_ecs->addComponent<Rte::Physics::Components::Physics>(playerEntity, Rte::Physics::Components::Physics{.playerBody = playerBody});
 
     // Callback to close the window
     bool running = true;
@@ -245,6 +275,20 @@ void ClientApp::run() {
             transform.position.y = (static_cast<float>(newSize.y) / 2) - (entityScale.y / 2);
         }
     ));
+
+    m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Graphic::Events::KEY_PRESSED, [&](Rte::Event& event) {
+        const Rte::Graphic::Key key = event.getParameter<Rte::Graphic::Key>(Rte::Graphic::Events::Params::KEY_PRESSED);
+        std::cout << "Key pressed: " << static_cast<int>(key) << "\n";
+        if (key == Rte::Graphic::Key::Space) {
+            physicsModule->applyForce(m_ecs->getComponent<Rte::Physics::Components::Physics>(playerEntity).playerBody, {0, 300});
+        }
+        if (key == Rte::Graphic::Key::Right) {
+            physicsModule->applyForce(m_ecs->getComponent<Rte::Physics::Components::Physics>(playerEntity).playerBody, {100, 0});
+        }
+        if (key == Rte::Graphic::Key::Left) {
+            physicsModule->applyForce(m_ecs->getComponent<Rte::Physics::Components::Physics>(playerEntity).playerBody, {-100, 0});
+        }
+    }));
 
     // Callback to print mouse button pressed
     m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Graphic::Events::MOUSE_BUTTON_PRESSED, [&](Rte::Event& event) {
