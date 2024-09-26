@@ -77,7 +77,6 @@ Rte::u8 *PhysicsModuleImpl::fractureRigidBody(const std::shared_ptr<RigidBody>& 
             if (rotatedPixels[i][j].pos.x + bodyPos.x - 2 <= pixelPos.x && rotatedPixels[i][j].pos.x + bodyPos.x + 2 >= pixelPos.x
             && rotatedPixels[i][j].pos.y + bodyPos.y - 2 <= pixelPos.y && rotatedPixels[i][j].pos.y + bodyPos.y + 2 >= pixelPos.y) {
                 if (rotatedPixels[i][j].a == 255) {
-                    std::cout << "hit !" << std::endl;
                     hasChanged = true;
                     rotatedPixels[i][j].a = 0;
                 }
@@ -96,8 +95,8 @@ Rte::u8 *PhysicsModuleImpl::fractureRigidBody(const std::shared_ptr<RigidBody>& 
     return newPixels;
 }
 
-std::shared_ptr<RigidBody> PhysicsModuleImpl::createRigidBody(BodyType type, const u8* pixels, Rte::Vec2<u16> size, float density, float friction, Vec2<float> pos, Vec2<float> scale, float rotation) {
-    std::shared_ptr<RigidBodyImpl> rigidBody = std::make_shared<RigidBodyImpl>(type, pixels, size, density, friction, m_worldId, pos, scale, rotation);
+std::shared_ptr<RigidBody> PhysicsModuleImpl::createRigidBody(const u8* pixels, Vec2<u16> size, Vec2<float> pos, Vec2<float> scale, float rotation) {
+    std::shared_ptr<RigidBodyImpl> rigidBody = std::make_shared<RigidBodyImpl>(pixels, size, m_worldId, pos, scale, rotation);
     return rigidBody;
 }
 

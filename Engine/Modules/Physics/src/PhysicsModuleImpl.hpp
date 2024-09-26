@@ -18,7 +18,7 @@ namespace Rte::Physics {
             void init(const std::shared_ptr<Ecs>& ecs) override;
             void update() override;
 
-            std::shared_ptr<RigidBody> createRigidBody(BodyType type, const u8* pixels, Rte::Vec2<u16> size, float density, float friction, Vec2<float> pos, Vec2<float> scale, float rotation) override;
+            std::shared_ptr<RigidBody> createRigidBody(const u8* pixels, Vec2<u16> size, Vec2<float> pos, Vec2<float> scale, float rotation) override;
             std::shared_ptr<RigidBody> createRigidBody(std::shared_ptr<RigidBody> rigidBody, const u8* pixels, Rte::Vec2<u16> size) override;
             void destroyRigidBody(std::shared_ptr<RigidBody>& rigidBody) override;
             u8 *fractureRigidBody(const std::shared_ptr<RigidBody>& rigidBody, Vec2<u16> pixelPos, bool &hasChanged) override;

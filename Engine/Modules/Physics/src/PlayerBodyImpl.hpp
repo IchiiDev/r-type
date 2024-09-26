@@ -28,6 +28,7 @@ namespace Rte::Physics {
             b2BodyId m_bodyId;
             Rte::Vec2<u16> m_size;
             b2WorldId m_worldId;
+
     };
 
 }   // namespace Rte::Physics

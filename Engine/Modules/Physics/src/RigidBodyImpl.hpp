@@ -6,6 +6,7 @@
 #include "box2d/box2d.h"
 #include "box2d/id.h"
 #include "Rte/Physics/Tool.hpp"
+#include "Rte/Physics/Materials.hpp"
 
 #include <string>
 #include <vector>
@@ -14,7 +15,7 @@ namespace Rte::Physics {
 
     class RigidBodyImpl : public RigidBody {
         public:
-            RigidBodyImpl(BodyType type, const u8* pixels, Rte::Vec2<u16> size, float density, float friction, b2WorldId worldId, Vec2<float> pos, Vec2<float> scale, float rotation);
+            RigidBodyImpl(const u8* pixels, Vec2<u16> size, b2WorldId worldId, Vec2<float> pos, Vec2<float> scale, float rotation);
             RigidBodyImpl(std::shared_ptr<RigidBodyImpl> rigidBody, const u8* pixels, Rte::Vec2<u16> size, b2WorldId worldId);
             ~RigidBodyImpl();
 
@@ -33,6 +34,7 @@ namespace Rte::Physics {
             const u8* m_pixels;
             Rte::Vec2<u16> m_size;
             b2WorldId m_worldId;
+            materials_t *m_materials;
     };
 
 }   // namespace Rte::Physics

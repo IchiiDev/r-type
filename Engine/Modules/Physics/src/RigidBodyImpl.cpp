@@ -1,6 +1,7 @@
 #include "Rte/Common.hpp"
 
 #include "RigidBodyImpl.hpp"
+#include "Rte/Physics/Materials.hpp"
 #include "Rte/Physics/Tool.hpp"
 #include "box2d/box2d.h"
 #include "box2d/collision.h"
@@ -35,10 +36,6 @@ std::vector<int> convertToBinary(const Rte::u8* image, Rte::Vec2<Rte::u16> size)
         else
         {
             binaryImage.push_back(1);
-        }
-        if (i % size.x == 0)
-        {
-            std::cout << std::endl;
         }
     }
     return binaryImage;
@@ -216,21 +213,6 @@ std::vector<std::vector<Rte::Vec2<float>>> createContinuousLines(std::vector<std
     vertices.erase(vertices.begin());
     for (size_t i = 0; i < vertices.size(); i++)
     {
-        // std::cout << "Number of verticies: " << vertices.size() << std::endl;
-
-        // std::cout << "Vertice: " << std::endl;
-        // for (size_t j = 0; j < vertices[i].size(); j++)
-        // {
-        //     std::cout << "{" << vertices[i][j].x << ", " << vertices[i][j].y << "} ";
-        // }
-        // std::cout << std::endl;
-        // std::cout << "Continuous Line: " << std::endl;
-        // for (size_t j = 0; j < continuousLine.size(); j++)
-        // {
-        //     std::cout << "{" << continuousLine[j].x << ", " << continuousLine[j].y << "} ";
-        // }
-        // std::cout << std::endl;
-
         if (isVertexLastInList(vertices[i][0], continuousLine))
         {
             vertices[i].erase(vertices[i].begin());
@@ -274,7 +256,6 @@ std::vector<std::vector<Rte::Vec2<float>>> createContinuousLines(std::vector<std
     }
     //continuousLine.push_back(continuousLine[0]);
     if (vertices.size() > 0) {
-        //std::cout << vertices.size() << " vertices left" << std::endl;
         std::vector<std::vector<Rte::Vec2<float>>> result = createContinuousLines(vertices);
         if (continuousLine.size() > 4) {
             result.push_back(continuousLine);
@@ -438,21 +419,52 @@ Rte::Vec2<float> RigidBodyImpl::getPosition() const {
     return {position.x, position.y};
 }
 
-RigidBodyImpl::RigidBodyImpl(BodyType type, const u8* pixels, Rte::Vec2<u16> size, float density, float friction, b2WorldId worldId, Vec2<float> pos, Vec2<float> scale, float rotation) : m_pixels(pixels), m_size(size), m_worldId(worldId) {
-    
+std::pair<materials_t *, material_def> createMaterialMap(Rte::Vec2<Rte::u16> size , const Rte::u8* pixels) {
+    materials_t *materialMap = new materials_t[size.x * size.y];
+    material_def averageProperties;
+    averageProperties.is_dynamic = true;
+    for (int i = 0; i < size.x * size.y; i++) {
+        int pixelColor = pixels[i * 4] * 1 + pixels[i * 4 + 1] * 2 + pixels[i * 4 + 2] * 4 + pixels[i * 4 + 3] * 8;
+        switch (matColors.at(pixelColor)) {
+            case air:
+                materialMap[i] = air;
+                break;
+            case s_wood:
+                materialMap[i] = s_wood;
+                break;
+            case d_wood:
+                materialMap[i] = d_wood;
+                break;
+            materialMap[i] = air;
+        }
+        if (materialMap[i] != air) {
+            averageProperties.density += materials.at(materialMap[i]).density;
+            averageProperties.friction += materials.at(materialMap[i]).friction;
+        }
+        if (!materials.at(materialMap[i]).is_dynamic) {
+            averageProperties.is_dynamic = false;
+        }
+    }
+    averageProperties.density /= size.x * size.y;
+    averageProperties.friction /= size.x * size.y;
+    return {materialMap, averageProperties};
+}
+
+RigidBodyImpl::RigidBodyImpl(const u8* pixels, Vec2<u16> size, b2WorldId worldId, Vec2<float> pos, Vec2<float> scale, float rotation) : m_pixels(pixels), m_size(size), m_worldId(worldId) {
+    std::pair<materials_t *, material_def> result = createMaterialMap(size, pixels);
+    m_materials = result.first;
+    material_def properties = result.second;
     // Create a body definition
     b2BodyDef bodyDef = b2DefaultBodyDef();
-    if (type == BodyType::STATIC) {
-        bodyDef.type = b2BodyType::b2_staticBody;
-    } else if (type == BodyType::DYNAMIC) {
+
+    if (properties.is_dynamic) {
         bodyDef.type = b2BodyType::b2_dynamicBody;
-    } else if (type == BodyType::KINEMATIC) {
-        bodyDef.type = b2BodyType::b2_kinematicBody;
+    } else {
+        bodyDef.type = b2BodyType::b2_staticBody;
     }
 
     bodyDef.position = {(pos.x - 1920 / 2.F) / 8.F / PPM, -(pos.y - 1080 / 2.F) / 8.F / PPM};
     bodyDef.rotation = b2MakeRot(rotation * b2_pi / 180.F);
-    std::cout << "Position: " << bodyDef.position.x << ", " << bodyDef.position.y << std::endl;
     
     // Create the polygons from the image
     std::vector<int> binaryImage = convertToBinary(pixels, size);
@@ -478,8 +490,8 @@ RigidBodyImpl::RigidBodyImpl(BodyType type, const u8* pixels, Rte::Vec2<u16> siz
 
         // Create a shape definition
         b2ShapeDef shapeDef = b2DefaultShapeDef();
-        shapeDef.density = density;
-        shapeDef.friction = friction;
+        shapeDef.density = properties.density;
+        shapeDef.friction = properties.friction;
 
         // Create the shape
         b2CreatePolygonShape(m_bodyId, &shapeDef, &triangle);
@@ -488,8 +500,17 @@ RigidBodyImpl::RigidBodyImpl(BodyType type, const u8* pixels, Rte::Vec2<u16> siz
 
 RigidBodyImpl::RigidBodyImpl(std::shared_ptr<RigidBodyImpl> rigidBody, const u8* pixels, Rte::Vec2<u16> size, b2WorldId worldId) : m_pixels(pixels), m_size(size), m_worldId(worldId) {
     // Copy the body definition from the existing rigid body
+    std::pair<materials_t *, material_def> result = createMaterialMap(size, pixels);
+    m_materials = result.first;
+    material_def properties = result.second;
+
     b2BodyDef bodyDef = b2DefaultBodyDef();
-    bodyDef.type = b2Body_GetType(rigidBody->getBodyId());
+    if (properties.is_dynamic) {
+        bodyDef.type = b2BodyType::b2_dynamicBody;
+    } else {
+        bodyDef.type = b2BodyType::b2_staticBody;
+    }
+
     bodyDef.position = b2Body_GetPosition(rigidBody->getBodyId());
     bodyDef.rotation = b2Body_GetRotation(rigidBody->getBodyId());
     bodyDef.linearVelocity = b2Body_GetLinearVelocity(rigidBody->getBodyId());
@@ -524,8 +545,8 @@ RigidBodyImpl::RigidBodyImpl(std::shared_ptr<RigidBodyImpl> rigidBody, const u8*
         // Create a shape definition
         b2ShapeDef shapeDef = b2DefaultShapeDef();
         
-        shapeDef.density = 1;
-        shapeDef.friction = 0.3;
+        shapeDef.density = properties.density;
+        shapeDef.friction = properties.friction;
 
         // Create the shape
         b2CreatePolygonShape(m_bodyId, &shapeDef, &triangle);
