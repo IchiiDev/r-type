@@ -28,8 +28,8 @@ namespace Rte::Physics {
             void applyForce(std::shared_ptr<PlayerBody> playerBody, Vec2<float> force) override;
 
             std::shared_ptr<SandBox> createSandBox(Vec2<u16> size) override;
-            [[nodiscard]] std::vector<materials_t> getSandBoxCanvas(std::shared_ptr<SandBox> sandBox) const override;
-            void changeSandBoxMaterial(Entity sandBox, Vec2<int> pos, materials_t material) override;
+            [[nodiscard]] std::vector<pixel_t> getSandBoxCanvas(std::shared_ptr<SandBox> sandBox) const override;
+            void changeSandBoxPixel(Entity sandBox, Vec2<int> pos, pixel_t pixel) override;
         private:
             std::shared_ptr<Ecs> m_ecs;
             std::shared_ptr<PhysicsSystem> m_physicsSystem;

@@ -26,11 +26,11 @@ namespace Rte::Physics {
             SandBoxImpl& operator=(SandBoxImpl&&) noexcept = default;
 
             void Step();
-            [[nodiscard]] std::vector<materials_t> getCanvas() const;
-            void changeMaterial(Vec2<int> pos, materials_t material);
+            [[nodiscard]] std::vector<pixel_t> getCanvas() const;
+            void changePixel(Vec2<int> pos, pixel_t pixel);
         private:
             Rte::Vec2<u16> m_size;
-            std::vector<materials_t> m_canvas;
+            std::vector<pixel_t> m_canvas;
 
     };
 

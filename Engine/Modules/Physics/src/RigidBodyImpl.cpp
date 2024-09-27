@@ -425,7 +425,7 @@ std::pair<materials_t *, material_def> createMaterialMap(Rte::Vec2<Rte::u16> siz
     averageProperties.is_dynamic = true;
     for (int i = 0; i < size.x * size.y; i++) {
         int pixelColor = pixels[i * 4] * 1 + pixels[i * 4 + 1] * 2 + pixels[i * 4 + 2] * 4 + pixels[i * 4 + 3] * 8;
-        switch (matColors.at(pixelColor)) {
+        switch (matsColors.at(pixelColor)) {
             case air:
                 materialMap[i] = air;
                 break;
@@ -438,10 +438,10 @@ std::pair<materials_t *, material_def> createMaterialMap(Rte::Vec2<Rte::u16> siz
             materialMap[i] = air;
         }
         if (materialMap[i] != air) {
-            averageProperties.density += materials.at(materialMap[i]).density;
-            averageProperties.friction += materials.at(materialMap[i]).friction;
+            averageProperties.density += mats.at(materialMap[i]).density;
+            averageProperties.friction += mats.at(materialMap[i]).friction;
         }
-        if (!materials.at(materialMap[i]).is_dynamic) {
+        if (!mats.at(materialMap[i]).is_dynamic) {
             averageProperties.is_dynamic = false;
         }
     }

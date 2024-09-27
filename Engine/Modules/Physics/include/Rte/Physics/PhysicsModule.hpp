@@ -39,8 +39,8 @@ namespace Rte::Physics {
             virtual void applyForce(std::shared_ptr<PlayerBody> playerBody, Vec2<float> force) = 0;
             
             virtual std::shared_ptr<SandBox> createSandBox(Vec2<u16> size) = 0;
-            [[nodiscard]] virtual std::vector<materials_t> getSandBoxCanvas(std::shared_ptr<SandBox> sandBox) const = 0;
-            virtual void changeSandBoxMaterial(Entity sandBox, Vec2<int> pos, materials_t material) = 0;
+            [[nodiscard]] virtual std::vector<pixel_t> getSandBoxCanvas(std::shared_ptr<SandBox> sandBox) const = 0;
+            virtual void changeSandBoxPixel(Entity sandBox, Vec2<int> pos, pixel_t pixel) = 0;
     };
 }   // namespace Rte::Physics
 

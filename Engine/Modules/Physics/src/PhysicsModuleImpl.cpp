@@ -126,7 +126,7 @@ std::shared_ptr<SandBox> PhysicsModuleImpl::createSandBox(Vec2<u16> size) {
     return std::make_shared<SandBoxImpl>(size);
 }
 
-std::vector<materials_t> PhysicsModuleImpl::getSandBoxCanvas(std::shared_ptr<SandBox> sandBox) const {
+std::vector<pixel_t> PhysicsModuleImpl::getSandBoxCanvas(std::shared_ptr<SandBox> sandBox) const {
     auto sandBoxImpl = std::dynamic_pointer_cast<SandBoxImpl>(sandBox);
     if (sandBoxImpl) {
         return sandBoxImpl->getCanvas();
@@ -134,9 +134,9 @@ std::vector<materials_t> PhysicsModuleImpl::getSandBoxCanvas(std::shared_ptr<San
     return {};
 }
 
-void PhysicsModuleImpl::changeSandBoxMaterial(Entity sandBox, Vec2<int> pos, materials_t material) {
+void PhysicsModuleImpl::changeSandBoxPixel(Entity sandBox, Vec2<int> pos, pixel_t pixel) {
     auto sandBoxImpl = std::dynamic_pointer_cast<SandBoxImpl>(m_ecs->getComponent<Components::Physics>(sandBox).sandBox);
     if (sandBoxImpl) {
-        sandBoxImpl->changeMaterial(pos, material);
+        sandBoxImpl->changePixel(pos, pixel);
     }
 }
