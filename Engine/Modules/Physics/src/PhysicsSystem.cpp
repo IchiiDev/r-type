@@ -6,6 +6,7 @@
 #include "Rte/Physics/Components.hpp"
 #include "RigidBodyImpl.hpp"
 #include "PlayerBodyImpl.hpp"
+#include "SandBoxImpl.hpp"
 #include "Rte/Physics/Tool.hpp"
 
 #include "box2d/box2d.h"
@@ -46,6 +47,10 @@ void PhysicsSystem::update() {
 
             transformComponent.position = {(position.x * 8.F * PPM + 1920 / 2.F), -(position.y * 8.F * PPM - 1080 / 2.F)};
             transformComponent.rotation = -b2Rot_GetAngle(rotation) * 180 / b2_pi;
+        }
+        if (m_ecs->getComponent<Rte::Physics::Components::Physics>(entity).sandBox) {
+            const std::shared_ptr<SandBoxImpl>& sandBox = interfaceCast<SandBoxImpl>(m_ecs->getComponent<Components::Physics>(entity).sandBox);
+            sandBox->Step();
         }
     }
 }

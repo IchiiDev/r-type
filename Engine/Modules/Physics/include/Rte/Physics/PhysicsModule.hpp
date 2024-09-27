@@ -4,8 +4,10 @@
 #include "Rte/Ecs/Ecs.hpp"
 #include "Rte/Ecs/Types.hpp"
 #include "Rte/ModuleManager.hpp"
+#include "Rte/Physics/Materials.hpp"
 #include "Rte/Physics/RigidBody.hpp"
 #include "Rte/Physics/PlayerBody.hpp"
+#include "Rte/Physics/SandBox.hpp"
 
 #include <memory>
 #include <string>
@@ -35,6 +37,10 @@ namespace Rte::Physics {
             virtual u8 *fractureRigidBody(const std::shared_ptr<RigidBody>& rigidBody, Vec2<u16> pixelPos, bool &hasChanged) = 0;
             virtual std::shared_ptr<PlayerBody> createPlayerBody(Vec2<u16> size, float density, float friction, Vec2<float> pos, Vec2<float> scale, float rotation) = 0;
             virtual void applyForce(std::shared_ptr<PlayerBody> playerBody, Vec2<float> force) = 0;
+            
+            virtual std::shared_ptr<SandBox> createSandBox(Vec2<u16> size) = 0;
+            [[nodiscard]] virtual std::vector<materials_t> getSandBoxCanvas(std::shared_ptr<SandBox> sandBox) const = 0;
+            virtual void changeSandBoxMaterial(Entity sandBox, Vec2<int> pos, materials_t material) = 0;
     };
 }   // namespace Rte::Physics
 

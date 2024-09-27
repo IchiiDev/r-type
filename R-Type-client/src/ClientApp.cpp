@@ -13,6 +13,8 @@
 #include "Rte/ModuleManager.hpp"
 #include "Rte/Physics/RigidBody.hpp"
 #include "Rte/Physics/PlayerBody.hpp"
+#include "Rte/Physics/SandBox.hpp"
+#include "Rte/Physics/Materials.hpp"
 
 #include <iostream>
 #include <memory>
@@ -191,34 +193,35 @@ void ClientApp::run() {
         m_ecs->getComponent<Rte::BasicComponents::Transform>(breakableEntities[breakableEntities.size() - 1]).rotation
     )});
 
-    // Creation of a player entity
-    const std::shared_ptr<Rte::Graphic::Texture> playerTexture = graphicModule->createTexture();
-    playerTexture->loadFromFile("../player.png");
+    // Creation of the sandBox
 
-    constexpr Rte::Vec2<float> playerScale = {8, 8};
-    const Rte::Vec2<float> playerPosition = {
-        (static_cast<float>(windowSize.x) / 2) - (playerScale.x / 2),
-        (static_cast<float>(windowSize.y) / 2) - (playerScale.y / 2) - 400
+    constexpr Rte::Vec2<float> sandBoxScale = {8, 8};
+    const Rte::Vec2<Rte::u16> sandBoxSize = {240, 135};
+    const Rte::Vec2<float> sandBoxPosition = {
+        (static_cast<float>(windowSize.x) / 2),
+        (static_cast<float>(windowSize.x) / 2) // CURSED
     };
-    Rte::Entity playerEntity = m_ecs->createEntity();
 
-    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(playerEntity, Rte::Graphic::Components::Sprite(playerTexture));
-    m_ecs->addComponent<Rte::BasicComponents::Transform>(playerEntity, Rte::BasicComponents::Transform{
-        .position = playerPosition,
-        .scale = playerScale,
+    const std::shared_ptr<Rte::Graphic::Texture> sandBoxTexture = graphicModule->createTexture();
+    Rte::u8 *tempSandBox = new Rte::u8[sandBoxSize.x * sandBoxSize.y * 4];
+    for (int i = 0; i < sandBoxSize.x * sandBoxSize.y * 4; i++)
+    {
+        tempSandBox[i] = 0;
+    }
+    sandBoxTexture->loadFromMemory(tempSandBox, sandBoxSize);
+
+    Rte::Entity sandBoxEntity = m_ecs->createEntity();
+
+    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(sandBoxEntity, Rte::Graphic::Components::Sprite(sandBoxTexture));
+
+    m_ecs->addComponent<Rte::BasicComponents::Transform>(sandBoxEntity, Rte::BasicComponents::Transform{
+        .position = sandBoxPosition,
+        .scale = sandBoxScale,
         .rotation = 0
     });
 
-    std::shared_ptr<Rte::Physics::PlayerBody> playerBody = physicsModule->createPlayerBody(
-        {50, 100},
-        1,
-        0.3,
-        m_ecs->getComponent<Rte::BasicComponents::Transform>(playerEntity).position,
-        m_ecs->getComponent<Rte::BasicComponents::Transform>(playerEntity).scale,
-        m_ecs->getComponent<Rte::BasicComponents::Transform>(playerEntity).rotation
-    ); 
+    m_ecs->addComponent<Rte::Physics::Components::Physics>(sandBoxEntity, Rte::Physics::Components::Physics{.sandBox = physicsModule->createSandBox(sandBoxSize)});
 
-    m_ecs->addComponent<Rte::Physics::Components::Physics>(playerEntity, Rte::Physics::Components::Physics{.playerBody = playerBody});
 
     // Callback to close the window
     bool running = true;
@@ -257,15 +260,32 @@ void ClientApp::run() {
 
     // Main loop
     while (running) {
-        if (graphicModule->isKeyPressed(Rte::Graphic::Key::Space)) {
-            physicsModule->applyForce(m_ecs->getComponent<Rte::Physics::Components::Physics>(playerEntity).playerBody, {0, 100});
+        if (graphicModule->isMouseButtonPressed(Rte::Graphic::MouseButton::Left)) {
+            Rte::Vec2<Rte::u16> position = graphicModule->getMousePosition();
+            physicsModule->changeSandBoxMaterial(sandBoxEntity, {position.x / 8, position.y / 8}, materials_t::sand);
+            physicsModule->changeSandBoxMaterial(sandBoxEntity, {position.x / 8 + 1, position.y / 8}, materials_t::sand);
+            physicsModule->changeSandBoxMaterial(sandBoxEntity, {position.x / 8 - 1, position.y / 8}, materials_t::sand);
+            physicsModule->changeSandBoxMaterial(sandBoxEntity, {position.x / 8, position.y / 8 + 1}, materials_t::sand);
+            physicsModule->changeSandBoxMaterial(sandBoxEntity, {position.x / 8, position.y / 8 - 1}, materials_t::sand);
         }
-        if (graphicModule->isKeyPressed(Rte::Graphic::Key::Right)) {
-            physicsModule->applyForce(m_ecs->getComponent<Rte::Physics::Components::Physics>(playerEntity).playerBody, {50, 0});
+        if (graphicModule->isMouseButtonPressed(Rte::Graphic::MouseButton::Right)) {
+            Rte::Vec2<Rte::u16> position = graphicModule->getMousePosition();
+            physicsModule->changeSandBoxMaterial(sandBoxEntity, {position.x / 8, position.y / 8}, materials_t::water);
+            physicsModule->changeSandBoxMaterial(sandBoxEntity, {position.x / 8 + 1, position.y / 8}, materials_t::water);
+            physicsModule->changeSandBoxMaterial(sandBoxEntity, {position.x / 8 - 1, position.y / 8}, materials_t::water);
+            physicsModule->changeSandBoxMaterial(sandBoxEntity, {position.x / 8, position.y / 8 + 1}, materials_t::water);
+            physicsModule->changeSandBoxMaterial(sandBoxEntity, {position.x / 8, position.y / 8 - 1}, materials_t::water);
         }
-        if (graphicModule->isKeyPressed(Rte::Graphic::Key::Left)) {
-            physicsModule->applyForce(m_ecs->getComponent<Rte::Physics::Components::Physics>(playerEntity).playerBody, {-50, 0});
+        std::vector<materials_t> canvas = physicsModule->getSandBoxCanvas(m_ecs->getComponent<Rte::Physics::Components::Physics>(sandBoxEntity).sandBox);
+        for (int i = 0; i < sandBoxSize.x * sandBoxSize.y; i++) {
+            tempSandBox[i * 4] = invMatColors.at(canvas[i]).r;
+            tempSandBox[i * 4 + 1] = invMatColors.at(canvas[i]).g;
+            tempSandBox[i * 4 + 2] = invMatColors.at(canvas[i]).b;
+            tempSandBox[i * 4 + 3] = invMatColors.at(canvas[i]).a;
         }
+        sandBoxTexture->loadFromMemory(tempSandBox, sandBoxSize);
+        m_ecs->removeComponent<Rte::Graphic::Components::Sprite>(sandBoxEntity);
+        m_ecs->addComponent<Rte::Graphic::Components::Sprite>(sandBoxEntity, Rte::Graphic::Components::Sprite(sandBoxTexture));
         physicsModule->update();
         graphicModule->update();
     }

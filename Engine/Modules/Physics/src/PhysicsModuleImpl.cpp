@@ -10,6 +10,8 @@
 #include "Rte/ModuleManager.hpp"
 #include "Rte/Physics/RigidBody.hpp"
 #include "RigidBodyImpl.hpp"
+#include "Rte/Physics/SandBox.hpp"
+#include "SandBoxImpl.hpp"
 #include "Rte/Physics/Tool.hpp"
 
 #include <cmath>
@@ -118,4 +120,23 @@ std::shared_ptr<PlayerBody> PhysicsModuleImpl::createPlayerBody(Rte::Vec2<Rte::u
 void PhysicsModuleImpl::applyForce(std::shared_ptr<PlayerBody> playerBody, Vec2<float> force) {
     auto playerBodyImpl = std::dynamic_pointer_cast<PlayerBodyImpl>(playerBody);
     playerBodyImpl->applyForce(force);
+}
+
+std::shared_ptr<SandBox> PhysicsModuleImpl::createSandBox(Vec2<u16> size) {
+    return std::make_shared<SandBoxImpl>(size);
+}
+
+std::vector<materials_t> PhysicsModuleImpl::getSandBoxCanvas(std::shared_ptr<SandBox> sandBox) const {
+    auto sandBoxImpl = std::dynamic_pointer_cast<SandBoxImpl>(sandBox);
+    if (sandBoxImpl) {
+        return sandBoxImpl->getCanvas();
+    }
+    return {};
+}
+
+void PhysicsModuleImpl::changeSandBoxMaterial(Entity sandBox, Vec2<int> pos, materials_t material) {
+    auto sandBoxImpl = std::dynamic_pointer_cast<SandBoxImpl>(m_ecs->getComponent<Components::Physics>(sandBox).sandBox);
+    if (sandBoxImpl) {
+        sandBoxImpl->changeMaterial(pos, material);
+    }
 }
