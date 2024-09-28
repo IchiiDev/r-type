@@ -35,7 +35,7 @@ void RenderSystem::update(sf::RenderWindow& window, sf::Shader& shader) {
         const sf::Angle angle = sf::degrees(transformComponent.rotation);
         sprite.setPosition({transformComponent.position.x, transformComponent.position.y});
         sprite.setScale({transformComponent.scale.x, transformComponent.scale.y});
-        sprite.setOrigin({static_cast<float>(texture->getSize().x) / 2.F, static_cast<float>(texture->getSize().x) / 2.F});
+        sprite.setOrigin({static_cast<float>(texture->getSize().x) / 2.F, static_cast<float>(texture->getSize().y) / 2.F});
         sprite.setRotation(angle);
 
         // Draw

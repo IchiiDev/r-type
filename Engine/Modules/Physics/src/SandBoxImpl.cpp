@@ -130,6 +130,12 @@ void SandBoxImpl::Step() {
                 break;
         }
     }
+    for (int i = 0; i < m_particles.size(); i++) {
+        if (mats.at(m_canvas.at(m_particles.at(i).pos.y * m_size.x + m_particles.at(i).pos.x).mat).comp == nothing) {
+            m_canvas.at(m_particles.at(i).pos.y * m_size.x + m_particles.at(i).pos.x) = m_particles.at(i).pixel;
+            m_particles.erase(m_particles.begin() + i);
+        }
+    }
 }
 
 SandBoxImpl::~SandBoxImpl() {

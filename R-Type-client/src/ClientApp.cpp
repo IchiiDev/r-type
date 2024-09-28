@@ -179,15 +179,15 @@ void ClientApp::run() {
     // Creation of a drawable entity
     // Creation of a texture
     const std::shared_ptr<Rte::Graphic::Texture> texture = graphicModule->createTexture();
-    texture->loadFromFile("../mushroom-tex.png");
+    texture->loadFromFile("../metal-beam-tex.png");
     const std::shared_ptr<Rte::Graphic::Texture> material = graphicModule->createTexture();
-    material->loadFromFile("../mushroom-mat.png");
+    material->loadFromFile("../metal-beam-mat.png");
     
     constexpr Rte::Vec2<float> entityScale = {8, 8};
     const Rte::Vec2<Rte::u16> windowSize = graphicModule->getWindowSize();
     const Rte::Vec2<float> entityPosition = {
         240 / 2 * 8,
-        135 / 2 * 8
+        135 / 2 * 8 * 2 - (static_cast<float>(texture->getSize().y) / 2 * 8) + 16
     };
     breakableEntities.push_back(m_ecs->createEntity());
 
@@ -207,13 +207,43 @@ void ClientApp::run() {
         m_ecs->getComponent<Rte::BasicComponents::Transform>(breakableEntities[breakableEntities.size() - 1]).rotation
     )});
 
+
+    // Creation of second entity
+    const std::shared_ptr<Rte::Graphic::Texture> textureM = graphicModule->createTexture();
+    textureM->loadFromFile("../mushroom-tex.png");
+    const std::shared_ptr<Rte::Graphic::Texture> materialM = graphicModule->createTexture();
+    materialM->loadFromFile("../mushroom-mat.png");
+    
+    constexpr Rte::Vec2<float> entityScaleM = {8, 8};
+    const Rte::Vec2<float> entityPositionM = {
+        240 / 2 * 8,
+        135 / 2 * 8 * 2 - (static_cast<float>(texture->getSize().y) / 2 * 8) - 256 - 64 + 16
+    };
+    breakableEntities.push_back(m_ecs->createEntity());
+
+    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(breakableEntities[breakableEntities.size() - 1], Rte::Graphic::Components::Sprite(textureM));
+    m_ecs->addComponent<Rte::BasicComponents::Transform>(breakableEntities[breakableEntities.size() - 1], Rte::BasicComponents::Transform{
+        .position = entityPositionM,
+        .scale = entityScaleM,
+        .rotation = 0,
+    });
+
+
+    m_ecs->addComponent<Rte::Physics::Components::Physics>(breakableEntities[breakableEntities.size() - 1], Rte::Physics::Components::Physics{physicsModule->createRigidBody(
+        materialM->getPixels(),
+        materialM->getSize(),
+        m_ecs->getComponent<Rte::BasicComponents::Transform>(breakableEntities[breakableEntities.size() - 1]).position,
+        m_ecs->getComponent<Rte::BasicComponents::Transform>(breakableEntities[breakableEntities.size() - 1]).scale,
+        m_ecs->getComponent<Rte::BasicComponents::Transform>(breakableEntities[breakableEntities.size() - 1]).rotation
+    )});
+
     // Creation of the sandBox
 
     constexpr Rte::Vec2<float> sandBoxScale = {8, 8};
     const Rte::Vec2<Rte::u16> sandBoxSize = {240, 135};
     const Rte::Vec2<float> sandBoxPosition = {
         (static_cast<float>(windowSize.x) / 2),
-        (static_cast<float>(windowSize.x) / 2) // CURSED
+        (static_cast<float>(windowSize.y) / 2)
     };
 
     const std::shared_ptr<Rte::Graphic::Texture> sandBoxTexture = graphicModule->createTexture();
