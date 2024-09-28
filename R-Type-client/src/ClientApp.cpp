@@ -186,8 +186,8 @@ void ClientApp::run() {
     constexpr Rte::Vec2<float> entityScale = {8, 8};
     const Rte::Vec2<Rte::u16> windowSize = graphicModule->getWindowSize();
     const Rte::Vec2<float> entityPosition = {
-        (static_cast<float>(windowSize.x) / 2) - (entityScale.x / 2),
-        (static_cast<float>(windowSize.y) / 2) - (entityScale.y / 2)
+        240 / 2 * 8,
+        135 / 2 * 8
     };
     breakableEntities.push_back(m_ecs->createEntity());
 
@@ -195,7 +195,7 @@ void ClientApp::run() {
     m_ecs->addComponent<Rte::BasicComponents::Transform>(breakableEntities[breakableEntities.size() - 1], Rte::BasicComponents::Transform{
         .position = entityPosition,
         .scale = entityScale,
-        .rotation = 0
+        .rotation = 0,
     });
 
 
@@ -295,6 +295,13 @@ void ClientApp::run() {
             tempSandBox[i * 4 + 1] = canvas.at(i).color.g;
             tempSandBox[i * 4 + 2] = canvas.at(i).color.b;
             tempSandBox[i * 4 + 3] = canvas.at(i).color.a;
+        }
+        std::vector<particle_t> particles = physicsModule->getSandBoxParticles(m_ecs->getComponent<Rte::Physics::Components::Physics>(sandBoxEntity).sandBox);
+        for (const particle_t& particle : particles) {
+            tempSandBox[particle.pos.y * sandBoxSize.x * 4 + particle.pos.x * 4] = invMatsColors.at(particle.pixel.mat).r;
+            tempSandBox[particle.pos.y * sandBoxSize.x * 4 + particle.pos.x * 4 + 1] = invMatsColors.at(particle.pixel.mat).g;
+            tempSandBox[particle.pos.y * sandBoxSize.x * 4 + particle.pos.x * 4 + 2] = invMatsColors.at(particle.pixel.mat).b;
+            tempSandBox[particle.pos.y * sandBoxSize.x * 4 + particle.pos.x * 4 + 3] = invMatsColors.at(particle.pixel.mat).a;
         }
         sandBoxTexture->loadFromMemory(tempSandBox, sandBoxSize);
         m_ecs->removeComponent<Rte::Graphic::Components::Sprite>(sandBoxEntity);

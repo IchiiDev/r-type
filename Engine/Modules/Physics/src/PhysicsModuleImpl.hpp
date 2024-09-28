@@ -29,6 +29,7 @@ namespace Rte::Physics {
 
             std::shared_ptr<SandBox> createSandBox(Vec2<u16> size) override;
             [[nodiscard]] std::vector<pixel_t> getSandBoxCanvas(std::shared_ptr<SandBox> sandBox) const override;
+            std::vector<particle_t> getSandBoxParticles(std::shared_ptr<SandBox> sandBox) const override;
             void changeSandBoxPixel(Entity sandBox, Vec2<int> pos, pixel_t pixel) override;
         private:
             std::shared_ptr<Ecs> m_ecs;

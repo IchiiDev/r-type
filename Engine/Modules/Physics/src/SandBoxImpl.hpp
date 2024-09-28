@@ -10,6 +10,7 @@
 
 #include <array>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace Rte::Physics {
@@ -27,10 +28,15 @@ namespace Rte::Physics {
 
             void Step();
             [[nodiscard]] std::vector<pixel_t> getCanvas() const;
+            [[nodiscard]] Rte::Vec2<u16> getSize() const;
             void changePixel(Vec2<int> pos, pixel_t pixel);
+
+            [[nodiscard]] std::vector<particle_t> getParticles() const;
+            void addParticle(particle_t particle);
         private:
             Rte::Vec2<u16> m_size;
             std::vector<pixel_t> m_canvas;
+            std::vector<particle_t> m_particles;
 
     };
 

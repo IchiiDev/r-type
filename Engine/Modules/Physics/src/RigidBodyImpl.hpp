@@ -28,8 +28,10 @@ namespace Rte::Physics {
             [[nodiscard]] b2BodyId getBodyId() const;
             [[nodiscard]] float getRotation() const;
             [[nodiscard]] Vec2<float> getPosition() const;
+            [[nodiscard]] bool isDynamic() const;
             [[nodiscard]] std::vector<std::vector<pixel>> getRotatedPixels() const;
         private:
+            bool m_isDynamic;
             b2BodyId m_bodyId;
             const u8* m_pixels;
             Rte::Vec2<u16> m_size;

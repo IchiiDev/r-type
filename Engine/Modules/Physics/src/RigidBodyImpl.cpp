@@ -419,6 +419,10 @@ Rte::Vec2<float> RigidBodyImpl::getPosition() const {
     return {position.x, position.y};
 }
 
+bool RigidBodyImpl::isDynamic() const {
+    return m_isDynamic;
+}
+
 std::pair<materials_t *, material_def> createMaterialMap(Rte::Vec2<Rte::u16> size , const Rte::u8* pixels) {
     materials_t *materialMap = new materials_t[size.x * size.y];
     material_def averageProperties;
@@ -458,8 +462,10 @@ RigidBodyImpl::RigidBodyImpl(const u8* pixels, Vec2<u16> size, b2WorldId worldId
     b2BodyDef bodyDef = b2DefaultBodyDef();
 
     if (properties.is_dynamic) {
+        m_isDynamic = true;
         bodyDef.type = b2BodyType::b2_dynamicBody;
     } else {
+        m_isDynamic = false;
         bodyDef.type = b2BodyType::b2_staticBody;
     }
 
@@ -506,8 +512,10 @@ RigidBodyImpl::RigidBodyImpl(std::shared_ptr<RigidBodyImpl> rigidBody, const u8*
 
     b2BodyDef bodyDef = b2DefaultBodyDef();
     if (properties.is_dynamic) {
+        m_isDynamic = true;
         bodyDef.type = b2BodyType::b2_dynamicBody;
     } else {
+        m_isDynamic = false;
         bodyDef.type = b2BodyType::b2_staticBody;
     }
 

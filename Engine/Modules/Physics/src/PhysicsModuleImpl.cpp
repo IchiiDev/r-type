@@ -134,6 +134,14 @@ std::vector<pixel_t> PhysicsModuleImpl::getSandBoxCanvas(std::shared_ptr<SandBox
     return {};
 }
 
+std::vector<particle_t> PhysicsModuleImpl::getSandBoxParticles(std::shared_ptr<SandBox> sandBox) const {
+    auto sandBoxImpl = std::dynamic_pointer_cast<SandBoxImpl>(sandBox);
+    if (sandBoxImpl) {
+        return sandBoxImpl->getParticles();
+    }
+    return {};
+}
+
 void PhysicsModuleImpl::changeSandBoxPixel(Entity sandBox, Vec2<int> pos, pixel_t pixel) {
     auto sandBoxImpl = std::dynamic_pointer_cast<SandBoxImpl>(m_ecs->getComponent<Components::Physics>(sandBox).sandBox);
     if (sandBoxImpl) {

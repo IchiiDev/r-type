@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Rte/Common.hpp"
 #include <map>
 
 using materials_t = enum Materials_e {
@@ -53,6 +54,12 @@ typedef struct {
     color_t color;
     float life_time;
 } pixel_t;
+
+typedef struct {
+    pixel_t pixel;
+    Rte::Vec2<int> pos;
+    Rte::Vec2<float> vel;
+} particle_t;
 
 const std::map<int, materials_t> matsColors = {
     {0 * 1 + 0 * 2 + 0 * 4 + 0 * 8, air},

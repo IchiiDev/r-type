@@ -40,6 +40,7 @@ namespace Rte::Physics {
             
             virtual std::shared_ptr<SandBox> createSandBox(Vec2<u16> size) = 0;
             [[nodiscard]] virtual std::vector<pixel_t> getSandBoxCanvas(std::shared_ptr<SandBox> sandBox) const = 0;
+            virtual std::vector<particle_t> getSandBoxParticles(std::shared_ptr<SandBox> sandBox) const = 0;
             virtual void changeSandBoxPixel(Entity sandBox, Vec2<int> pos, pixel_t pixel) = 0;
     };
 }   // namespace Rte::Physics

@@ -20,11 +20,23 @@ std::vector<pixel_t> SandBoxImpl::getCanvas() const {
     return m_canvas;
 }
 
+Rte::Vec2<Rte::u16> SandBoxImpl::getSize() const {
+    return m_size;
+}
+
 void SandBoxImpl::changePixel(Vec2<int> pos, pixel_t pixel) {
     if (pos.x < 0 || pos.x >= m_size.x || pos.y < 0 || pos.y >= m_size.y) {
         return;
     }
     m_canvas[pos.y * m_size.x + pos.x] = pixel;
+}
+
+std::vector<particle_t> SandBoxImpl::getParticles() const {
+    return m_particles;
+}
+
+void SandBoxImpl::addParticle(particle_t particle) {
+    m_particles.push_back(particle);
 }
 
 void SandBoxImpl::Step() {
@@ -117,7 +129,6 @@ void SandBoxImpl::Step() {
                 }
                 break;
         }
-
     }
 }
 
