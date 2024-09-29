@@ -65,7 +65,7 @@ const std::map<int, materials_t> matsColors = {
     {0 * 1 + 0 * 2 + 0 * 4 + 0 * 8, air},
     {53 * 1 + 35 * 2 + 0 * 4 + 255 * 8, s_wood},
     {79 * 1 + 53 * 2 + 0 * 4 + 255 * 8, d_wood},
-    {222 * 1 + 158 * 2 + 65 * 4 + 255 * 8, sand},
+    {245 * 1 + 169 * 2 + 91 * 4 + 255 * 8, sand},
     {0 * 1 + 200 * 2 + 255 * 4 + 120 * 8, water}
 };
 
@@ -74,8 +74,8 @@ const std::map<materials_t, color_t> invMatsColors = {
     {air,       {0,   0,   0,   0}},
     {s_wood,    {53,  35,  0,   255}},
     {d_wood,    {79,  53,  0,   255}},
-    {sand,      {222, 158, 65,   255}},
-    {water,     {0,   200, 255, 120}}
+    {sand,      {245, 169, 91,   255}},
+    {water,     {100, 161, 194, 120}}
 };
 
 const std::map<materials_t, material_def> mats = {

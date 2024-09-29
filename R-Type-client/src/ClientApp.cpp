@@ -179,9 +179,9 @@ void ClientApp::run() {
     // Creation of a drawable entity
     // Creation of a texture
     const std::shared_ptr<Rte::Graphic::Texture> texture = graphicModule->createTexture();
-    texture->loadFromFile("../metal-beam-tex.png");
+    texture->loadFromFile("../copper-bar-tex.png");
     const std::shared_ptr<Rte::Graphic::Texture> material = graphicModule->createTexture();
-    material->loadFromFile("../metal-beam-mat.png");
+    material->loadFromFile("../copper-bar-mat.png");
     
     constexpr Rte::Vec2<float> entityScale = {8, 8};
     const Rte::Vec2<Rte::u16> windowSize = graphicModule->getWindowSize();
