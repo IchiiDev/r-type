@@ -176,7 +176,24 @@ void ClientApp::run() {
     const std::shared_ptr<Rte::Physics::PhysicsModule> physicsModule = Rte::interfaceCast<Rte::Physics::PhysicsModule>(moduleManager.loadModule("RtePhysics"));
     physicsModule->init(m_ecs);
 
-    // Creation of a drawable entity
+    // Creation of a a background entity
+
+    const std::shared_ptr<Rte::Graphic::Texture> backgroundTexture = graphicModule->createTexture();
+    backgroundTexture->loadFromFile("../background.png");
+    constexpr Rte::Vec2<float> backgroundScale = {8, 8};
+    const Rte::Vec2<Rte::u16> windowSize = graphicModule->getWindowSize();
+    const Rte::Vec2<float> backgroundPosition = {
+        (static_cast<float>(windowSize.x) / 2),
+        (static_cast<float>(windowSize.y) / 2)
+    };
+    Rte::Entity backgroundEntity = m_ecs->createEntity();
+    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(backgroundEntity, Rte::Graphic::Components::Sprite(backgroundTexture));
+    m_ecs->addComponent<Rte::BasicComponents::Transform>(backgroundEntity, Rte::BasicComponents::Transform{
+        .position = backgroundPosition,
+        .scale = backgroundScale,
+        .rotation = 0,
+    });
+
     // Creation of a texture
     const std::shared_ptr<Rte::Graphic::Texture> texture = graphicModule->createTexture();
     texture->loadFromFile("../copper-bar-tex.png");
@@ -184,7 +201,6 @@ void ClientApp::run() {
     material->loadFromFile("../copper-bar-mat.png");
     
     constexpr Rte::Vec2<float> entityScale = {8, 8};
-    const Rte::Vec2<Rte::u16> windowSize = graphicModule->getWindowSize();
     const Rte::Vec2<float> entityPosition = {
         240 / 2 * 8,
         135 / 2 * 8 * 2 - (static_cast<float>(texture->getSize().y) / 2 * 8) + 16
@@ -311,6 +327,8 @@ void ClientApp::run() {
             k = water;
         else if (graphicModule->isKeyPressed(Rte::Graphic::Key::B))
             k = s_wood;
+        else if (graphicModule->isKeyPressed(Rte::Graphic::Key::A))
+            k = acid;
         if (graphicModule->isMouseButtonPressed(Rte::Graphic::MouseButton::Left)) {
             Rte::Vec2<Rte::u16> position = graphicModule->getMousePosition();
             physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8, position.y / 8},     {k, randomColor(invMatsColors.at(k), 60), 0});
@@ -326,13 +344,13 @@ void ClientApp::run() {
             tempSandBox[i * 4 + 2] = canvas.at(i).color.b;
             tempSandBox[i * 4 + 3] = canvas.at(i).color.a;
         }
-        std::vector<particle_t> particles = physicsModule->getSandBoxParticles(m_ecs->getComponent<Rte::Physics::Components::Physics>(sandBoxEntity).sandBox);
-        for (const particle_t& particle : particles) {
-            tempSandBox[particle.pos.y * sandBoxSize.x * 4 + particle.pos.x * 4] = invMatsColors.at(particle.pixel.mat).r;
-            tempSandBox[particle.pos.y * sandBoxSize.x * 4 + particle.pos.x * 4 + 1] = invMatsColors.at(particle.pixel.mat).g;
-            tempSandBox[particle.pos.y * sandBoxSize.x * 4 + particle.pos.x * 4 + 2] = invMatsColors.at(particle.pixel.mat).b;
-            tempSandBox[particle.pos.y * sandBoxSize.x * 4 + particle.pos.x * 4 + 3] = invMatsColors.at(particle.pixel.mat).a;
-        }
+        //std::vector<particle_t> particles = physicsModule->getSandBoxParticles(m_ecs->getComponent<Rte::Physics::Components::Physics>(sandBoxEntity).sandBox);
+        //for (const particle_t& particle : particles) {
+        //    tempSandBox[particle.pos.y * sandBoxSize.x * 4 + particle.pos.x * 4] = invMatsColors.at(particle.pixel.mat).r;
+        //    tempSandBox[particle.pos.y * sandBoxSize.x * 4 + particle.pos.x * 4 + 1] = invMatsColors.at(particle.pixel.mat).g;
+        //    tempSandBox[particle.pos.y * sandBoxSize.x * 4 + particle.pos.x * 4 + 2] = invMatsColors.at(particle.pixel.mat).b;
+        //    tempSandBox[particle.pos.y * sandBoxSize.x * 4 + particle.pos.x * 4 + 3] = invMatsColors.at(particle.pixel.mat).a;
+        //}
         sandBoxTexture->loadFromMemory(tempSandBox, sandBoxSize);
         m_ecs->removeComponent<Rte::Graphic::Components::Sprite>(sandBoxEntity);
         m_ecs->addComponent<Rte::Graphic::Components::Sprite>(sandBoxEntity, Rte::Graphic::Components::Sprite(sandBoxTexture));

@@ -444,9 +444,9 @@ std::pair<materials_t *, material_def> createMaterialMap(Rte::Vec2<Rte::u16> siz
         if (materialMap[i] != air) {
             averageProperties.density += mats.at(materialMap[i]).density;
             averageProperties.friction += mats.at(materialMap[i]).friction;
-        }
-        if (!mats.at(materialMap[i]).is_dynamic) {
-            averageProperties.is_dynamic = false;
+            if (!mats.at(materialMap[i]).is_dynamic) {
+                averageProperties.is_dynamic = false;
+            }
         }
     }
     averageProperties.density /= size.x * size.y;

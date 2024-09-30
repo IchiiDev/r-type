@@ -50,13 +50,16 @@ void SandBoxImpl::Step() {
                         mats.at(m_canvas[(y + 1) * m_size.x + x - 1].mat).comp == nothing || mats.at(m_canvas[(y + 1) * m_size.x + x - 1].mat).comp == liquid ||
                         mats.at(m_canvas[(y + 1) * m_size.x + x + 1].mat).comp == nothing || mats.at(m_canvas[(y + 1) * m_size.x + x + 1].mat).comp == liquid )
                             pixelsToChange.push_back({x, y});
+                    break;
+
                     case liquid:
                         if (mats.at(m_canvas[(y + 1) * m_size.x + x].mat).comp == nothing ||
                         mats.at(m_canvas[(y + 1) * m_size.x + x - 1].mat).comp == nothing ||
                         mats.at(m_canvas[(y + 1) * m_size.x + x + 1].mat).comp == nothing ||
                         mats.at(m_canvas[y * m_size.x + x - 1].mat).comp == nothing ||
-                        mats.at(m_canvas[y * m_size.x + x + 1].mat).comp == nothing)
+                        mats.at(m_canvas[y * m_size.x + x + 1].mat).comp == nothing || (m_canvas[(y) * m_size.x + x].mat == materials_t::acid && mats.at(m_canvas[(y + 1) * m_size.x + x].mat).comp == powder))
                             pixelsToChange.push_back({x, y});
+                    break;
                 }
             }
         }
@@ -70,6 +73,19 @@ void SandBoxImpl::Step() {
                     m_canvas[(pos.y + 1) * m_size.x + pos.x] = m_canvas[pos.y * m_size.x + pos.x];
                     m_canvas[pos.y * m_size.x + pos.x] = tempPixel;
                     break;
+                }
+                if (rand() % 10 == 1) {
+                    if (m_canvas[(pos.y) * m_size.x + pos.x].mat == acid) {
+                        if (mats.at(m_canvas[(pos.y + 1) * m_size.x + pos.x].mat).comp == powder) {
+                            if (rand() % 2 == 1) {
+                                m_canvas[(pos.y + 1) * m_size.x + pos.x] = {air, {0, 0, 0, 0}, 0};
+                            } else {
+                                m_canvas[(pos.y + 1) * m_size.x + pos.x] = m_canvas[pos.y * m_size.x + pos.x];
+                            }
+                            m_canvas[pos.y * m_size.x + pos.x] = {air, {0, 0, 0, 0}, 0};
+                            break;
+                        }
+                    }
                 }
                 if (rand() % 2 == 0) {
                     for (int offset = pos.x; offset < m_size.x; offset++) {
