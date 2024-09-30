@@ -1,11 +1,7 @@
 #pragma once
 
-#include "Rte/Common.hpp"
-
-#include <string>
-#include <vector>
-
 namespace Rte::Physics {
+
     class PlayerBody {
         public:
             PlayerBody() = default;

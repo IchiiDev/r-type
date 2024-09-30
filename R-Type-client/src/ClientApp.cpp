@@ -12,8 +12,6 @@
 #include "Rte/Graphic/Texture.hpp"
 #include "Rte/ModuleManager.hpp"
 #include "Rte/Physics/RigidBody.hpp"
-#include "Rte/Physics/PlayerBody.hpp"
-#include "Rte/Physics/SandBox.hpp"
 #include "Rte/Physics/Materials.hpp"
 
 #include <iostream>
@@ -21,11 +19,12 @@
 #include <vector>
 #include <algorithm>
 #include <stack>
+
 ClientApp::ClientApp() {
     m_ecs = std::make_shared<Rte::Ecs>();
 }
 
-color_t randomColor(color_t color, int offset) {
+Rte::Physics::Color randomColor(Rte::Physics::Color color, int offset) {
     int random = rand() % 3 / 3.F * offset;
     color.r += random - offset / 2;
     color.g += random - offset / 2;
@@ -42,16 +41,11 @@ color_t randomColor(color_t color, int offset) {
 //Where image is an array of pixels in rgba format
 std::vector<int> convertToBinary(const Rte::u8* image, Rte::Vec2<Rte::u16> size) {
     std::vector<int> binaryImage;
-    for (int i = 1; i < size.x * size.y + 1; i++)
-    {
+    for (int i = 1; i < size.x * size.y + 1; i++) {
         if (image[i * 4 - 1] == 0)
-        {
             binaryImage.push_back(0);
-        }
         else
-        {
             binaryImage.push_back(1);
-        }
     }
     return binaryImage;
 }
@@ -146,7 +140,7 @@ void breakEntities(const std::shared_ptr<Rte::Graphic::GraphicModule>& graphicMo
             for (const auto & component : components) {
                 const std::shared_ptr<Rte::Graphic::Texture> newTexture = graphicModule->createTexture();
                 const std::shared_ptr<Rte::Graphic::Texture> newMaterial = graphicModule->createTexture();
-                Rte::u8 *componentTexPixels = andImage(ecs->getComponent<Rte::Graphic::Components::Sprite>(breakableEntities[i]).texture->getPixels(), component, size); 
+                Rte::u8 *componentTexPixels = andImage(ecs->getComponent<Rte::Graphic::Components::Sprite>(breakableEntities[i]).texture->getPixels(), component, size);
                 Rte::u8 *componentMatPixels = andImage(newMatPixels, component, size);
                 newTexture->loadFromMemory(componentTexPixels, size);
                 newMaterial->loadFromMemory(componentMatPixels, size);
@@ -199,7 +193,7 @@ void ClientApp::run() {
     texture->loadFromFile("../copper-bar-tex.png");
     const std::shared_ptr<Rte::Graphic::Texture> material = graphicModule->createTexture();
     material->loadFromFile("../copper-bar-mat.png");
-    
+
     constexpr Rte::Vec2<float> entityScale = {8, 8};
     const Rte::Vec2<float> entityPosition = {
         240 / 2 * 8,
@@ -229,7 +223,7 @@ void ClientApp::run() {
     textureM->loadFromFile("../mushroom-tex.png");
     const std::shared_ptr<Rte::Graphic::Texture> materialM = graphicModule->createTexture();
     materialM->loadFromFile("../mushroom-mat.png");
-    
+
     constexpr Rte::Vec2<float> entityScaleM = {8, 8};
     const Rte::Vec2<float> entityPositionM = {
         240 / 2 * 8,
@@ -282,7 +276,7 @@ void ClientApp::run() {
 
     m_ecs->addComponent<Rte::Physics::Components::Physics>(sandBoxEntity, Rte::Physics::Components::Physics{.sandBox = physicsModule->createSandBox(sandBoxSize)});
 
-    materials_t k = sand;
+    Rte::Physics::MaterialType k = Rte::Physics::MaterialType::SAND;
 
     // Callback to close the window
     bool running = true;
@@ -322,35 +316,28 @@ void ClientApp::run() {
     // Main loop
     while (running) {
         if (graphicModule->isKeyPressed(Rte::Graphic::Key::S))
-            k = sand;
+            k = Rte::Physics::MaterialType::SAND;
         else if (graphicModule->isKeyPressed(Rte::Graphic::Key::W))
-            k = water;
+            k = Rte::Physics::MaterialType::WATER;
         else if (graphicModule->isKeyPressed(Rte::Graphic::Key::B))
-            k = s_wood;
+            k = Rte::Physics::MaterialType::STATIC_WOOD;
         else if (graphicModule->isKeyPressed(Rte::Graphic::Key::A))
-            k = acid;
+            k = Rte::Physics::MaterialType::ACID;
         if (graphicModule->isMouseButtonPressed(Rte::Graphic::MouseButton::Left)) {
             Rte::Vec2<Rte::u16> position = graphicModule->getMousePosition();
-            physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8, position.y / 8},     {k, randomColor(invMatsColors.at(k), 60), 0});
-            physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8 + 1, position.y / 8}, {k, randomColor(invMatsColors.at(k), 60), 0});
-            physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8 - 1, position.y / 8}, {k, randomColor(invMatsColors.at(k), 60), 0});
-            physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8, position.y / 8 + 1}, {k, randomColor(invMatsColors.at(k), 60), 0});
-            physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8, position.y / 8 - 1}, {k, randomColor(invMatsColors.at(k), 60), 0});
+            physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8, position.y / 8},     {k, randomColor(Rte::Physics::invMatColors.at(k), 60), 0});
+            physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8 + 1, position.y / 8}, {k, randomColor(Rte::Physics::invMatColors.at(k), 60), 0});
+            physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8 - 1, position.y / 8}, {k, randomColor(Rte::Physics::invMatColors.at(k), 60), 0});
+            physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8, position.y / 8 + 1}, {k, randomColor(Rte::Physics::invMatColors.at(k), 60), 0});
+            physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8, position.y / 8 - 1}, {k, randomColor(Rte::Physics::invMatColors.at(k), 60), 0});
         }
-        std::vector<pixel_t> canvas = physicsModule->getSandBoxCanvas(m_ecs->getComponent<Rte::Physics::Components::Physics>(sandBoxEntity).sandBox);
+        std::vector<Rte::Physics::Pixel> canvas = physicsModule->getSandBoxCanvas(m_ecs->getComponent<Rte::Physics::Components::Physics>(sandBoxEntity).sandBox);
         for (int i = 0; i < sandBoxSize.x * sandBoxSize.y; i++) {
             tempSandBox[i * 4] = canvas.at(i).color.r;
             tempSandBox[i * 4 + 1] = canvas.at(i).color.g;
             tempSandBox[i * 4 + 2] = canvas.at(i).color.b;
             tempSandBox[i * 4 + 3] = canvas.at(i).color.a;
         }
-        //std::vector<particle_t> particles = physicsModule->getSandBoxParticles(m_ecs->getComponent<Rte::Physics::Components::Physics>(sandBoxEntity).sandBox);
-        //for (const particle_t& particle : particles) {
-        //    tempSandBox[particle.pos.y * sandBoxSize.x * 4 + particle.pos.x * 4] = invMatsColors.at(particle.pixel.mat).r;
-        //    tempSandBox[particle.pos.y * sandBoxSize.x * 4 + particle.pos.x * 4 + 1] = invMatsColors.at(particle.pixel.mat).g;
-        //    tempSandBox[particle.pos.y * sandBoxSize.x * 4 + particle.pos.x * 4 + 2] = invMatsColors.at(particle.pixel.mat).b;
-        //    tempSandBox[particle.pos.y * sandBoxSize.x * 4 + particle.pos.x * 4 + 3] = invMatsColors.at(particle.pixel.mat).a;
-        //}
         sandBoxTexture->loadFromMemory(tempSandBox, sandBoxSize);
         m_ecs->removeComponent<Rte::Graphic::Components::Sprite>(sandBoxEntity);
         m_ecs->addComponent<Rte::Graphic::Components::Sprite>(sandBoxEntity, Rte::Graphic::Components::Sprite(sandBoxTexture));

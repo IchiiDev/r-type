@@ -399,7 +399,7 @@ std::vector<std::vector<pixel>> RigidBodyImpl::getRotatedPixels() const {
     Rte::Vec2<float> center = {static_cast<float>(m_size.x) / 2.0F, static_cast<float>(m_size.y) / 2.0F};
     float angle = -getRotation();
     std::vector<std::vector<pixel>> rotatedPixels(m_size.y, std::vector<pixel>(m_size.x));
-    
+
     for (int y = 0; y < m_size.y; y++) {
         for (int x = 0; x < m_size.x; x++) {
             Rte::Vec2<float> rotatedPos = rotate({static_cast<float>(x), static_cast<float>(y)}, center, angle);
@@ -423,29 +423,29 @@ bool RigidBodyImpl::isDynamic() const {
     return m_isDynamic;
 }
 
-std::pair<materials_t *, material_def> createMaterialMap(Rte::Vec2<Rte::u16> size , const Rte::u8* pixels) {
-    materials_t *materialMap = new materials_t[size.x * size.y];
-    material_def averageProperties;
-    averageProperties.is_dynamic = true;
+std::pair<MaterialType *, MaterialDef> createMaterialMap(Rte::Vec2<Rte::u16> size , const Rte::u8* pixels) {
+    MaterialType *materialMap = new MaterialType[size.x * size.y];
+    MaterialDef averageProperties{};
+    averageProperties.isDynamic = true;
     for (int i = 0; i < size.x * size.y; i++) {
         int pixelColor = pixels[i * 4] * 1 + pixels[i * 4 + 1] * 2 + pixels[i * 4 + 2] * 4 + pixels[i * 4 + 3] * 8;
-        switch (matsColors.at(pixelColor)) {
-            case air:
-                materialMap[i] = air;
+        switch (matColors.at(pixelColor)) {
+            case MaterialType::AIR:
+                materialMap[i] = MaterialType::AIR;
                 break;
-            case s_wood:
-                materialMap[i] = s_wood;
+            case MaterialType::STATIC_WOOD:
+                materialMap[i] = MaterialType::STATIC_WOOD;
                 break;
-            case d_wood:
-                materialMap[i] = d_wood;
+            case MaterialType::DYNAMIC_WOOD:
+                materialMap[i] = MaterialType::DYNAMIC_WOOD;
                 break;
-            materialMap[i] = air;
+            materialMap[i] = MaterialType::AIR;
         }
-        if (materialMap[i] != air) {
+        if (materialMap[i] != MaterialType::AIR) {
             averageProperties.density += mats.at(materialMap[i]).density;
             averageProperties.friction += mats.at(materialMap[i]).friction;
-            if (!mats.at(materialMap[i]).is_dynamic) {
-                averageProperties.is_dynamic = false;
+            if (!mats.at(materialMap[i]).isDynamic) {
+                averageProperties.isDynamic = false;
             }
         }
     }
@@ -455,13 +455,13 @@ std::pair<materials_t *, material_def> createMaterialMap(Rte::Vec2<Rte::u16> siz
 }
 
 RigidBodyImpl::RigidBodyImpl(const u8* pixels, Vec2<u16> size, b2WorldId worldId, Vec2<float> pos, Vec2<float> scale, float rotation) : m_pixels(pixels), m_size(size), m_worldId(worldId) {
-    std::pair<materials_t *, material_def> result = createMaterialMap(size, pixels);
+    std::pair<MaterialType *, MaterialDef> result = createMaterialMap(size, pixels);
     m_materials = result.first;
-    material_def properties = result.second;
+    MaterialDef properties = result.second;
     // Create a body definition
     b2BodyDef bodyDef = b2DefaultBodyDef();
 
-    if (properties.is_dynamic) {
+    if (properties.isDynamic) {
         m_isDynamic = true;
         bodyDef.type = b2BodyType::b2_dynamicBody;
     } else {
@@ -471,12 +471,12 @@ RigidBodyImpl::RigidBodyImpl(const u8* pixels, Vec2<u16> size, b2WorldId worldId
 
     bodyDef.position = {(pos.x - 1920 / 2.F) / 8.F / PPM, -(pos.y - 1080 / 2.F) / 8.F / PPM};
     bodyDef.rotation = b2MakeRot(rotation * b2_pi / 180.F);
-    
+
     // Create the polygons from the image
     std::vector<int> binaryImage = convertToBinary(pixels, size);
     std::vector<std::vector<Rte::Vec2<float>>> vertices = marchingSquares(binaryImage, size);
     std::vector<std::vector<Rte::Vec2<float>>> continuousLines = createContinuousLines(vertices);
-    continuousLines = findHolesInPolygons(continuousLines); 
+    continuousLines = findHolesInPolygons(continuousLines);
     for (size_t i = 0; i < continuousLines.size(); i++)
     {
         continuousLines[i] = douglasPeucker(continuousLines[i], 0.75);
@@ -506,12 +506,12 @@ RigidBodyImpl::RigidBodyImpl(const u8* pixels, Vec2<u16> size, b2WorldId worldId
 
 RigidBodyImpl::RigidBodyImpl(std::shared_ptr<RigidBodyImpl> rigidBody, const u8* pixels, Rte::Vec2<u16> size, b2WorldId worldId) : m_pixels(pixels), m_size(size), m_worldId(worldId) {
     // Copy the body definition from the existing rigid body
-    std::pair<materials_t *, material_def> result = createMaterialMap(size, pixels);
+    std::pair<MaterialType *, MaterialDef> result = createMaterialMap(size, pixels);
     m_materials = result.first;
-    material_def properties = result.second;
+    MaterialDef properties = result.second;
 
     b2BodyDef bodyDef = b2DefaultBodyDef();
-    if (properties.is_dynamic) {
+    if (properties.isDynamic) {
         m_isDynamic = true;
         bodyDef.type = b2BodyType::b2_dynamicBody;
     } else {
@@ -532,7 +532,7 @@ RigidBodyImpl::RigidBodyImpl(std::shared_ptr<RigidBodyImpl> rigidBody, const u8*
     std::vector<int> binaryImage = convertToBinary(m_pixels, size);
     std::vector<std::vector<Rte::Vec2<float>>> vertices = marchingSquares(binaryImage, size);
     std::vector<std::vector<Rte::Vec2<float>>> continuousLines = createContinuousLines(vertices);
-    continuousLines = findHolesInPolygons(continuousLines); 
+    continuousLines = findHolesInPolygons(continuousLines);
     for (size_t i = 0; i < continuousLines.size(); i++)
     {
         continuousLines[i] = douglasPeucker(continuousLines[i], 0.75);
@@ -552,7 +552,7 @@ RigidBodyImpl::RigidBodyImpl(std::shared_ptr<RigidBodyImpl> rigidBody, const u8*
 
         // Create a shape definition
         b2ShapeDef shapeDef = b2DefaultShapeDef();
-        
+
         shapeDef.density = properties.density;
         shapeDef.friction = properties.friction;
 

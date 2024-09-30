@@ -36,7 +36,7 @@ namespace Rte::Physics {
             const u8* m_pixels;
             Rte::Vec2<u16> m_size;
             b2WorldId m_worldId;
-            materials_t *m_materials;
+            MaterialType *m_materials;
     };
 
 }   // namespace Rte::Physics
