@@ -4,7 +4,6 @@
 #include "Rte/Graphic/Texture.hpp"
 
 #include "SFML/Graphics/Image.hpp"
-#include "SFML/Graphics/Image.hpp"
 #include "SFML/Graphics/Texture.hpp"
 
 #include <string>

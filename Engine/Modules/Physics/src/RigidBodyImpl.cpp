@@ -7,13 +7,20 @@
 #include "box2d/collision.h"
 #include "box2d/math_functions.h"
 
+#include "box2d/id.h"
+#include "box2d/types.h"
 #include "poly2tri/common/shapes.h"
 #include "poly2tri/sweep/cdt.h"
 
 #include <algorithm>
 #include <array>
+#include <cmath>
 #include <cstddef>
 #include <cstdlib>
+#include <iterator>
+#include <memory>
+#include <numbers>
+#include <utility>
 #include <vector>
 
 using namespace Rte::Physics;
@@ -40,10 +47,10 @@ std::vector<int> convertToBinary(const std::vector<Rte::u8>& image, const Rte::V
 std::vector<std::vector<Rte::Vec2<float>>> marchingSquares(const std::vector<int>& binaryImage, const Rte::Vec2<Rte::u16>& size) {    // NOLINT(readability-function-cognitive-complexity)
     std::vector<std::vector<Rte::Vec2<float>>> vertices;
 
-    Rte::Vec2<float> fSize = {static_cast<float>(size.x), static_cast<float>(size.y)};
+    const Rte::Vec2<float> fSize = {static_cast<float>(size.x), static_cast<float>(size.y)};
 
-    for (float y = -1; y < fSize.y + 1; y++) {
-        for (float x = -1; x < fSize.x + 1; x++) {
+    for (float y = -1; y < fSize.y + 1; y++) {      // NOLINT(clang-analyzer-security.FloatLoopCounter)
+        for (float x = -1; x < fSize.x + 1; x++) {  // NOLINT(clang-analyzer-security.FloatLoopCounter)
             int topLeft = 0;
             int topRight = 0;
             int bottomLeft = 0;
@@ -84,7 +91,7 @@ std::vector<std::vector<Rte::Vec2<float>>> marchingSquares(const std::vector<int
                 }
             }
 
-            int configuration = topLeft * 8 + topRight * 4 + bottomRight * 2 + bottomLeft;
+            const int configuration = topLeft * 8 + topRight * 4 + bottomRight * 2 + bottomLeft;
             switch (configuration) {
                 case 1:
                 case 14:
@@ -163,6 +170,9 @@ std::vector<std::vector<Rte::Vec2<float>>> marchingSquares(const std::vector<int
                         {x + .5F, y + 1}
                     });
                     break;
+
+                default:
+                    break;
             }
         }
     }
@@ -171,14 +181,14 @@ std::vector<std::vector<Rte::Vec2<float>>> marchingSquares(const std::vector<int
 }
 
 bool isLastVertexInList(const Rte::Vec2<float>& vertex, const std::vector<Rte::Vec2<float>>& vertices) {
-    if (vertices.size() == 0)
+    if (vertices.empty())
         return false;
 
     return vertex.x == vertices.at(vertices.size() - 1).x && vertex.y == vertices.at(vertices.size() - 1).y;
 }
 
 bool isVertexFirstInList(const Rte::Vec2<float>& vertex, const std::vector<Rte::Vec2<float>>& vertices) {
-    if (vertices.size() == 0)
+    if (vertices.empty())
         return false;
 
     return vertex.x == vertices.at(0).x && vertex.y == vertices.at(0).y;
@@ -186,14 +196,14 @@ bool isVertexFirstInList(const Rte::Vec2<float>& vertex, const std::vector<Rte::
 
 std::vector<std::vector<Rte::Vec2<float>>> createContinuousLines(std::vector<std::vector<Rte::Vec2<float>>>& vertices) { // NOLINT(readability-function-cognitive-complexity)
     std::vector<Rte::Vec2<float>> continuousLine;
-    for (Rte::Vec2<float> i : vertices.at(0))
+    for (const Rte::Vec2<float> i : vertices.at(0))
         continuousLine.push_back(i);
 
     vertices.erase(vertices.begin());
     for (size_t i = 0; i < vertices.size(); i++) {
         if (isLastVertexInList(vertices.at(i).at(0), continuousLine)) {
             vertices.at(i).erase(vertices.at(i).begin());
-            for (Rte::Vec2<float> j : vertices.at(i))
+            for (const Rte::Vec2<float> j : vertices.at(i))
                 continuousLine.push_back(j);
 
             vertices.erase(std::next(vertices.begin(), static_cast<std::vector<Rte::Vec2<float>>::difference_type>(i)));
@@ -207,7 +217,7 @@ std::vector<std::vector<Rte::Vec2<float>>> createContinuousLines(std::vector<std
             i = 0;
         } else if (isVertexFirstInList(vertices.at(i).at(0), continuousLine)) {
             vertices.at(i).erase(vertices.at(i).begin());
-            for (Rte::Vec2<float> j : vertices.at(i))
+            for (const Rte::Vec2<float> j : vertices.at(i))
                 continuousLine.insert(continuousLine.begin(), j);
 
             vertices.erase(std::next(vertices.begin(), static_cast<std::vector<Rte::Vec2<float>>::difference_type>(i)));
@@ -222,7 +232,7 @@ std::vector<std::vector<Rte::Vec2<float>>> createContinuousLines(std::vector<std
         }
     }
 
-    if (vertices.size() > 0) {
+    if (!vertices.empty()) {
         std::vector<std::vector<Rte::Vec2<float>>> result = createContinuousLines(vertices);
         if (continuousLine.size() > 4)
             result.push_back(continuousLine);
@@ -261,7 +271,7 @@ void douglasPeuckerRecursive(const std::vector<Rte::Vec2<float>>& line, float ep
     float maxDistance = 0.0;
     size_t index = 0;
     for (size_t i = 1; i < line.size() - 1; ++i) {
-        float distance = perpendicularDistance(line.at(i), line.at(0), line.at(line.size() - 1));
+        const float distance = perpendicularDistance(line.at(i), line.at(0), line.at(line.size() - 1));
         if (distance > maxDistance) {
             index = i;
             maxDistance = distance;
@@ -271,8 +281,8 @@ void douglasPeuckerRecursive(const std::vector<Rte::Vec2<float>>& line, float ep
     if (maxDistance > epsilon) {
         std::vector<Rte::Vec2<float>> recResults1;
         std::vector<Rte::Vec2<float>> recResults2;
-        std::vector<Rte::Vec2<float>> firstLine(line.begin(), std::next(line.begin(), static_cast<std::vector<Rte::Vec2<float>>::difference_type>(index + 1)));
-        std::vector<Rte::Vec2<float>> lastLine(std::next(line.begin(), static_cast<std::vector<Rte::Vec2<float>>::difference_type>(index)), line.end());
+        const std::vector<Rte::Vec2<float>> firstLine(line.begin(), std::next(line.begin(), static_cast<std::vector<Rte::Vec2<float>>::difference_type>(index + 1)));
+        const std::vector<Rte::Vec2<float>> lastLine(std::next(line.begin(), static_cast<std::vector<Rte::Vec2<float>>::difference_type>(index)), line.end());
 
         douglasPeuckerRecursive(firstLine, epsilon, recResults1);
         douglasPeuckerRecursive(lastLine, epsilon, recResults2);
@@ -329,7 +339,7 @@ std::vector<Triangle> polygoneToTriangles(std::vector<Rte::Vec2<float>> polygone
 
 bool isPointInPolygon(const Rte::Vec2<float>& point, const std::vector<Rte::Vec2<float>>& polygon) {
     bool inside = false;
-    size_t polygonCount = polygon.size();
+    const size_t polygonCount = polygon.size();
     for (size_t i = 0, j = polygonCount - 1; i < polygonCount; j = i++) {
         if (((polygon.at(i).y > point.y) != (polygon.at(j).y > point.y)) &&
             (point.x < (polygon.at(j).x - polygon.at(i).x) * (point.y - polygon.at(i).y) / (polygon.at(j).y - polygon.at(i).y) + polygon.at(i).x)) {
@@ -378,7 +388,7 @@ std::vector<std::vector<PixelCringe>> RigidBodyImpl::getRotatedPixels() const {
 
     for (int y = 0; y < m_size.y; y++) {
         for (int x = 0; x < m_size.x; x++) {
-            Rte::Vec2<float> rotatedPos = rotate({static_cast<float>(x), static_cast<float>(y)}, center, angle);
+            const Rte::Vec2<float> rotatedPos = rotate({static_cast<float>(x), static_cast<float>(y)}, center, angle);
             rotatedPixels.at(y).at(x) = {m_pixels.at((static_cast<long long>(y * m_size.x + x)) * 4), m_pixels.at((y * m_size.x + x) * 4 + 1), m_pixels.at((y * m_size.x + x) * 4 + 2), m_pixels.at((y * m_size.x + x) * 4 + 3), (rotatedPos.x - center.x), (rotatedPos.y - center.y)};
         }
     }
@@ -391,7 +401,7 @@ float RigidBodyImpl::getRotation() const {
 }
 
 Rte::Vec2<float> RigidBodyImpl::getPosition() const {
-    b2Vec2 position = b2Body_GetPosition(m_bodyId);
+    const b2Vec2 position = b2Body_GetPosition(m_bodyId);
     return {position.x, position.y};
 }
 
@@ -439,9 +449,9 @@ RigidBodyImpl::RigidBodyImpl(const u8* pixels, const Vec2<u16>& size, const b2Wo
     m_pixels.resize((static_cast<size_t>(size.x * size.y) * 4));
     std::copy(pixels, pixels + static_cast<ptrdiff_t>(size.x * size.y * 4), m_pixels.begin());
 
-    std::pair<std::vector<MaterialType>, MaterialDef> result = createMaterialMap(size, pixels);
+    const std::pair<std::vector<MaterialType>, MaterialDef> result = createMaterialMap(size, pixels);
     m_materials = result.first;
-    MaterialDef properties = result.second;
+    const MaterialDef properties = result.second;
     // Create a body definition
     b2BodyDef bodyDef = b2DefaultBodyDef();
 
@@ -454,17 +464,17 @@ RigidBodyImpl::RigidBodyImpl(const u8* pixels, const Vec2<u16>& size, const b2Wo
     }
 
     bodyDef.position = {(pos.x - 1920 / 2.F) / 8.F / PPM, -(pos.y - 1080 / 2.F) / 8.F / PPM};
-    bodyDef.rotation = b2MakeRot(rotation * b2_pi / 180.F);
+    bodyDef.rotation = b2MakeRot(rotation * std::numbers::pi_v<float> / 180.F);
 
     // Create the polygons from the image
-    std::vector<int> binaryImage = convertToBinary(m_pixels, size);
+    const std::vector<int> binaryImage = convertToBinary(m_pixels, size);
     std::vector<std::vector<Rte::Vec2<float>>> vertices = marchingSquares(binaryImage, size);
     std::vector<std::vector<Rte::Vec2<float>>> continuousLines = createContinuousLines(vertices);
     findHolesInPolygons(continuousLines);
     for (std::vector<Rte::Vec2<float>>& continuousLine : continuousLines)
         continuousLine = douglasPeucker(continuousLine, 0.75);
 
-    std::vector<Triangle> triangles = polygoneToTriangles(continuousLines.at(0));
+    const std::vector<Triangle> triangles = polygoneToTriangles(continuousLines.at(0));
 
     m_bodyId = b2CreateBody(worldId, &bodyDef);
 
@@ -476,8 +486,8 @@ RigidBodyImpl::RigidBodyImpl(const u8* pixels, const Vec2<u16>& size, const b2Wo
             b2Vec2{(tri.c.x - static_cast<float>(size.x) / 2) / PPM, -(tri.c.y - static_cast<float>(size.y) / 2) / PPM}
         };
 
-        b2Hull hull = b2ComputeHull(vertices.data(), 3);
-        b2Polygon triangle = b2MakePolygon(&hull, 0);
+        const b2Hull hull = b2ComputeHull(vertices.data(), 3);
+        const b2Polygon triangle = b2MakePolygon(&hull, 0);
 
         // Create a shape definition
         b2ShapeDef shapeDef = b2DefaultShapeDef();
@@ -494,9 +504,9 @@ RigidBodyImpl::RigidBodyImpl(const std::shared_ptr<RigidBodyImpl>& rigidBody, co
     std::copy(pixels, pixels + static_cast<ptrdiff_t>(size.x * size.y * 4), m_pixels.begin());
 
     // Copy the body definition from the existing rigid body
-    std::pair<std::vector<MaterialType>, MaterialDef> result = createMaterialMap(size, pixels);
+    const std::pair<std::vector<MaterialType>, MaterialDef> result = createMaterialMap(size, pixels);
     m_materials = result.first;
-    MaterialDef properties = result.second;
+    const MaterialDef properties = result.second;
 
     b2BodyDef bodyDef = b2DefaultBodyDef();
     if (properties.isDynamic) {
@@ -517,15 +527,14 @@ RigidBodyImpl::RigidBodyImpl(const std::shared_ptr<RigidBodyImpl>& rigidBody, co
     bodyDef.gravityScale = b2Body_GetGravityScale(rigidBody->getBodyId());
 
     // Create the polygons from the image
-    std::vector<int> binaryImage = convertToBinary(m_pixels, size);
+    const std::vector<int> binaryImage = convertToBinary(m_pixels, size);
     std::vector<std::vector<Rte::Vec2<float>>> vertices = marchingSquares(binaryImage, size);
     std::vector<std::vector<Rte::Vec2<float>>> continuousLines = createContinuousLines(vertices);
     findHolesInPolygons(continuousLines);
-    for (size_t i = 0; i < continuousLines.size(); i++)
-    {
-        continuousLines.at(i) = douglasPeucker(continuousLines.at(i), 0.75);
-    }
-    std::vector<Triangle> triangles = polygoneToTriangles(continuousLines.at(0));
+    for (std::vector<Rte::Vec2<float>>& continuousLine : continuousLines)
+        continuousLine = douglasPeucker(continuousLine, 0.75);
+
+    const std::vector<Triangle> triangles = polygoneToTriangles(continuousLines.at(0));
 
     m_bodyId = b2CreateBody(m_worldId, &bodyDef);
 
@@ -537,8 +546,8 @@ RigidBodyImpl::RigidBodyImpl(const std::shared_ptr<RigidBodyImpl>& rigidBody, co
             b2Vec2{(tri.c.x - static_cast<float>(size.x) / 2) / PPM, -(tri.c.y - static_cast<float>(size.y) / 2) / PPM}
         };
 
-        b2Hull hull = b2ComputeHull(vertices.data(), 3);
-        b2Polygon triangle = b2MakePolygon(&hull, 0);
+        const b2Hull hull = b2ComputeHull(vertices.data(), 3);
+        const b2Polygon triangle = b2MakePolygon(&hull, 0);
 
         // Create a shape definition
         b2ShapeDef shapeDef = b2DefaultShapeDef();

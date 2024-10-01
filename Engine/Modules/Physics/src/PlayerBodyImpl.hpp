@@ -22,7 +22,7 @@ namespace Rte::Physics {
             void applyForce(const Vec2<float>& force);
 
         private:
-            b2BodyId m_bodyId;
+            b2BodyId m_bodyId{};
             Rte::Vec2<u16> m_size;
             b2WorldId m_worldId;
     };

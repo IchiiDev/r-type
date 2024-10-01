@@ -4,6 +4,7 @@
 #include "SandBoxImpl.hpp"
 
 #include <cstdlib>
+#include <vector>
 
 using namespace Rte::Physics;
 

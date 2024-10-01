@@ -7,39 +7,40 @@
 #include "Rte/Ecs/Types.hpp"
 #include "Rte/Graphic/Components.hpp"
 #include "Rte/Graphic/GraphicModule.hpp"
-#include "Rte/Physics/Components.hpp"
-#include "Rte/Physics/PhysicsModule.hpp"
 #include "Rte/Graphic/Texture.hpp"
 #include "Rte/ModuleManager.hpp"
-#include "Rte/Physics/RigidBody.hpp"
+#include "Rte/Physics/Components.hpp"
 #include "Rte/Physics/Materials.hpp"
+#include "Rte/Physics/PhysicsModule.hpp"
+#include "Rte/Physics/RigidBody.hpp"
 
+#include <algorithm>
+#include <cstddef>
+#include <cstdlib>
 #include <iostream>
 #include <memory>
-#include <vector>
-#include <algorithm>
 #include <stack>
+#include <utility>
+#include <vector>
 
 ClientApp::ClientApp() {
     m_ecs = std::make_shared<Rte::Ecs>();
 }
 
 Rte::Physics::Color randomColor(Rte::Physics::Color color, int offset) {
-    int random = rand() % 3 / 3.F * offset;
+    const int random = static_cast<int>(static_cast<float>(rand() % 3) / 3.F * static_cast<float>(offset));
     color.r += random - offset / 2;
     color.g += random - offset / 2;
     color.b += random - offset / 2;
-    if (color.r > 255) color.r = 255;
-    if (color.g > 255) color.g = 255;
-    if (color.b > 255) color.b = 255;
-    if (color.r < 0) color.r = 0;
-    if (color.g < 0) color.g = 0;
-    if (color.b < 0) color.b = 0;
+
+    color.r = std::clamp(color.r, 0, 255);
+    color.g = std::clamp(color.g, 0, 255);
+    color.b = std::clamp(color.b, 0, 255);
+
     return color;
 }
 
-//Where image is an array of pixels in rgba format
-std::vector<int> convertToBinary(const Rte::u8* image, Rte::Vec2<Rte::u16> size) {
+std::vector<int> convertToBinary(const Rte::u8* image, const Rte::Vec2<Rte::u16>& size) {
     std::vector<int> binaryImage;
     for (int i = 1; i < size.x * size.y + 1; i++) {
         if (image[i * 4 - 1] == 0)
@@ -47,12 +48,14 @@ std::vector<int> convertToBinary(const Rte::u8* image, Rte::Vec2<Rte::u16> size)
         else
             binaryImage.push_back(1);
     }
+
     return binaryImage;
 }
 
-std::vector<std::vector<int>> connectedComponentLabeling(const std::vector<int>& binaryPixels, Rte::Vec2<uint16_t> size) {
-    int width = size.x;
-    int height = size.y;
+std::vector<std::vector<int>> connectedComponentLabeling(const std::vector<int>& binaryPixels, const Rte::Vec2<Rte::u16>& size) {   // NOLINT(readability-function-cognitive-complexity)
+    const int width = size.x;
+    const int height = size.y;
+
     std::vector<std::vector<int>> labels(height, std::vector<int>(width, 0));
     int currentLabel = 1;
 
@@ -64,26 +67,26 @@ std::vector<std::vector<int>> connectedComponentLabeling(const std::vector<int>&
         return x >= 0 && x < width && y >= 0 && y < height;
     };
 
-    std::vector<std::pair<int, int>> directions = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
+    const std::vector<std::pair<int, int>> directions = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
 
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
-            if (binaryPixels[getIndex(x, y)] == 1 && labels[y][x] == 0) {
+            if (binaryPixels.at(getIndex(x, y)) == 1 && labels.at(y).at(x) == 0) {
                 std::stack<std::pair<int, int>> stack;
-                stack.push({x, y});
-                labels[y][x] = currentLabel;
+                stack.emplace(x, y);
+                labels.at(y).at(x) = currentLabel;
 
                 while (!stack.empty()) {
                     auto [cx, cy] = stack.top();
                     stack.pop();
 
                     for (const auto& [dx, dy] : directions) {
-                        int nx = cx + dx;
-                        int ny = cy + dy;
+                        const int nx = cx + dx;
+                        const int ny = cy + dy;
 
-                        if (isValid(nx, ny) && binaryPixels[getIndex(nx, ny)] == 1 && labels[ny][nx] == 0) {
-                            stack.push({nx, ny});
-                            labels[ny][nx] = currentLabel;
+                        if (isValid(nx, ny) && binaryPixels.at(getIndex(nx, ny)) == 1 && labels.at(ny).at(nx) == 0) {
+                            stack.emplace(nx, ny);
+                            labels.at(ny).at(nx) = currentLabel;
                         }
                     }
                 }
@@ -97,62 +100,53 @@ std::vector<std::vector<int>> connectedComponentLabeling(const std::vector<int>&
 
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
-            int label = labels[y][x];
-            if (label > 0) {
-                labeledImages[label - 1][getIndex(x, y)] = 1;
-            }
+            const int label = labels.at(y).at(x);
+            if (label > 0)
+                labeledImages.at(label - 1).at(getIndex(x, y)) = 1;
         }
     }
 
     return labeledImages;
 }
 
-Rte::u8* andImage(const Rte::u8* image, const std::vector<int> binaryImage, Rte::Vec2<Rte::u16> size) {
-    Rte::u8* newImage = new Rte::u8[size.x * size.y * 4];
-    for (int i = 0; i < size.x * size.y; i++)
-    {
-        if (binaryImage[i] == 1)
-        {
-            newImage[i * 4] = image[i * 4];
-            newImage[i * 4 + 1] = image[i * 4 + 1];
-            newImage[i * 4 + 2] = image[i * 4 + 2];
-            newImage[i * 4 + 3] = image[i * 4 + 3];
-        }
-        else
-        {
-            newImage[i * 4] = 0;
-            newImage[i * 4 + 1] = 0;
-            newImage[i * 4 + 2] = 0;
-            newImage[i * 4 + 3] = 0;
+std::vector<Rte::u8> andImage(const Rte::u8* image, const std::vector<int>& binaryImage, Rte::Vec2<Rte::u16> size) {
+    std::vector<Rte::u8> newImage(static_cast<size_t>(size.x * size.y * 4), 0);
+    for (int i = 0; i < size.x * size.y; i++) {
+        if (binaryImage.at(i) == 1) {
+            newImage.at(static_cast<long>(i) * 4) = image[static_cast<ptrdiff_t>(i * 4)];
+            newImage.at(i * 4 + 1)                = image[i * 4 + 1];
+            newImage.at(i * 4 + 2)                = image[i * 4 + 2];
+            newImage.at(i * 4 + 3)                = image[i * 4 + 3];
         }
     }
+
     return newImage;
 }
 
 void breakEntities(const std::shared_ptr<Rte::Graphic::GraphicModule>& graphicModule, const std::shared_ptr<Rte::Physics::PhysicsModule>& physicsModule, std::vector<Rte::Entity>& breakableEntities, const Rte::Vec2<Rte::u16>& position, const std::shared_ptr<Rte::Ecs>& ecs) {
     for (int i = 0; i < breakableEntities.size(); i++) {
         bool hasChanged = false;
-        std::vector<Rte::u8> newMatPixels = physicsModule->fractureRigidBody(ecs->getComponent<Rte::Physics::Components::Physics>(breakableEntities[i]).rigidBody, position, hasChanged);
+        std::vector<Rte::u8> newMatPixels = physicsModule->fractureRigidBody(ecs->getComponent<Rte::Physics::Components::Physics>(breakableEntities.at(i)).rigidBody, position, hasChanged);
         if (hasChanged) {
-            Rte::Vec2<Rte::u16> size = ecs->getComponent<Rte::Graphic::Components::Sprite>(breakableEntities[i]).texture->getSize();
-            std::vector<int> binaryImage = convertToBinary(newMatPixels.data(), size);
-            std::vector<std::vector<int>> components = connectedComponentLabeling(binaryImage, size);
+            const Rte::Vec2<Rte::u16> size = ecs->getComponent<Rte::Graphic::Components::Sprite>(breakableEntities.at(i)).texture->getSize();
+            const std::vector<int> binaryImage = convertToBinary(newMatPixels.data(), size);
+            const std::vector<std::vector<int>> components = connectedComponentLabeling(binaryImage, size);
             for (const auto & component : components) {
                 const std::shared_ptr<Rte::Graphic::Texture> newTexture = graphicModule->createTexture();
                 const std::shared_ptr<Rte::Graphic::Texture> newMaterial = graphicModule->createTexture();
-                Rte::u8 *componentTexPixels = andImage(ecs->getComponent<Rte::Graphic::Components::Sprite>(breakableEntities[i]).texture->getPixels(), component, size);
-                Rte::u8 *componentMatPixels = andImage(newMatPixels.data(), component, size);
-                newTexture->loadFromMemory(componentTexPixels, size);
-                newMaterial->loadFromMemory(componentMatPixels, size);
+                const std::vector<Rte::u8> componentTexPixels = andImage(ecs->getComponent<Rte::Graphic::Components::Sprite>(breakableEntities.at(i)).texture->getPixels(), component, size);
+                const std::vector<Rte::u8> componentMatPixels = andImage(newMatPixels.data(), component, size);
+                newTexture->loadFromMemory(componentTexPixels.data(), size);
+                newMaterial->loadFromMemory(componentMatPixels.data(), size);
 
                 breakableEntities.push_back(ecs->createEntity());
-                ecs->addComponent<Rte::Graphic::Components::Sprite>(breakableEntities[breakableEntities.size() - 1], Rte::Graphic::Components::Sprite(newTexture));
-                std::shared_ptr<Rte::Physics::RigidBody> newRigidBody = physicsModule->createRigidBody(ecs->getComponent<Rte::Physics::Components::Physics>(breakableEntities[i]).rigidBody, componentMatPixels, size);
-                ecs->addComponent<Rte::Physics::Components::Physics>(breakableEntities[breakableEntities.size() - 1], Rte::Physics::Components::Physics{newRigidBody});
-                ecs->addComponent<Rte::BasicComponents::Transform>(breakableEntities[breakableEntities.size() - 1], Rte::BasicComponents::Transform{ecs->getComponent<Rte::BasicComponents::Transform>(breakableEntities[i])});
+                ecs->addComponent<Rte::Graphic::Components::Sprite>(breakableEntities.at(breakableEntities.size() - 1), Rte::Graphic::Components::Sprite(newTexture));
+                const std::shared_ptr<Rte::Physics::RigidBody> newRigidBody = physicsModule->createRigidBody(ecs->getComponent<Rte::Physics::Components::Physics>(breakableEntities.at(i)).rigidBody, componentMatPixels.data(), size);
+                ecs->addComponent<Rte::Physics::Components::Physics>(breakableEntities.at(breakableEntities.size() - 1), Rte::Physics::Components::Physics{newRigidBody});
+                ecs->addComponent<Rte::BasicComponents::Transform>(breakableEntities.at(breakableEntities.size() - 1), Rte::BasicComponents::Transform{ecs->getComponent<Rte::BasicComponents::Transform>(breakableEntities.at(i))});
             }
-            ecs->destroyEntity(breakableEntities[i]);
-            breakableEntities.erase(std::remove(breakableEntities.begin(), breakableEntities.end(), breakableEntities[i]), breakableEntities.end());
+            ecs->destroyEntity(breakableEntities.at(i));
+            breakableEntities.erase(std::remove(breakableEntities.begin(), breakableEntities.end(), breakableEntities.at(i)), breakableEntities.end());
         }
     }
 }
@@ -179,7 +173,7 @@ void ClientApp::run() {
         (static_cast<float>(windowSize.x) / 2),
         (static_cast<float>(windowSize.y) / 2)
     };
-    Rte::Entity backgroundEntity = m_ecs->createEntity();
+    const Rte::Entity backgroundEntity = m_ecs->createEntity();
     m_ecs->addComponent<Rte::Graphic::Components::Sprite>(backgroundEntity, Rte::Graphic::Components::Sprite(backgroundTexture));
     m_ecs->addComponent<Rte::BasicComponents::Transform>(backgroundEntity, Rte::BasicComponents::Transform{
         .position = backgroundPosition,
@@ -195,24 +189,24 @@ void ClientApp::run() {
 
     constexpr Rte::Vec2<float> entityScale = {8, 8};
     const Rte::Vec2<float> entityPosition = {
-        240 / 2 * 8,
-        135 / 2 * 8 * 2 - (static_cast<float>(texture->getSize().y) / 2 * 8) + 16
+        240.F / 2 * 8,
+        135.F / 2 * 8 * 2 - (static_cast<float>(texture->getSize().y) / 2 * 8) + 16
     };
     breakableEntities.push_back(m_ecs->createEntity());
 
-    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(breakableEntities[breakableEntities.size() - 1], Rte::Graphic::Components::Sprite(texture));
-    m_ecs->addComponent<Rte::BasicComponents::Transform>(breakableEntities[breakableEntities.size() - 1], Rte::BasicComponents::Transform{
+    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(breakableEntities.at(breakableEntities.size() - 1), Rte::Graphic::Components::Sprite(texture));
+    m_ecs->addComponent<Rte::BasicComponents::Transform>(breakableEntities.at(breakableEntities.size() - 1), Rte::BasicComponents::Transform{
         .position = entityPosition,
         .scale = entityScale,
         .rotation = 0,
     });
 
 
-    m_ecs->addComponent<Rte::Physics::Components::Physics>(breakableEntities[breakableEntities.size() - 1], Rte::Physics::Components::Physics{physicsModule->createRigidBody(
+    m_ecs->addComponent<Rte::Physics::Components::Physics>(breakableEntities.at(breakableEntities.size() - 1), Rte::Physics::Components::Physics{physicsModule->createRigidBody(
         material->getPixels(),
         material->getSize(),
-        m_ecs->getComponent<Rte::BasicComponents::Transform>(breakableEntities[breakableEntities.size() - 1]).position,
-        m_ecs->getComponent<Rte::BasicComponents::Transform>(breakableEntities[breakableEntities.size() - 1]).rotation
+        m_ecs->getComponent<Rte::BasicComponents::Transform>(breakableEntities.at(breakableEntities.size() - 1)).position,
+        m_ecs->getComponent<Rte::BasicComponents::Transform>(breakableEntities.at(breakableEntities.size() - 1)).rotation
     )});
 
 
@@ -224,24 +218,24 @@ void ClientApp::run() {
 
     constexpr Rte::Vec2<float> entityScaleM = {8, 8};
     const Rte::Vec2<float> entityPositionM = {
-        240 / 2 * 8,
-        135 / 2 * 8 * 2 - (static_cast<float>(texture->getSize().y) / 2 * 8) - 256 - 64 + 16
+        240.F / 2 * 8,
+        135.F / 2 * 8 * 2 - (static_cast<float>(texture->getSize().y) / 2 * 8) - 256 - 64 + 16
     };
     breakableEntities.push_back(m_ecs->createEntity());
 
-    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(breakableEntities[breakableEntities.size() - 1], Rte::Graphic::Components::Sprite(textureM));
-    m_ecs->addComponent<Rte::BasicComponents::Transform>(breakableEntities[breakableEntities.size() - 1], Rte::BasicComponents::Transform{
+    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(breakableEntities.at(breakableEntities.size() - 1), Rte::Graphic::Components::Sprite(textureM));
+    m_ecs->addComponent<Rte::BasicComponents::Transform>(breakableEntities.at(breakableEntities.size() - 1), Rte::BasicComponents::Transform{
         .position = entityPositionM,
         .scale = entityScaleM,
         .rotation = 0,
     });
 
 
-    m_ecs->addComponent<Rte::Physics::Components::Physics>(breakableEntities[breakableEntities.size() - 1], Rte::Physics::Components::Physics{physicsModule->createRigidBody(
+    m_ecs->addComponent<Rte::Physics::Components::Physics>(breakableEntities.at(breakableEntities.size() - 1), Rte::Physics::Components::Physics{physicsModule->createRigidBody(
         materialM->getPixels(),
         materialM->getSize(),
-        m_ecs->getComponent<Rte::BasicComponents::Transform>(breakableEntities[breakableEntities.size() - 1]).position,
-        m_ecs->getComponent<Rte::BasicComponents::Transform>(breakableEntities[breakableEntities.size() - 1]).rotation
+        m_ecs->getComponent<Rte::BasicComponents::Transform>(breakableEntities.at(breakableEntities.size() - 1)).position,
+        m_ecs->getComponent<Rte::BasicComponents::Transform>(breakableEntities.at(breakableEntities.size() - 1)).rotation
     )});
 
     // Creation of the sandBox
@@ -254,14 +248,10 @@ void ClientApp::run() {
     };
 
     const std::shared_ptr<Rte::Graphic::Texture> sandBoxTexture = graphicModule->createTexture();
-    Rte::u8 *tempSandBox = new Rte::u8[sandBoxSize.x * sandBoxSize.y * 4];
-    for (int i = 0; i < sandBoxSize.x * sandBoxSize.y * 4; i++)
-    {
-        tempSandBox[i] = 0;
-    }
-    sandBoxTexture->loadFromMemory(tempSandBox, sandBoxSize);
+    std::vector<Rte::u8> tempSandBox(static_cast<size_t>(sandBoxSize.x * sandBoxSize.y * 4), 0);
+    sandBoxTexture->loadFromMemory(tempSandBox.data(), sandBoxSize);
 
-    Rte::Entity sandBoxEntity = m_ecs->createEntity();
+    const Rte::Entity sandBoxEntity = m_ecs->createEntity();
 
     m_ecs->addComponent<Rte::Graphic::Components::Sprite>(sandBoxEntity, Rte::Graphic::Components::Sprite(sandBoxTexture));
 
@@ -291,7 +281,7 @@ void ClientApp::run() {
             const Rte::Vec2<Rte::u16> newSize = event.getParameter<Rte::Vec2<Rte::u16>>(Rte::Graphic::Events::Params::NEW_WINDOW_SIZE);
 
             // Update the sprite position
-            Rte::BasicComponents::Transform& transform = m_ecs->getComponent<Rte::BasicComponents::Transform>(breakableEntities[0]);
+            Rte::BasicComponents::Transform& transform = m_ecs->getComponent<Rte::BasicComponents::Transform>(breakableEntities.at(0));
             transform.position.x = (static_cast<float>(newSize.x) / 2) - (entityScale.x / 2);
             transform.position.y = (static_cast<float>(newSize.y) / 2) - (entityScale.y / 2);
         }
@@ -321,21 +311,23 @@ void ClientApp::run() {
         else if (graphicModule->isKeyPressed(Rte::Graphic::Key::A))
             k = Rte::Physics::MaterialType::ACID;
         if (graphicModule->isMouseButtonPressed(Rte::Graphic::MouseButton::Left)) {
-            Rte::Vec2<Rte::u16> position = graphicModule->getMousePosition();
+            const Rte::Vec2<Rte::u16> position = graphicModule->getMousePosition();
             physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8, position.y / 8},     {k, randomColor(Rte::Physics::invMatColors.at(k), 60), 0});
             physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8 + 1, position.y / 8}, {k, randomColor(Rte::Physics::invMatColors.at(k), 60), 0});
             physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8 - 1, position.y / 8}, {k, randomColor(Rte::Physics::invMatColors.at(k), 60), 0});
             physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8, position.y / 8 + 1}, {k, randomColor(Rte::Physics::invMatColors.at(k), 60), 0});
             physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8, position.y / 8 - 1}, {k, randomColor(Rte::Physics::invMatColors.at(k), 60), 0});
         }
+
         std::vector<Rte::Physics::Pixel> canvas = physicsModule->getSandBoxCanvas(m_ecs->getComponent<Rte::Physics::Components::Physics>(sandBoxEntity).sandBox);
         for (int i = 0; i < sandBoxSize.x * sandBoxSize.y; i++) {
-            tempSandBox[i * 4] = canvas.at(i).color.r;
-            tempSandBox[i * 4 + 1] = canvas.at(i).color.g;
-            tempSandBox[i * 4 + 2] = canvas.at(i).color.b;
-            tempSandBox[i * 4 + 3] = canvas.at(i).color.a;
+            tempSandBox.at(static_cast<long>(i) * 4) = canvas.at(i).color.r;
+            tempSandBox.at(i * 4 + 1)                = canvas.at(i).color.g;
+            tempSandBox.at(i * 4 + 2)                = canvas.at(i).color.b;
+            tempSandBox.at(i * 4 + 3)                = canvas.at(i).color.a;
         }
-        sandBoxTexture->loadFromMemory(tempSandBox, sandBoxSize);
+
+        sandBoxTexture->loadFromMemory(tempSandBox.data(), sandBoxSize);
         m_ecs->removeComponent<Rte::Graphic::Components::Sprite>(sandBoxEntity);
         m_ecs->addComponent<Rte::Graphic::Components::Sprite>(sandBoxEntity, Rte::Graphic::Components::Sprite(sandBoxTexture));
         physicsModule->update();

@@ -3,11 +3,17 @@
 #include "Rte/Common.hpp"
 #include "PhysicsSystem.hpp"
 #include "Rte/Ecs/Ecs.hpp"
+#include "Rte/Ecs/Types.hpp"
 #include "Rte/Physics/Materials.hpp"
 #include "Rte/Physics/PhysicsModule.hpp"
+#include "Rte/Physics/PlayerBody.hpp"
 #include "Rte/Physics/RigidBody.hpp"
+#include "Rte/Physics/SandBox.hpp"
+
+#include "box2d/id.h"
 
 #include <memory>
+#include <vector>
 
 namespace Rte::Physics {
 

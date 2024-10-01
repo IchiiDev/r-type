@@ -4,15 +4,12 @@
 #include "Rte/Physics/Tool.hpp"
 #include "box2d/box2d.h"
 #include "box2d/collision.h"
+#include "box2d/id.h"
 #include "box2d/math_functions.h"
-#include "poly2tri/poly2tri.h"
+#include "box2d/types.h"
 
-#include <cstddef>
 #include <cstdlib>
-#include <iostream>
-#include <stdexcept>
-#include <string>
-#include <vector>
+#include <numbers>
 
 using namespace Rte::Physics;
 
@@ -22,7 +19,7 @@ PlayerBodyImpl::PlayerBodyImpl(const Rte::Vec2<u16>& size, float density, float 
     b2BodyDef bodyDef = b2DefaultBodyDef();
     bodyDef.type = b2BodyType::b2_dynamicBody;
     bodyDef.position = {(pos.x - 1920 / 2.F) / 8.F / PPM, -(pos.y - 1080 / 2.F) / 8.F / PPM};
-    bodyDef.rotation = b2MakeRot(rotation * b2_pi / 180.F);
+    bodyDef.rotation = b2MakeRot(rotation * std::numbers::pi_v<float> / 180.F);
     bodyDef.fixedRotation = true; // Fix the rotation of the body
     m_bodyId = b2CreateBody(m_worldId, &bodyDef);
 
@@ -32,10 +29,11 @@ PlayerBodyImpl::PlayerBodyImpl(const Rte::Vec2<u16>& size, float density, float 
     shapeDef.friction = friction;
 
     // Create the shape
-    b2Capsule capsule;
-    capsule.center1 = {-(size.x / 2.F) / 8.F / PPM, 0};
-    capsule.center2 = {(size.x / 2.F) / 8.F / PPM, 0};
-    capsule.radius = (size.y / 2.F) / 8.F / PPM;
+    const b2Capsule capsule {
+        .center1 = {-(static_cast<float>(size.x) / 2.F) / 8.F / PPM, 0},
+        .center2 = {(static_cast<float>(size.x) / 2.F) / 8.F / PPM, 0},
+        .radius = (static_cast<float>(size.y) / 2.F) / 8.F / PPM
+    };
 
     b2CreateCapsuleShape(m_bodyId, &shapeDef, &capsule);
     // Set the body to be affected by gravity

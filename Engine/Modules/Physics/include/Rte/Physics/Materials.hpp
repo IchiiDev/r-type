@@ -6,7 +6,7 @@
 
 namespace Rte::Physics {
 
-    enum class MaterialType  {
+    enum class MaterialType : u8 {
         AIR,
 
         // Rigidbody materials
@@ -19,13 +19,13 @@ namespace Rte::Physics {
         ACID
     };
 
-    enum class Comportement {
-        NOTHING = 0,
-        LIQUID = 1,
-        SOLID = 2,
-        FIRE = 3,
-        GAS = 4,
-        POWDER = 5,
+    enum class Comportement : u8 {
+        NOTHING,
+        LIQUID,
+        SOLID,
+        FIRE,
+        GAS,
+        POWDER,
     };
 
     struct Color {

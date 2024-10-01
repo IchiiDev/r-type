@@ -7,6 +7,7 @@
 
 #include "box2d/id.h"
 
+#include <memory>
 #include <vector>
 
 namespace Rte::Physics {

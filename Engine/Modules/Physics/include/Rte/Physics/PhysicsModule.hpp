@@ -10,6 +10,7 @@
 #include "Rte/Physics/SandBox.hpp"
 
 #include <memory>
+#include <vector>
 
 namespace Rte::Physics {
 
