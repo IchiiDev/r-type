@@ -6,7 +6,7 @@
 #include <vector>
 
 namespace Rte::Physics {
-    
+
     enum BodyType: u8 {
 	    // zero mass, zero velocity, may be manually moved
 	    STATIC = 0,

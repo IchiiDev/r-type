@@ -4,13 +4,6 @@
 #include "Rte/Physics/Materials.hpp"
 #include "Rte/Physics/SandBox.hpp"
 
-#include "box2d/box2d.h"
-#include "box2d/id.h"
-#include "Rte/Physics/Tool.hpp"
-
-#include <array>
-#include <string>
-#include <utility>
 #include <vector>
 
 namespace Rte::Physics {
@@ -18,7 +11,7 @@ namespace Rte::Physics {
     class SandBoxImpl : public SandBox {
         public:
             SandBoxImpl(Vec2<u16> size);
-            ~SandBoxImpl();
+            ~SandBoxImpl() override = default;
 
             SandBoxImpl(const SandBoxImpl&) = delete;
             SandBoxImpl& operator=(const SandBoxImpl&) = delete;
@@ -27,17 +20,17 @@ namespace Rte::Physics {
             SandBoxImpl& operator=(SandBoxImpl&&) noexcept = default;
 
             void Step();
-            [[nodiscard]] std::vector<Pixel> getCanvas() const;
-            [[nodiscard]] Rte::Vec2<u16> getSize() const;
-            void changePixel(Vec2<int> pos, Pixel pixel);
+            void changePixel(const Vec2<int>& pos, const Pixel& pixel);
+            void addParticle(const Particle& particle);
 
-            [[nodiscard]] std::vector<Particle> getParticles() const;
-            void addParticle(Particle particle);
+            [[nodiscard]] const std::vector<Pixel>& getCanvas();
+            [[nodiscard]] const Rte::Vec2<u16>& getSize();
+            [[nodiscard]] const std::vector<Particle>& getParticles();
+
         private:
             Rte::Vec2<u16> m_size;
             std::vector<Pixel> m_canvas;
             std::vector<Particle> m_particles;
-
     };
 
 }   // namespace Rte::Physics

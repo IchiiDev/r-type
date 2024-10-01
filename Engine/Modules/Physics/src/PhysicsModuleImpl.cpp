@@ -1,24 +1,25 @@
 #include "PhysicsModuleImpl.hpp"
 #include "PlayerBodyImpl.hpp"
+#include "RigidBodyImpl.hpp"
 #include "Rte/BasicComponents.hpp"
 #include "Rte/Common.hpp"
 #include "Rte/Ecs/Ecs.hpp"
-#include "Rte/Ecs/Event.hpp"
 #include "Rte/Ecs/Types.hpp"
-#include "Rte/Physics/PhysicsModule.hpp"
-#include "Rte/Physics/Components.hpp"
 #include "Rte/ModuleManager.hpp"
+#include "Rte/Physics/Components.hpp"
+#include "Rte/Physics/PhysicsModule.hpp"
 #include "Rte/Physics/RigidBody.hpp"
-#include "RigidBodyImpl.hpp"
 #include "Rte/Physics/SandBox.hpp"
-#include "SandBoxImpl.hpp"
 #include "Rte/Physics/Tool.hpp"
+#include "SandBoxImpl.hpp"
+
+#include "box2d/box2d.h"
+#include "box2d/id.h"
+#include "box2d/math_functions.h"
+#include "box2d/types.h"
 
 #include <cmath>
-#include <iostream>
 #include <memory>
-#include <optional>
-#include <string>
 #include <vector>
 
 using namespace Rte::Physics;
@@ -29,7 +30,7 @@ Rte::IModule *createModule() {
 
 PhysicsModuleImpl::PhysicsModuleImpl() : m_timeStep(1.0F / 60.0F), m_subStepCount(4) {
     b2WorldDef worldDef = b2DefaultWorldDef();
-    worldDef.gravity = b2Vec2(0.0F, -9.81F);
+    worldDef.gravity = b2Vec2{0.0F, -9.81F};
     m_worldId = b2CreateWorld(&worldDef);
 }
 
@@ -39,16 +40,15 @@ PhysicsModuleImpl::~PhysicsModuleImpl() {
 
 void PhysicsModuleImpl::init(const std::shared_ptr<Ecs>& ecs) {
     m_ecs = ecs;
+
     // Register the RigidBody component as an ecs component
     ecs->registerComponent<Components::Physics>();
-
 
     // Physics system registration
     m_physicsSystem = ecs->registerSystem<PhysicsSystem>();
     m_physicsSystem->init(ecs, m_worldId, m_timeStep, m_subStepCount);
 
-
-    // Set la signature du système (déclare les components dont il a besoin)
+    // Set the system's signature
     Signature signature;
     signature.set(ecs->getComponentType<Components::Physics>());
     signature.set(ecs->getComponentType<BasicComponents::Transform>());
@@ -59,92 +59,80 @@ void PhysicsModuleImpl::update() {
     m_physicsSystem->update();
 }
 
-Rte::u8 *PhysicsModuleImpl::fractureRigidBody(const std::shared_ptr<RigidBody>& rigidBody, Vec2<u16> pixelPos, bool &hasChanged) {
-    auto rigidBodyImpl = std::dynamic_pointer_cast<RigidBodyImpl>(rigidBody);
-    if (!rigidBodyImpl) {
-        std::cerr << "Failed to cast RigidBody to RigidBodyImpl" << std::endl;
-        return {};
-    }
-    pixelPos.x = static_cast<int>(std::round(pixelPos.x / 8.F));
-    pixelPos.y = static_cast<int>(std::round(pixelPos.y / 8.F));
+std::vector<Rte::u8> PhysicsModuleImpl::fractureRigidBody(const std::shared_ptr<RigidBody>& rigidBody, Vec2<u16> pixelPos, bool &hasChanged) {
+    const std::shared_ptr<RigidBodyImpl> rigidBodyImpl = interfaceCast<RigidBodyImpl>(rigidBody);
+
+
+    // Clip pixelPos to the size of a pixel
+    pixelPos.x = static_cast<int>(std::round(pixelPos.x / 8));
+    pixelPos.y = static_cast<int>(std::round(pixelPos.y / 8));
+
+
+    // Convert pixelPos to bodyPos
     Vec2<float> bodyPos = rigidBodyImpl->getPosition();
-    bodyPos.x = (bodyPos.x * 8 * PPM) + 1920 / 2;
-    bodyPos.y = (-bodyPos.y * 8 * PPM) + 1080 / 2;
+    bodyPos.x = (bodyPos.x * 8 * PPM) + 1920.F / 2;
+    bodyPos.y = (-bodyPos.y * 8 * PPM) + 1080.F / 2;
     bodyPos.x = std::round(bodyPos.x / 8.F);
     bodyPos.y = std::round(bodyPos.y / 8.F);
 
-    std::vector<std::vector<pixel>> rotatedPixels = rigidBodyImpl->getRotatedPixels();
-    for (int i = 0; i < rotatedPixels.size(); i++) {
-        for (int j = 0; j < rotatedPixels[i].size(); j++) {
-            if (rotatedPixels[i][j].pos.x + bodyPos.x - 2 <= pixelPos.x && rotatedPixels[i][j].pos.x + bodyPos.x + 2 >= pixelPos.x
-            && rotatedPixels[i][j].pos.y + bodyPos.y - 2 <= pixelPos.y && rotatedPixels[i][j].pos.y + bodyPos.y + 2 >= pixelPos.y) {
-                if (rotatedPixels[i][j].a == 255) {
+
+    // IDK
+    std::vector<std::vector<PixelCringe>> rotatedPixels = rigidBodyImpl->getRotatedPixels();
+    for (std::vector<PixelCringe>& rotatedPixelArray : rotatedPixels) {
+        for (PixelCringe& rotatedPixel : rotatedPixelArray) {
+            if (rotatedPixel.pos.x + bodyPos.x - 2 <= static_cast<float>(pixelPos.x) && rotatedPixel.pos.x + bodyPos.x + 2 >= static_cast<float>(pixelPos.x)
+            && rotatedPixel.pos.y + bodyPos.y - 2 <= static_cast<float>(pixelPos.y) && rotatedPixel.pos.y + bodyPos.y + 2 >= static_cast<float>(pixelPos.y)) {
+                if (rotatedPixel.a == 255) {
                     hasChanged = true;
-                    rotatedPixels[i][j].a = 0;
+                    rotatedPixel.a = 0;
                 }
             }
         }
     }
-    u8 *newPixels = new u8[rotatedPixels.size() * rotatedPixels[0].size() * 4];
-    for (int i = 0; i < rotatedPixels.size(); i++) {
-        for (int j = 0; j < rotatedPixels[i].size(); j++) {
-            newPixels[(i * rotatedPixels[i].size() + j) * 4] = rotatedPixels[i][j].r;
-            newPixels[(i * rotatedPixels[i].size() + j) * 4 + 1] = rotatedPixels[i][j].g;
-            newPixels[(i * rotatedPixels[i].size() + j) * 4 + 2] = rotatedPixels[i][j].b;
-            newPixels[(i * rotatedPixels[i].size() + j) * 4 + 3] = rotatedPixels[i][j].a;
+
+
+    // Create the new fractured pixels array
+    std::vector<u8> newPixels(rotatedPixels.size() * rotatedPixels.at(0).size() * 4);
+    for (u32 i = 0; i < rotatedPixels.size(); i++) {
+        for (u32 j = 0; j < rotatedPixels.at(i).size(); j++) {
+            newPixels.at((i * rotatedPixels.at(i).size() + j) * 4) = rotatedPixels.at(i).at(j).r;
+            newPixels.at((i * rotatedPixels.at(i).size() + j) * 4 + 1) = rotatedPixels.at(i).at(j).g;
+            newPixels.at((i * rotatedPixels.at(i).size() + j) * 4 + 2) = rotatedPixels.at(i).at(j).b;
+            newPixels.at((i * rotatedPixels.at(i).size() + j) * 4 + 3) = rotatedPixels.at(i).at(j).a;
         }
     }
+
     return newPixels;
 }
 
-std::shared_ptr<RigidBody> PhysicsModuleImpl::createRigidBody(const u8* pixels, Vec2<u16> size, Vec2<float> pos, Vec2<float> scale, float rotation) {
-    std::shared_ptr<RigidBodyImpl> rigidBody = std::make_shared<RigidBodyImpl>(pixels, size, m_worldId, pos, scale, rotation);
-    return rigidBody;
+std::shared_ptr<RigidBody> PhysicsModuleImpl::createRigidBody(const u8* pixels, const Vec2<u16>& size, const Vec2<float>& pos, float rotation) {
+    return std::make_shared<RigidBodyImpl>(pixels, size, m_worldId, pos, rotation);
 }
 
-std::shared_ptr<RigidBody> PhysicsModuleImpl::createRigidBody(std::shared_ptr<RigidBody> rigidBody, const u8* pixels, Rte::Vec2<u16> size) {
-    auto rigidBodyImpl = std::dynamic_pointer_cast<RigidBodyImpl>(rigidBody);
-    std::shared_ptr<RigidBodyImpl> newRigidBody = std::make_shared<RigidBodyImpl>(rigidBodyImpl, pixels, size, m_worldId);
-    return newRigidBody;
+std::shared_ptr<RigidBody> PhysicsModuleImpl::createRigidBody(const std::shared_ptr<RigidBody>& rigidBody, const u8* pixels, const Rte::Vec2<u16>& size) {
+    return std::make_shared<RigidBodyImpl>(interfaceCast<RigidBodyImpl>(rigidBody), pixels, size, m_worldId);
 }
 
-void PhysicsModuleImpl::destroyRigidBody(std::shared_ptr<RigidBody>& rigidBody) {
-    rigidBody.reset();
+std::shared_ptr<PlayerBody> PhysicsModuleImpl::createPlayerBody(const Rte::Vec2<Rte::u16>& size, float density, float friction, const Rte::Vec2<float>& pos, float rotation) {
+    return std::make_shared<PlayerBodyImpl>(size, density, friction, m_worldId, pos, rotation);
 }
 
-std::shared_ptr<PlayerBody> PhysicsModuleImpl::createPlayerBody(Rte::Vec2<Rte::u16> size, float density, float friction, Rte::Vec2<float> pos, Rte::Vec2<float> scale, float rotation) {
-    std::shared_ptr<PlayerBodyImpl> playerBody = std::make_shared<PlayerBodyImpl>(size, density, friction, m_worldId, pos, scale, rotation);
-    return playerBody;
+void PhysicsModuleImpl::applyForce(const std::shared_ptr<PlayerBody>& playerBody, const Vec2<float>& force) {
+    interfaceCast<PlayerBodyImpl>(playerBody)->applyForce(force);
 }
 
-void PhysicsModuleImpl::applyForce(std::shared_ptr<PlayerBody> playerBody, Vec2<float> force) {
-    auto playerBodyImpl = std::dynamic_pointer_cast<PlayerBodyImpl>(playerBody);
-    playerBodyImpl->applyForce(force);
-}
-
-std::shared_ptr<SandBox> PhysicsModuleImpl::createSandBox(Vec2<u16> size) {
+std::shared_ptr<SandBox> PhysicsModuleImpl::createSandBox(const Vec2<u16>& size) {
     return std::make_shared<SandBoxImpl>(size);
 }
 
-std::vector<Pixel> PhysicsModuleImpl::getSandBoxCanvas(std::shared_ptr<SandBox> sandBox) const {
-    auto sandBoxImpl = std::dynamic_pointer_cast<SandBoxImpl>(sandBox);
-    if (sandBoxImpl) {
-        return sandBoxImpl->getCanvas();
-    }
-    return {};
+const std::vector<Pixel>& PhysicsModuleImpl::getSandBoxCanvas(const std::shared_ptr<SandBox>& sandBox) const {
+    return interfaceCast<SandBoxImpl>(sandBox)->getCanvas();
 }
 
-std::vector<Particle> PhysicsModuleImpl::getSandBoxParticles(std::shared_ptr<SandBox> sandBox) const {
-    auto sandBoxImpl = std::dynamic_pointer_cast<SandBoxImpl>(sandBox);
-    if (sandBoxImpl) {
-        return sandBoxImpl->getParticles();
-    }
-    return {};
+const std::vector<Particle>& PhysicsModuleImpl::getSandBoxParticles(const std::shared_ptr<SandBox>& sandBox) const {
+    return interfaceCast<SandBoxImpl>(sandBox)->getParticles();
 }
 
-void PhysicsModuleImpl::changeSandBoxPixel(Entity sandBox, Vec2<int> pos, Pixel pixel) {
-    auto sandBoxImpl = std::dynamic_pointer_cast<SandBoxImpl>(m_ecs->getComponent<Components::Physics>(sandBox).sandBox);
-    if (sandBoxImpl) {
-        sandBoxImpl->changePixel(pos, pixel);
-    }
+void PhysicsModuleImpl::changeSandBoxPixel(Entity sandBox, const Vec2<int>& pos, const Pixel& pixel) {
+    interfaceCast<SandBoxImpl>(m_ecs->getComponent<Components::Physics>(sandBox).sandBox)->changePixel(pos, pixel);
 }

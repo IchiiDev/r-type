@@ -1,20 +1,19 @@
 #include "PhysicsSystem.hpp"
+#include "PlayerBodyImpl.hpp"
+#include "RigidBodyImpl.hpp"
 #include "Rte/BasicComponents.hpp"
 #include "Rte/Common.hpp"
 #include "Rte/Ecs/Ecs.hpp"
 #include "Rte/Ecs/Types.hpp"
 #include "Rte/Physics/Components.hpp"
-#include "RigidBodyImpl.hpp"
-#include "PlayerBodyImpl.hpp"
 #include "Rte/Physics/Materials.hpp"
-#include "SandBoxImpl.hpp"
 #include "Rte/Physics/Tool.hpp"
+#include "SandBoxImpl.hpp"
 
 #include "box2d/box2d.h"
 #include "box2d/math_functions.h"
 
 #include <cassert>
-#include <iostream>
 #include <memory>
 #include <vector>
 
@@ -32,13 +31,13 @@ void PhysicsSystem::update() {
     b2World_Step(m_worldId, m_timeStep, m_subStepCount);
 
     std::shared_ptr<SandBoxImpl> sandBox;
-    for (const Entity entity : m_entities) {
-        if (m_ecs->getComponent<Rte::Physics::Components::Physics>(entity).sandBox) {
+    for (const Entity entity : m_entities)
+        if (m_ecs->getComponent<Rte::Physics::Components::Physics>(entity).sandBox)
             sandBox = interfaceCast<SandBoxImpl>(m_ecs->getComponent<Components::Physics>(entity).sandBox);
-        }
-    }
-    std::vector<Pixel> canvas = sandBox->getCanvas();
-    Vec2<u16> sandBoxSize = sandBox->getSize();
+
+    const std::vector<Pixel> canvas = sandBox->getCanvas();
+    const Vec2<u16> sandBoxSize = sandBox->getSize();
+
     for (const Entity entity : m_entities) {
         if (m_ecs->getComponent<Rte::Physics::Components::Physics>(entity).rigidBody) {
             const std::shared_ptr<RigidBodyImpl>& rigidBody = interfaceCast<RigidBodyImpl>(m_ecs->getComponent<Components::Physics>(entity).rigidBody);
@@ -48,7 +47,7 @@ void PhysicsSystem::update() {
 
             transformComponent.position = {(position.x * 8.F * PPM + 1920 / 2.F), -(position.y * 8.F * PPM - 1080 / 2.F)};
             transformComponent.rotation = -b2Rot_GetAngle(rotation) * 180 / b2_pi;
-            std::vector<std::vector<pixel>> staticBodyPixels = rigidBody->getRotatedPixels();
+            std::vector<std::vector<PixelCringe>> staticBodyPixels = rigidBody->getRotatedPixels();
 
             //Put the rigidbody pixels in the sandBox
             for (int i = 0; i < staticBodyPixels.size(); i++) {
@@ -78,7 +77,7 @@ void PhysicsSystem::update() {
         if (m_ecs->getComponent<Rte::Physics::Components::Physics>(entity).rigidBody) {
             const std::shared_ptr<RigidBodyImpl>& rigidBody = interfaceCast<RigidBodyImpl>(m_ecs->getComponent<Components::Physics>(entity).rigidBody);
             b2Vec2 position = b2Body_GetPosition(rigidBody->getBodyId());
-            std::vector<std::vector<pixel>> staticBodyPixels = rigidBody->getRotatedPixels();
+            std::vector<std::vector<PixelCringe>> staticBodyPixels = rigidBody->getRotatedPixels();
 
             //Remove the rigidbody pixels from the sandBox
             for (int i = 0; i < staticBodyPixels.size(); i++) {

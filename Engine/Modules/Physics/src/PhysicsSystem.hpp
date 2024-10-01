@@ -3,7 +3,7 @@
 #include "Rte/Ecs/Ecs.hpp"
 #include "Rte/Ecs/Types.hpp"
 
-#include "box2d/box2d.h"
+#include "box2d/id.h"
 
 #include <memory>
 

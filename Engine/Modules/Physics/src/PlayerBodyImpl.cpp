@@ -17,7 +17,7 @@
 using namespace Rte::Physics;
 
 //Where image is an array of pixels in rgba format
-PlayerBodyImpl::PlayerBodyImpl(Rte::Vec2<u16> size, float density, float friction, b2WorldId worldId, Vec2<float> pos, Vec2<float> scale, float rotation) : m_worldId(worldId), m_size(size) {
+PlayerBodyImpl::PlayerBodyImpl(const Rte::Vec2<u16>& size, float density, float friction, const b2WorldId& worldId, const Vec2<float>& pos, float rotation) : m_worldId(worldId), m_size(size) {
     // Create a kinematic body using box2d
     b2BodyDef bodyDef = b2DefaultBodyDef();
     bodyDef.type = b2BodyType::b2_dynamicBody;
@@ -45,7 +45,7 @@ PlayerBodyImpl::~PlayerBodyImpl() {
     b2DestroyBody(m_bodyId);
 }
 
-void PlayerBodyImpl::applyForce(Vec2<float> force) {
+void PlayerBodyImpl::applyForce(const Vec2<float>& force) {
     b2Body_ApplyForceToCenter(m_bodyId, {force.x, force.y}, true);
 }
 
