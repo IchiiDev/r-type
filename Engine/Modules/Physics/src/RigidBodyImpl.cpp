@@ -334,6 +334,9 @@ std::vector<Triangle> polygoneToTriangles(std::vector<Rte::Vec2<float>> polygone
         convertedTriangles.push_back(tri);
     }
 
+    for (auto & point : points)
+        delete point;  // NOLINT (cppcoreguidelines-owning-memory)
+
     return convertedTriangles;
 }
 
