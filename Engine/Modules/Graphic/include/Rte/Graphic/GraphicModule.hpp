@@ -237,6 +237,14 @@ namespace Rte::Graphic {
             virtual void setDaltonismMode(DaltonismMode mode) = 0;
 
             /**
+             * @brief Set the Layer count of the window.
+             * This value will be used to sort the entities to render them in the correct order.
+             *
+             * @param count Layer count.
+             */
+            virtual void setLayerCount(int count) = 0;
+
+            /**
              * @brief Get the size of the window.
              *
              * @return Vec2<u16> Size of the window.

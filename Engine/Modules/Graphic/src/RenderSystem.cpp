@@ -21,30 +21,37 @@ void RenderSystem::init(const std::shared_ptr<Rte::Ecs>& ecs) {
     m_ecs = ecs;
 }
 
-void RenderSystem::update(sf::RenderWindow& window, sf::Shader& shader) {
+void RenderSystem::update(sf::RenderWindow& window, sf::Shader& shader, int layerCount) {
     assert(m_ecs != nullptr && "Cannot update render system: Not initialized.");
 
-    for (const Entity entity : m_entities) {
-        const Components::Sprite& spriteComponent = m_ecs->getComponent<Components::Sprite>(entity);
-        const BasicComponents::Transform& transformComponent = m_ecs->getComponent<BasicComponents::Transform>(entity);
+    for (int currentLayer = layerCount; currentLayer >= 0; currentLayer--) {
+        for (const Entity entity : m_entities) {
+            // Draw only entities of the current layer
+            const Components::Sprite& spriteComponent = m_ecs->getComponent<Components::Sprite>(entity);
+            if (spriteComponent.layer != currentLayer)
+                continue;
 
-        // Texture
-        const std::shared_ptr<TextureImpl>& texture = interfaceCast<TextureImpl>(spriteComponent.texture);
-        sf::Sprite sprite(texture->getHandle());
+            // Get transform component
+            const BasicComponents::Transform& transformComponent = m_ecs->getComponent<BasicComponents::Transform>(entity);
 
-        // Transform
-        const sf::Vector2<u32> windowSize = window.getSize();
-        const sf::Angle angle = sf::degrees(transformComponent.rotation);
+            // Texture
+            const std::shared_ptr<TextureImpl>& texture = interfaceCast<TextureImpl>(spriteComponent.texture);
+            sf::Sprite sprite(texture->getHandle());
 
-        sprite.setPosition({
-            transformComponent.position.x + static_cast<float>(windowSize.x) / 2.0F,
-            transformComponent.position.y + static_cast<float>(windowSize.y) / 2.0F
-        });
-        sprite.setOrigin({static_cast<float>(texture->getSize().x) / 2.F, static_cast<float>(texture->getSize().y) / 2.F});
-        sprite.setScale({transformComponent.scale.x, transformComponent.scale.y});
-        sprite.setRotation(angle);
+            // Set sprite properties
+            const sf::Vector2<u32> windowSize = window.getSize();
+            const sf::Angle angle = sf::degrees(transformComponent.rotation);
 
-        // Draw
-        window.draw(sprite, &shader);
+            sprite.setPosition({
+                transformComponent.position.x + static_cast<float>(windowSize.x) / 2.0F,
+                transformComponent.position.y + static_cast<float>(windowSize.y) / 2.0F
+            });
+            sprite.setOrigin({static_cast<float>(texture->getSize().x) / 2.F, static_cast<float>(texture->getSize().y) / 2.F});
+            sprite.setScale({transformComponent.scale.x, transformComponent.scale.y});
+            sprite.setRotation(angle);
+
+            // Draw
+            window.draw(sprite, &shader);
+        }
     }
 }

@@ -9,6 +9,7 @@ namespace Rte::Graphic::Components {
 
     struct Sprite {
         std::shared_ptr<Texture> texture;
+        int layer = 0;  // Must be < 7
     };
 
     struct Button {

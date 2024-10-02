@@ -273,6 +273,7 @@ namespace Rte::Graphic {
             void setWindowTitle(const std::string& title) override;
             void setWindowSize(const Vec2<u16>& size) override;
             void setDaltonismMode(DaltonismMode mode) override;
+            void setLayerCount(int count) override;
 
             [[nodiscard]] Vec2<u16> getWindowSize() const override;
 
@@ -294,6 +295,7 @@ namespace Rte::Graphic {
             sf::RenderWindow m_window;
             sf::Shader m_shader;
             sf::Font m_font;
+            int m_layerCount = 1;
 
             std::shared_ptr<RenderSystem> m_renderSystem;
             std::shared_ptr<ButtonSystem> m_buttonSystem;

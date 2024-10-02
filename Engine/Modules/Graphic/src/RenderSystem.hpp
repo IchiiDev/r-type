@@ -22,7 +22,7 @@ namespace Rte::Graphic {
             RenderSystem& operator=(RenderSystem&&) = default;
 
             void init(const std::shared_ptr<Rte::Ecs>& ecs);
-            void update(sf::RenderWindow& window, sf::Shader& shader);
+            void update(sf::RenderWindow& window, sf::Shader& shader, int layerCount);
 
         private:
             std::shared_ptr<Rte::Ecs> m_ecs = nullptr;

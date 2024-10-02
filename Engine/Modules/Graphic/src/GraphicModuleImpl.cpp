@@ -188,7 +188,7 @@ void GraphicModuleImpl::update() {
 
     // Clear & display
     m_window.clear();
-    m_renderSystem->update(m_window, m_shader);
+    m_renderSystem->update(m_window, m_shader, m_layerCount);
     m_buttonSystem->update(m_window);
     m_textSystem->update(m_window);
     m_window.display();
@@ -236,4 +236,8 @@ void GraphicModuleImpl::loadFontFromMemory(const void *data, Rte::u32 size) {
 void GraphicModuleImpl::loadFontFromFile(const char *path) {
     if (!m_font.openFromFile(path))
         throw std::runtime_error("Failed to load font from file.");
+}
+
+void GraphicModuleImpl::setLayerCount(int count) {
+    m_layerCount = count;
 }
