@@ -2,6 +2,8 @@
 
 #include "Button.hpp"
 #include "Rte/Common.hpp"
+#include "Rte/Ecs/Types.hpp"
+#include "Rte/Graphic/Components.hpp"
 #include "Rte/Graphic/GraphicModule.hpp"
 #include "Rte/Graphic/Texture.hpp"
 
@@ -82,6 +84,12 @@ void ClientApp::menuLoop() {
     // 1*1 red texture for the buttons
     m_transparentTexture = m_graphicModule->createTexture();
     m_transparentTexture->loadFromMemory(std::vector<Rte::u8>{0, 0, 0, 0}.data(), {1, 1});
+
+    std::shared_ptr<Rte::Graphic::Texture> backgroundTexture = m_graphicModule->createTexture();
+    backgroundTexture->loadFromFile("../assets/test.jpg");
+    Rte::Entity backgroundEntity = m_ecs->createEntity();
+    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(backgroundEntity, Rte::Graphic::Components::Sprite(backgroundTexture));
+    m_ecs->addComponent<Rte::BasicComponents::Transform>(backgroundEntity, Rte::BasicComponents::Transform{.position = {0, 0}});
 
     createMenuButtons();
 
