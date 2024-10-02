@@ -10,6 +10,7 @@
 #include "Rte/Graphic/GraphicModule.hpp"
 #include "Rte/Graphic/Texture.hpp"
 #include "Rte/ModuleManager.hpp"
+#include "SFML/Graphics/Text.hpp"
 #include "TextureImpl.hpp"
 
 #include "SFML/Graphics/Rect.hpp"
@@ -102,6 +103,7 @@ void GraphicModuleImpl::init(const std::shared_ptr<Ecs>& ecs) {
     // Register components
     ecs->registerComponent<Components::Sprite>();
     ecs->registerComponent<Components::Button>();
+    ecs->registerComponent<Components::Text>();
 
 
     // Render system registration
@@ -123,6 +125,16 @@ void GraphicModuleImpl::init(const std::shared_ptr<Ecs>& ecs) {
     buttonSystemSignature.set(ecs->getComponentType<Components::Sprite>());
     buttonSystemSignature.set(ecs->getComponentType<BasicComponents::Transform>());
     ecs->setSystemSignature<ButtonSystem>(buttonSystemSignature);
+
+
+    // Text system registration
+    m_textSystem = ecs->registerSystem<TextSystem>();
+    m_textSystem->init(ecs, m_font);
+
+    Signature textSystemSignature;
+    textSystemSignature.set(ecs->getComponentType<Components::Text>());
+    textSystemSignature.set(ecs->getComponentType<BasicComponents::Transform>());
+    ecs->setSystemSignature<TextSystem>(textSystemSignature);
 }
 
 void GraphicModuleImpl::update() {
@@ -178,6 +190,7 @@ void GraphicModuleImpl::update() {
     m_window.clear();
     m_renderSystem->update(m_window, m_shader);
     m_buttonSystem->update(m_window);
+    m_textSystem->update(m_window);
     m_window.display();
 }
 
@@ -213,4 +226,14 @@ void GraphicModuleImpl::setWindowSize(const Vec2<u16>& size) {
 Rte::Vec2<Rte::u16> GraphicModuleImpl::getWindowSize() const {
     const sf::Vector2<u32> size = m_window.getSize();
     return {static_cast<u16>(size.x), static_cast<u16>(size.y)};
+}
+
+void GraphicModuleImpl::loadFontFromMemory(const void *data, Rte::u32 size) {
+    if (!m_font.openFromMemory(data, size))
+        throw std::runtime_error("Failed to load font from memory.");
+}
+
+void GraphicModuleImpl::loadFontFromFile(const char *path) {
+    if (!m_font.openFromFile(path))
+        throw std::runtime_error("Failed to load font from file.");
 }

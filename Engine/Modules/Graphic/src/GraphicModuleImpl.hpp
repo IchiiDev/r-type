@@ -7,10 +7,12 @@
 #include "Rte/Graphic/GraphicModule.hpp"
 #include "Rte/Graphic/Texture.hpp"
 
+#include "SFML/Graphics/Font.hpp"
 #include "SFML/Graphics/RenderWindow.hpp"
 #include "SFML/Graphics/Shader.hpp"
 #include "SFML/Window/Keyboard.hpp"
 #include "SFML/Window/Mouse.hpp"
+#include "TextSystem.hpp"
 
 #include <memory>
 #include <string>
@@ -276,6 +278,9 @@ namespace Rte::Graphic {
 
             [[nodiscard]] std::unique_ptr<Texture> createTexture() const override;
 
+            void loadFontFromMemory(const void *data, u32 size) override;
+            void loadFontFromFile(const char *path) override;
+
 
             // Input methods
             [[nodiscard]] bool isKeyPressed(Key key) const override;
@@ -288,9 +293,11 @@ namespace Rte::Graphic {
 
             sf::RenderWindow m_window;
             sf::Shader m_shader;
+            sf::Font m_font;
 
             std::shared_ptr<RenderSystem> m_renderSystem;
             std::shared_ptr<ButtonSystem> m_buttonSystem;
+            std::shared_ptr<TextSystem> m_textSystem;
     };
 
 }   // namespace Rte::Graphic

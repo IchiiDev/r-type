@@ -15,4 +15,9 @@ namespace Rte::Graphic::Components {
         ButtonState state = ButtonState::NONE;
     };
 
+    struct Text {
+        std::string text;
+        int size;
+    };
+
 }   // namespace Rte::Graphic::Components

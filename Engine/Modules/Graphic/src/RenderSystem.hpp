@@ -25,7 +25,7 @@ namespace Rte::Graphic {
             void update(sf::RenderWindow& window, sf::Shader& shader);
 
         private:
-            std::shared_ptr<Rte::Ecs> m_ecs;
+            std::shared_ptr<Rte::Ecs> m_ecs = nullptr;
     };
 
 }   // namespace Rte::Graphic

@@ -19,6 +19,7 @@ ClientApp::ClientApp() {
     m_graphicModule->setWindowTitle("R-Type");
     m_graphicModule->setWindowSize({1920, 1080});
     m_graphicModule->setDaltonismMode(Rte::Graphic::DaltonismMode::NONE);
+    m_graphicModule->loadFontFromFile("../assets/alagard.ttf");
 
     // Load the physics module
     m_physicsModule = Rte::interfaceCast<Rte::Physics::PhysicsModule>(moduleManager.loadModule("RtePhysics"));
@@ -33,6 +34,6 @@ ClientApp::ClientApp() {
 }
 
 void ClientApp::run() {
-    gameplayLoop();
     menuLoop();
+    gameplayLoop();
 }

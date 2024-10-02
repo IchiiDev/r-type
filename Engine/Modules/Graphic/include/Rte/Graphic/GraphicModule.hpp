@@ -250,6 +250,9 @@ namespace Rte::Graphic {
              */
             [[nodiscard]] virtual std::unique_ptr<Texture> createTexture() const = 0;
 
+            virtual void loadFontFromMemory(const void *data, u32 size) = 0;
+            virtual void loadFontFromFile(const char *path) = 0;
+
 
 
 
