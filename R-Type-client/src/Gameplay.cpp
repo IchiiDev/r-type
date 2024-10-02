@@ -155,8 +155,8 @@ void ClientApp::gameplayLoop() {
     constexpr Rte::Vec2<float> backgroundScale = {8, 8};
     const Rte::Vec2<Rte::u16> windowSize = m_graphicModule->getWindowSize();
     const Rte::Vec2<float> backgroundPosition = {
-        (static_cast<float>(windowSize.x) / 2),
-        (static_cast<float>(windowSize.y) / 2)
+        0,
+        0
     };
     const Rte::Entity backgroundEntity = m_ecs->createEntity();
     m_ecs->addComponent<Rte::Graphic::Components::Sprite>(backgroundEntity, Rte::Graphic::Components::Sprite(backgroundTexture));
@@ -174,8 +174,8 @@ void ClientApp::gameplayLoop() {
 
     constexpr Rte::Vec2<float> entityScale = {8, 8};
     const Rte::Vec2<float> entityPosition = {
-        240.F / 2 * 8,
-        135.F / 2 * 8 * 2 - (static_cast<float>(texture->getSize().y) / 2 * 8) + 16
+        0,
+        135.F / 2 * 8 - (static_cast<float>(texture->getSize().y) / 2 * 8) + 16
     };
     breakableEntities.push_back(m_ecs->createEntity());
 
@@ -203,8 +203,8 @@ void ClientApp::gameplayLoop() {
 
     constexpr Rte::Vec2<float> entityScaleM = {8, 8};
     const Rte::Vec2<float> entityPositionM = {
-        240.F / 2 * 8,
-        135.F / 2 * 8 * 2 - (static_cast<float>(texture->getSize().y) / 2 * 8) - 256 - 64 + 16
+        0,
+        135.F / 2 * 8 - (static_cast<float>(texture->getSize().y) / 2 * 8) - 256 - 64 + 16
     };
     breakableEntities.push_back(m_ecs->createEntity());
 
@@ -228,8 +228,8 @@ void ClientApp::gameplayLoop() {
     constexpr Rte::Vec2<float> sandBoxScale = {8, 8};
     const Rte::Vec2<Rte::u16> sandBoxSize = {240, 135};
     const Rte::Vec2<float> sandBoxPosition = {
-        (static_cast<float>(windowSize.x) / 2),
-        (static_cast<float>(windowSize.y) / 2)
+        0,
+        0
     };
 
     const std::shared_ptr<Rte::Graphic::Texture> sandBoxTexture = m_graphicModule->createTexture();

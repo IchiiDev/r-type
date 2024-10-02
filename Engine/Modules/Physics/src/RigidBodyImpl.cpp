@@ -466,7 +466,7 @@ RigidBodyImpl::RigidBodyImpl(const u8* pixels, const Vec2<u16>& size, const b2Wo
         bodyDef.type = b2BodyType::b2_staticBody;
     }
 
-    bodyDef.position = {(pos.x - 1920 / 2.F) / 8.F / PPM, -(pos.y - 1080 / 2.F) / 8.F / PPM};
+    bodyDef.position = {(pos.x) / 8.F / PPM, -(pos.y) / 8.F / PPM};
     bodyDef.rotation = b2MakeRot(rotation * std::numbers::pi_v<float> / 180.F);
 
     // Create the polygons from the image

@@ -48,7 +48,7 @@ void PhysicsSystem::update() {  // NOLINT (readability-function-cognitive-comple
             const b2Vec2 position = b2Body_GetPosition(rigidBody->getBodyId());
             const b2Rot rotation = b2Body_GetRotation(rigidBody->getBodyId());
 
-            transformComponent.position = {(position.x * 8.F * PPM + 1920 / 2.F), -(position.y * 8.F * PPM - 1080 / 2.F)};
+            transformComponent.position = {(position.x * 8.F * PPM), -(position.y * 8.F * PPM)};
             transformComponent.rotation = -b2Rot_GetAngle(rotation) * 180 / std::numbers::pi_v<float>;
             const std::vector<std::vector<PixelCringe>> staticBodyPixels = rigidBody->getRotatedPixels();
 
@@ -71,7 +71,7 @@ void PhysicsSystem::update() {  // NOLINT (readability-function-cognitive-comple
             const b2Vec2 position = b2Body_GetPosition(playerBody->getBodyId());
             const b2Rot rotation = b2Body_GetRotation(playerBody->getBodyId());
 
-            transformComponent.position = {(position.x * 8.F * PPM + 1920 / 2.F), -(position.y * 8.F * PPM - 1080 / 2.F)};
+            transformComponent.position = {(position.x * 8.F * PPM), -(position.y * 8.F * PPM)};
             transformComponent.rotation = -b2Rot_GetAngle(rotation) * 180 / std::numbers::pi_v<float>;
         }
     }
