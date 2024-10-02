@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ButtonSystem.hpp"
 #include "RenderSystem.hpp"
 #include "Rte/Common.hpp"
 #include "Rte/Ecs/Ecs.hpp"
@@ -273,7 +274,7 @@ namespace Rte::Graphic {
 
             [[nodiscard]] Vec2<u16> getWindowSize() const override;
 
-            [[nodiscard]] std::shared_ptr<Texture> createTexture() const override;
+            [[nodiscard]] std::unique_ptr<Texture> createTexture() const override;
 
 
             // Input methods
@@ -289,6 +290,7 @@ namespace Rte::Graphic {
             sf::Shader m_shader;
 
             std::shared_ptr<RenderSystem> m_renderSystem;
+            std::shared_ptr<ButtonSystem> m_buttonSystem;
     };
 
 }   // namespace Rte::Graphic

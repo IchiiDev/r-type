@@ -1,3 +1,4 @@
+#include "ButtonSystem.hpp"
 #include "GraphicModuleImpl.hpp"
 #include "RenderSystem.hpp"
 #include "Rte/BasicComponents.hpp"
@@ -9,6 +10,8 @@
 #include "Rte/Graphic/GraphicModule.hpp"
 #include "Rte/Graphic/Texture.hpp"
 #include "Rte/ModuleManager.hpp"
+#include "TextureImpl.hpp"
+
 #include "SFML/Graphics/Rect.hpp"
 #include "SFML/Graphics/Shader.hpp"
 #include "SFML/Graphics/View.hpp"
@@ -17,7 +20,6 @@
 #include "SFML/Window/Keyboard.hpp"
 #include "SFML/Window/Mouse.hpp"
 #include "SFML/Window/VideoMode.hpp"
-#include "TextureImpl.hpp"
 
 #include <memory>
 #include <optional>
@@ -99,18 +101,28 @@ void GraphicModuleImpl::init(const std::shared_ptr<Ecs>& ecs) {
 
     // Register components
     ecs->registerComponent<Components::Sprite>();
+    ecs->registerComponent<Components::Button>();
 
 
     // Render system registration
     m_renderSystem = ecs->registerSystem<RenderSystem>();
     m_renderSystem->init(ecs);
 
+    Signature renderSystemSignature;
+    renderSystemSignature.set(ecs->getComponentType<Components::Sprite>());
+    renderSystemSignature.set(ecs->getComponentType<BasicComponents::Transform>());
+    ecs->setSystemSignature<RenderSystem>(renderSystemSignature);
 
-    // Render system signature
-    Signature signature;
-    signature.set(ecs->getComponentType<Components::Sprite>());
-    signature.set(ecs->getComponentType<BasicComponents::Transform>());
-    ecs->setSystemSignature<RenderSystem>(signature);
+
+    // Button system registration
+    m_buttonSystem = ecs->registerSystem<ButtonSystem>();
+    m_buttonSystem->init(ecs);
+
+    Signature buttonSystemSignature;
+    buttonSystemSignature.set(ecs->getComponentType<Components::Button>());
+    buttonSystemSignature.set(ecs->getComponentType<Components::Sprite>());
+    buttonSystemSignature.set(ecs->getComponentType<BasicComponents::Transform>());
+    ecs->setSystemSignature<ButtonSystem>(buttonSystemSignature);
 }
 
 void GraphicModuleImpl::update() {
@@ -165,6 +177,7 @@ void GraphicModuleImpl::update() {
     // Clear & display
     m_window.clear();
     m_renderSystem->update(m_window, m_shader);
+    m_buttonSystem->update(m_window);
     m_window.display();
 }
 
@@ -185,8 +198,8 @@ void GraphicModuleImpl::setDaltonismMode(DaltonismMode mode) {
     m_shader.setUniform("mode", static_cast<int>(mode));
 }
 
-std::shared_ptr<Texture> GraphicModuleImpl::createTexture() const { // NOLINT(readability-convert-member-functions-to-static)
-    return std::make_shared<TextureImpl>();
+std::unique_ptr<Texture> GraphicModuleImpl::createTexture() const { // NOLINT(readability-convert-member-functions-to-static)
+    return std::make_unique<TextureImpl>();
 }
 
 void GraphicModuleImpl::setWindowTitle(const std::string& title) {
