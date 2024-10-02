@@ -11,7 +11,7 @@
 
 class Button {
     public:
-        Button(const std::shared_ptr<Rte::Ecs>& ecs, const std::shared_ptr<Rte::Graphic::GraphicModule>& graphicModule, const std::shared_ptr<Rte::Graphic::Texture>& texture, const Rte::Vec2<float>& position, const Rte::Vec2<float>& size, const std::string& text, int textSize, std::function<void()> onClick);
+        Button(const std::shared_ptr<Rte::Ecs>& ecs, const std::shared_ptr<Rte::Graphic::GraphicModule>& graphicModule, const std::shared_ptr<Rte::Graphic::Texture>& texture, bool enlargeOnHover, const Rte::Vec2<float>& position, const Rte::Vec2<float>& size, const std::string& text, int textSize, std::function<void()> onClick);
         ~Button();
 
         Button(const Button&) = delete;
@@ -33,4 +33,5 @@ class Button {
         Rte::Vec2<float> m_size{};
         Rte::Vec2<float> m_growSize{};
         int m_textSize{};
+        bool m_enlargeOnHover{};
 };

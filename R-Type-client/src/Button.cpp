@@ -11,7 +11,7 @@
 #include <memory>
 #include <utility>
 
-Button::Button(const std::shared_ptr<Rte::Ecs>& ecs, const std::shared_ptr<Rte::Graphic::GraphicModule>& graphicModule, const std::shared_ptr<Rte::Graphic::Texture>& texture, const Rte::Vec2<float>& position, const Rte::Vec2<float>& size, const std::string& text, int textSize, std::function<void()> onClick) {
+Button::Button(const std::shared_ptr<Rte::Ecs>& ecs, const std::shared_ptr<Rte::Graphic::GraphicModule>& graphicModule, const std::shared_ptr<Rte::Graphic::Texture>& texture, bool enlargeOnHover, const Rte::Vec2<float>& position, const Rte::Vec2<float>& size, const std::string& text, int textSize, std::function<void()> onClick) {
     m_ecs = ecs;                            // NOLINT(cppcoreguidelines-prefer-member-initializer)
     m_graphicModule = graphicModule;        // NOLINT(cppcoreguidelines-prefer-member-initializer)
     m_onClick = std::move(onClick);         // NOLINT(cppcoreguidelines-prefer-member-initializer)
@@ -19,10 +19,11 @@ Button::Button(const std::shared_ptr<Rte::Ecs>& ecs, const std::shared_ptr<Rte::
     m_position = position;                  // NOLINT(cppcoreguidelines-prefer-member-initializer)
     m_size = size;                          // NOLINT(cppcoreguidelines-prefer-member-initializer)
     m_textSize = textSize;                  // NOLINT(cppcoreguidelines-prefer-member-initializer)
+    m_enlargeOnHover = enlargeOnHover;      // NOLINT(cppcoreguidelines-prefer-member-initializer)
 
     m_growSize = {
-        .x = static_cast<float>(size.x * 0.03),
-        .y = static_cast<float>(size.y * 0.03)
+        .x = static_cast<float>(size.x * (enlargeOnHover ? 0.03 : 0)),
+        .y = static_cast<float>(size.y * (enlargeOnHover ? 0.03 : 0))
     };
 
     ecs->addComponent<Rte::Graphic::Components::Sprite>(m_entity, Rte::Graphic::Components::Sprite(texture));
@@ -49,7 +50,7 @@ void Button::update() {
         buttonTransform.scale = newSize;
 
         Rte::Graphic::Components::Text& textComponent = m_ecs->getComponent<Rte::Graphic::Components::Text>(m_entity);
-        textComponent.size = m_textSize + static_cast<int>(static_cast<float>(m_textSize) * 0.1F);
+        textComponent.size = m_textSize + static_cast<int>(static_cast<float>(m_textSize) * (m_enlargeOnHover ? 0.1F : 0));
     } else {
         if (buttonComponent.state == Rte::Graphic::ButtonState::PRESSED && m_lastState == Rte::Graphic::ButtonState::HOVERED)
             m_onClick();
