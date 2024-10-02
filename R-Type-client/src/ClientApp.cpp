@@ -113,10 +113,10 @@ std::vector<Rte::u8> andImage(const Rte::u8* image, const std::vector<int>& bina
     std::vector<Rte::u8> newImage(static_cast<size_t>(size.x * size.y * 4), 0);
     for (int i = 0; i < size.x * size.y; i++) {
         if (binaryImage.at(i) == 1) {
-            newImage.at(static_cast<long>(i) * 4) = image[static_cast<ptrdiff_t>(i * 4)];
-            newImage.at(i * 4 + 1)                = image[i * 4 + 1];
-            newImage.at(i * 4 + 2)                = image[i * 4 + 2];
-            newImage.at(i * 4 + 3)                = image[i * 4 + 3];
+            newImage.at(static_cast<long long>(static_cast<long>(i)) * 4) = image[static_cast<ptrdiff_t>(i * 4)];
+            newImage.at(i * 4 + 1) = image[i * 4 + 1];
+            newImage.at(i * 4 + 2) = image[i * 4 + 2];
+            newImage.at(i * 4 + 3) = image[i * 4 + 3];
         }
     }
 
@@ -166,7 +166,7 @@ void ClientApp::run() {
     // Creation of a a background entity
 
     const std::shared_ptr<Rte::Graphic::Texture> backgroundTexture = graphicModule->createTexture();
-    backgroundTexture->loadFromFile("../background.png");
+    backgroundTexture->loadFromFile("../assets/background.png");
     constexpr Rte::Vec2<float> backgroundScale = {8, 8};
     const Rte::Vec2<Rte::u16> windowSize = graphicModule->getWindowSize();
     const Rte::Vec2<float> backgroundPosition = {
@@ -183,9 +183,9 @@ void ClientApp::run() {
 
     // Creation of a texture
     const std::shared_ptr<Rte::Graphic::Texture> texture = graphicModule->createTexture();
-    texture->loadFromFile("../copper-bar-tex.png");
+    texture->loadFromFile("../assets/copper-bar-tex.png");
     const std::shared_ptr<Rte::Graphic::Texture> material = graphicModule->createTexture();
-    material->loadFromFile("../copper-bar-mat.png");
+    material->loadFromFile("../assets/copper-bar-mat.png");
 
     constexpr Rte::Vec2<float> entityScale = {8, 8};
     const Rte::Vec2<float> entityPosition = {
@@ -212,9 +212,9 @@ void ClientApp::run() {
 
     // Creation of second entity
     const std::shared_ptr<Rte::Graphic::Texture> textureM = graphicModule->createTexture();
-    textureM->loadFromFile("../mushroom-tex.png");
+    textureM->loadFromFile("../assets/mushroom-tex.png");
     const std::shared_ptr<Rte::Graphic::Texture> materialM = graphicModule->createTexture();
-    materialM->loadFromFile("../mushroom-mat.png");
+    materialM->loadFromFile("../assets/mushroom-mat.png");
 
     constexpr Rte::Vec2<float> entityScaleM = {8, 8};
     const Rte::Vec2<float> entityPositionM = {
