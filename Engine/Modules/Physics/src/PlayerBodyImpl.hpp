@@ -9,7 +9,7 @@ namespace Rte::Physics {
 
     class PlayerBodyImpl : public PlayerBody {
         public:
-            PlayerBodyImpl(const Rte::Vec2<u16>& size, float density, float friction, const b2WorldId& worldId, const Vec2<float>& pos, float rotation);
+            PlayerBodyImpl(const Rte::Vec2<u16>& size, float density, float friction, const b2WorldId& worldId, const Vec2<float>& pos, float rotation, bool fixedRotation);
             ~PlayerBodyImpl() override;
 
             PlayerBodyImpl(const PlayerBodyImpl&) = delete;
@@ -20,6 +20,7 @@ namespace Rte::Physics {
 
             [[nodiscard]] b2BodyId getBodyId() const;
             void applyForce(const Vec2<float>& force);
+            void move(const Vec2<float>& direction);
 
         private:
             b2BodyId m_bodyId{};

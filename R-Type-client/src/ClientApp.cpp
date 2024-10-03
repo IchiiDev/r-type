@@ -35,6 +35,6 @@ ClientApp::ClientApp() {
 }
 
 void ClientApp::run() {
-    menuLoop();
+    //menuLoop();
     gameplayLoop();
 }

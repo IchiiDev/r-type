@@ -14,6 +14,7 @@
 #include "Rte/Physics/RigidBody.hpp"
 
 #include <algorithm>
+#include <cmath>
 #include <cstddef>
 #include <cstdlib>
 #include <iostream>
@@ -116,6 +117,10 @@ std::vector<Rte::u8> andImage(const Rte::u8* image, const std::vector<int>& bina
     }
 
     return newImage;
+}
+
+float getRotFromPoints(const Rte::Vec2<float> p1, const Rte::Vec2<float> p2) {
+    return atan2(p2.y - p1.y, p2.x - p1.x);
 }
 
 void breakEntities(const std::shared_ptr<Rte::Graphic::GraphicModule>& m_graphicModule, const std::shared_ptr<Rte::Physics::PhysicsModule>& m_physicsModule, std::vector<Rte::Entity>& breakableEntities, const Rte::Vec2<Rte::u16>& position, const std::shared_ptr<Rte::Ecs>& ecs) {
@@ -250,7 +255,54 @@ void ClientApp::gameplayLoop() {
 
     Rte::Physics::MaterialType k = Rte::Physics::MaterialType::SAND;
 
+    // Creation of a player entity
 
+    const std::shared_ptr<Rte::Graphic::Texture> playerTexture = m_graphicModule->createTexture();
+    playerTexture->loadFromFile("../assets/player.png");
+
+    constexpr Rte::Vec2<float> playerScale = {3, 3};
+    const Rte::Vec2<float> playerPosition = {
+        0,
+        0
+    };
+
+    const Rte::Entity playerEntity = m_ecs->createEntity();
+
+    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(playerEntity, Rte::Graphic::Components::Sprite(playerTexture));
+    m_ecs->addComponent<Rte::BasicComponents::Transform>(playerEntity, Rte::BasicComponents::Transform{
+        .position = playerPosition,
+        .scale = playerScale,
+        .rotation = 0
+    });
+
+    m_ecs->addComponent<Rte::Physics::Components::Physics>(playerEntity, Rte::Physics::Components::Physics{.playerBody = m_physicsModule->createPlayerBody(
+        {31 * 3, 47 * 3},
+        1,
+        10,
+        playerPosition,
+        0,
+        true
+    )});
+
+    // Creation of a crosshair entity
+
+    const std::shared_ptr<Rte::Graphic::Texture> crosshairTexture = m_graphicModule->createTexture();
+    crosshairTexture->loadFromFile("../assets/crosshair.png");
+
+    constexpr Rte::Vec2<float> crosshairScale = {8, 8};
+    const Rte::Vec2<float> crosshairPosition = {
+        1000,
+        1000
+    };
+
+    const Rte::Entity crosshairEntity = m_ecs->createEntity();
+
+    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(crosshairEntity, Rte::Graphic::Components::Sprite(crosshairTexture));
+    m_ecs->addComponent<Rte::BasicComponents::Transform>(crosshairEntity, Rte::BasicComponents::Transform{
+        .position = crosshairPosition,
+        .scale = crosshairScale,
+        .rotation = 0
+    });
 
     // Callback to move the sprite and make it at the center of the window
     m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Graphic::Events::RESIZED,
@@ -276,6 +328,32 @@ void ClientApp::gameplayLoop() {
         const Rte::Vec2<Rte::u16> position = event.getParameter<Rte::Vec2<Rte::u16>>(Rte::Graphic::Events::Params::MOUSE_BUTTON_PRESSED_POSITION);
         std::cout << "Mouse button pressed: " << static_cast<int>(button) << " at position (" << position.x << ", " << position.y << ")\n";
         breakEntities(m_graphicModule, m_physicsModule, breakableEntities, position, m_ecs);
+        Rte::Vec2<float> playerPos = m_ecs->getComponent<Rte::BasicComponents::Transform>(playerEntity).position;
+        float angle = getRotFromPoints(playerPos, {static_cast<float>(position.x - windowSize.x / 2), static_cast<float>(position.y - windowSize.y / 2)});
+        const std::shared_ptr<Rte::Graphic::Texture> projectileTexture = m_graphicModule->createTexture();
+        projectileTexture->loadFromFile("../assets/projectile.png");
+        Rte::Entity projectileEntity = m_ecs->createEntity();
+        m_ecs->addComponent<Rte::Graphic::Components::Sprite>(projectileEntity, Rte::Graphic::Components::Sprite(projectileTexture));
+        m_ecs->addComponent<Rte::BasicComponents::Transform>(projectileEntity, Rte::BasicComponents::Transform{
+            .position = {static_cast<float>(cos(angle) * 100) + playerPos.x, static_cast<float>(sin(angle) * 100) + playerPos.y},
+            .scale = {8, 8},
+            .rotation = -angle
+        });
+        m_ecs->addComponent<Rte::Physics::Components::Physics>(projectileEntity, Rte::Physics::Components::Physics{.playerBody = m_physicsModule->createPlayerBody(
+            {32, 0},
+            1,
+            0.3,
+            {m_ecs->getComponent<Rte::BasicComponents::Transform>(projectileEntity).position.x + m_graphicModule->getWindowSize().x / 2,
+             m_ecs->getComponent<Rte::BasicComponents::Transform>(projectileEntity).position.y + m_graphicModule->getWindowSize().y / 2},
+            -m_ecs->getComponent<Rte::BasicComponents::Transform>(projectileEntity).rotation,
+            false
+        )});
+
+        m_physicsModule->applyForce(m_ecs->getComponent<Rte::Physics::Components::Physics>(projectileEntity).playerBody, {
+            static_cast<float>(cos(angle) * 5),
+            static_cast<float>(sin(-angle) * 5)
+            });
+
     }));
 
     // Main loop
@@ -288,6 +366,22 @@ void ClientApp::gameplayLoop() {
             k = Rte::Physics::MaterialType::STATIC_WOOD;
         else if (m_graphicModule->isKeyPressed(Rte::Graphic::Key::A))
             k = Rte::Physics::MaterialType::ACID;
+        
+        if (m_graphicModule->isKeyPressed(Rte::Graphic::Key::Left)) {
+            m_physicsModule->move(m_ecs->getComponent<Rte::Physics::Components::Physics>(playerEntity).playerBody, {-10, 0});
+        }
+        if (m_graphicModule->isKeyPressed(Rte::Graphic::Key::Right)) {
+            m_physicsModule->move(m_ecs->getComponent<Rte::Physics::Components::Physics>(playerEntity).playerBody, {10, 0});
+        }
+        if (m_graphicModule->isKeyPressed(Rte::Graphic::Key::Space)) {
+            m_physicsModule->applyForce(m_ecs->getComponent<Rte::Physics::Components::Physics>(playerEntity).playerBody, {0, 1});
+        }
+        
+        m_ecs->getComponent<Rte::BasicComponents::Transform>(crosshairEntity).position = {
+            static_cast<float>(m_graphicModule->getMousePosition().x - m_graphicModule->getWindowSize().x / 2),
+            static_cast<float>(m_graphicModule->getMousePosition().y - m_graphicModule->getWindowSize().y / 2)
+        };
+
         if (m_graphicModule->isMouseButtonPressed(Rte::Graphic::MouseButton::Left)) {
             const Rte::Vec2<Rte::u16> position = m_graphicModule->getMousePosition();
             m_physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8, position.y / 8},     {k, randomColor(Rte::Physics::invMatColors.at(k), 60), 0});

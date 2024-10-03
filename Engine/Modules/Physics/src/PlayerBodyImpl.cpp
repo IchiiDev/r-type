@@ -14,13 +14,13 @@
 using namespace Rte::Physics;
 
 //Where image is an array of pixels in rgba format
-PlayerBodyImpl::PlayerBodyImpl(const Rte::Vec2<u16>& size, float density, float friction, const b2WorldId& worldId, const Vec2<float>& pos, float rotation) : m_worldId(worldId), m_size(size) {
+PlayerBodyImpl::PlayerBodyImpl(const Rte::Vec2<u16>& size, float density, float friction, const b2WorldId& worldId, const Vec2<float>& pos, float rotation, bool fixedRotation) : m_worldId(worldId), m_size(size) {
     // Create a kinematic body using box2d
     b2BodyDef bodyDef = b2DefaultBodyDef();
     bodyDef.type = b2BodyType::b2_dynamicBody;
     bodyDef.position = {(pos.x - 1920 / 2.F) / 8.F / PPM, -(pos.y - 1080 / 2.F) / 8.F / PPM};
     bodyDef.rotation = b2MakeRot(rotation * std::numbers::pi_v<float> / 180.F);
-    bodyDef.fixedRotation = true; // Fix the rotation of the body
+    bodyDef.fixedRotation = fixedRotation; // Fix the rotation of the body
     m_bodyId = b2CreateBody(m_worldId, &bodyDef);
 
     // Create a shape definition
@@ -30,9 +30,9 @@ PlayerBodyImpl::PlayerBodyImpl(const Rte::Vec2<u16>& size, float density, float 
 
     // Create the shape
     const b2Capsule capsule {
-        .center1 = {-(static_cast<float>(size.x) / 2.F) / 8.F / PPM, 0},
-        .center2 = {(static_cast<float>(size.x) / 2.F) / 8.F / PPM, 0},
-        .radius = (static_cast<float>(size.y) / 2.F) / 8.F / PPM
+        .center1 = {0, -(static_cast<float>(size.y) / 4.F) / 8.F / PPM},
+        .center2 = {0, (static_cast<float>(size.y) / 4.F) / 8.F / PPM},
+        .radius = (static_cast<float>(size.x) / 2.F) / 8.F / PPM
     };
 
     b2CreateCapsuleShape(m_bodyId, &shapeDef, &capsule);
@@ -44,7 +44,33 @@ PlayerBodyImpl::~PlayerBodyImpl() {
 }
 
 void PlayerBodyImpl::applyForce(const Vec2<float>& force) {
-    b2Body_ApplyForceToCenter(m_bodyId, {force.x, force.y}, true);
+    b2Body_ApplyLinearImpulse(m_bodyId, {force.x, force.y}, {0,0}, true);
+}
+
+void PlayerBodyImpl::move(const Vec2<float>& direction) {
+    b2Vec2 currentVelocity = b2Body_GetLinearVelocity(m_bodyId);
+
+    if (direction.x < 0) {
+        if (currentVelocity.x > direction.x) {
+            currentVelocity.x -= 1;
+        }
+    } else if (direction.x > 0) {
+        if (currentVelocity.x < direction.x) {
+            currentVelocity.x += 1;
+        }
+    }
+
+    if (direction.y < 0) {
+        if (currentVelocity.y > direction.y) {
+            currentVelocity.y += 1;
+        }
+    } else if (direction.y > 0) {
+        if (currentVelocity.y < direction.y) {
+            currentVelocity.y += 1;
+        }
+    }
+
+    b2Body_SetLinearVelocity(m_bodyId, currentVelocity);
 }
 
 b2BodyId PlayerBodyImpl::getBodyId() const {

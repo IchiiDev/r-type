@@ -34,12 +34,13 @@ namespace Rte::Physics {
 
             [[nodiscard]] virtual std::shared_ptr<RigidBody> createRigidBody(const u8* pixels, const Vec2<u16>& size, const Vec2<float>& pos, float rotation) = 0;
             [[nodiscard]] virtual std::shared_ptr<RigidBody> createRigidBody(const std::shared_ptr<RigidBody>& rigidBody, const u8* pixels, const Rte::Vec2<u16>& size) = 0;
-            [[nodiscard]] virtual std::shared_ptr<PlayerBody> createPlayerBody(const Vec2<u16>& size, float density, float friction, const Vec2<float>& pos, float rotation) = 0;
+            [[nodiscard]] virtual std::shared_ptr<PlayerBody> createPlayerBody(const Vec2<u16>& size, float density, float friction, const Vec2<float>& pos, float rotation, bool fixedRotation) = 0;
             [[nodiscard]] virtual std::shared_ptr<SandBox> createSandBox(const Vec2<u16>& size) = 0;
 
             [[nodiscard]] virtual std::vector<u8> fractureRigidBody(const std::shared_ptr<RigidBody>& rigidBody, Vec2<u16> pixelPos, bool &hasChanged) = 0;
             virtual void changeSandBoxPixel(Entity sandBox, const Vec2<int>& pos, const Pixel& pixel) = 0;
             virtual void applyForce(const std::shared_ptr<PlayerBody>& playerBody, const Vec2<float>& force) = 0;
+            virtual void move(const std::shared_ptr<PlayerBody>& playerBody, const Vec2<float>& direction) = 0;
 
             [[nodiscard]] virtual const std::vector<Pixel>& getSandBoxCanvas(const std::shared_ptr<SandBox>& sandBox) const = 0;
             [[nodiscard]] virtual const std::vector<Particle>& getSandBoxParticles(const std::shared_ptr<SandBox>& sandBox) const = 0;

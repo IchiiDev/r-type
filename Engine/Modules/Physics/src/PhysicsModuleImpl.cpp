@@ -116,12 +116,16 @@ std::shared_ptr<RigidBody> PhysicsModuleImpl::createRigidBody(const std::shared_
     return std::make_shared<RigidBodyImpl>(interfaceCast<RigidBodyImpl>(rigidBody), pixels, size, m_worldId);
 }
 
-std::shared_ptr<PlayerBody> PhysicsModuleImpl::createPlayerBody(const Rte::Vec2<Rte::u16>& size, float density, float friction, const Rte::Vec2<float>& pos, float rotation) {
-    return std::make_shared<PlayerBodyImpl>(size, density, friction, m_worldId, pos, rotation);
+std::shared_ptr<PlayerBody> PhysicsModuleImpl::createPlayerBody(const Rte::Vec2<Rte::u16>& size, float density, float friction, const Rte::Vec2<float>& pos, float rotation, bool fixedRotation) {
+    return std::make_shared<PlayerBodyImpl>(size, density, friction, m_worldId, pos, rotation, fixedRotation);
 }
 
 void PhysicsModuleImpl::applyForce(const std::shared_ptr<PlayerBody>& playerBody, const Vec2<float>& force) {
     interfaceCast<PlayerBodyImpl>(playerBody)->applyForce(force);
+}
+
+void PhysicsModuleImpl::move(const std::shared_ptr<PlayerBody>& playerBody, const Vec2<float>& direction) {
+    interfaceCast<PlayerBodyImpl>(playerBody)->move(direction);
 }
 
 std::shared_ptr<SandBox> PhysicsModuleImpl::createSandBox(const Vec2<u16>& size) {
