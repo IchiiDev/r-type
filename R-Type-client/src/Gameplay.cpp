@@ -275,10 +275,10 @@ void ClientApp::gameplayLoop() {
         .rotation = 0
     });
 
-    m_ecs->addComponent<Rte::Physics::Components::Physics>(playerEntity, Rte::Physics::Components::Physics{.playerBody = m_physicsModule->createPlayerBody(
+    m_ecs->addComponent<Rte::Physics::Components::Physics>(playerEntity, Rte::Physics::Components::Physics{.shapeBody = m_physicsModule->createShapeBody(
         {31 * 3, 47 * 3},
         1,
-        10,
+        50,
         playerPosition,
         0,
         true
@@ -339,21 +339,20 @@ void ClientApp::gameplayLoop() {
             .scale = {8, 8},
             .rotation = -angle
         });
-        m_ecs->addComponent<Rte::Physics::Components::Physics>(projectileEntity, Rte::Physics::Components::Physics{.playerBody = m_physicsModule->createPlayerBody(
-            {32, 0},
+        m_ecs->addComponent<Rte::Physics::Components::Physics>(projectileEntity, Rte::Physics::Components::Physics{.shapeBody = m_physicsModule->createShapeBody(
+            {64, 0},
             1,
             0.3,
             {m_ecs->getComponent<Rte::BasicComponents::Transform>(projectileEntity).position.x + m_graphicModule->getWindowSize().x / 2,
              m_ecs->getComponent<Rte::BasicComponents::Transform>(projectileEntity).position.y + m_graphicModule->getWindowSize().y / 2},
-            -m_ecs->getComponent<Rte::BasicComponents::Transform>(projectileEntity).rotation,
+            m_ecs->getComponent<Rte::BasicComponents::Transform>(projectileEntity).rotation,
             false
         )});
 
-        m_physicsModule->applyForce(m_ecs->getComponent<Rte::Physics::Components::Physics>(projectileEntity).playerBody, {
-            static_cast<float>(cos(angle) * 5),
-            static_cast<float>(sin(-angle) * 5)
-            });
-
+        m_physicsModule->applyForce(m_ecs->getComponent<Rte::Physics::Components::Physics>(projectileEntity).shapeBody, {
+            static_cast<float>(cos(angle) * 10),
+            static_cast<float>(sin(-angle) * 10)
+        });
     }));
 
     // Main loop
@@ -368,13 +367,13 @@ void ClientApp::gameplayLoop() {
             k = Rte::Physics::MaterialType::ACID;
         
         if (m_graphicModule->isKeyPressed(Rte::Graphic::Key::Left)) {
-            m_physicsModule->move(m_ecs->getComponent<Rte::Physics::Components::Physics>(playerEntity).playerBody, {-10, 0});
+            m_physicsModule->move(m_ecs->getComponent<Rte::Physics::Components::Physics>(playerEntity).shapeBody, {-10, 0});
         }
         if (m_graphicModule->isKeyPressed(Rte::Graphic::Key::Right)) {
-            m_physicsModule->move(m_ecs->getComponent<Rte::Physics::Components::Physics>(playerEntity).playerBody, {10, 0});
+            m_physicsModule->move(m_ecs->getComponent<Rte::Physics::Components::Physics>(playerEntity).shapeBody, {10, 0});
         }
         if (m_graphicModule->isKeyPressed(Rte::Graphic::Key::Space)) {
-            m_physicsModule->applyForce(m_ecs->getComponent<Rte::Physics::Components::Physics>(playerEntity).playerBody, {0, 1});
+            m_physicsModule->applyForce(m_ecs->getComponent<Rte::Physics::Components::Physics>(playerEntity).shapeBody, {0, 1});
         }
         
         m_ecs->getComponent<Rte::BasicComponents::Transform>(crosshairEntity).position = {

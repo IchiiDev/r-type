@@ -1,5 +1,5 @@
 #include "PhysicsSystem.hpp"
-#include "PlayerBodyImpl.hpp"
+#include "ShapeBodyImpl.hpp"
 #include "RigidBodyImpl.hpp"
 #include "Rte/BasicComponents.hpp"
 #include "Rte/Common.hpp"
@@ -65,11 +65,11 @@ void PhysicsSystem::update() {  // NOLINT (readability-function-cognitive-comple
             }
         }
 
-        if (m_ecs->getComponent<Rte::Physics::Components::Physics>(entity).playerBody) {
-            const std::shared_ptr<PlayerBodyImpl>& playerBody = interfaceCast<PlayerBodyImpl>(m_ecs->getComponent<Components::Physics>(entity).playerBody);
+        if (m_ecs->getComponent<Rte::Physics::Components::Physics>(entity).shapeBody) {
+            const std::shared_ptr<ShapeBodyImpl>& ShapeBody = interfaceCast<ShapeBodyImpl>(m_ecs->getComponent<Components::Physics>(entity).shapeBody);
             BasicComponents::Transform& transformComponent = m_ecs->getComponent<BasicComponents::Transform>(entity);
-            const b2Vec2 position = b2Body_GetPosition(playerBody->getBodyId());
-            const b2Rot rotation = b2Body_GetRotation(playerBody->getBodyId());
+            const b2Vec2 position = b2Body_GetPosition(ShapeBody->getBodyId());
+            const b2Rot rotation = b2Body_GetRotation(ShapeBody->getBodyId());
 
             transformComponent.position = {(position.x * 8.F * PPM), -(position.y * 8.F * PPM)};
             transformComponent.rotation = -b2Rot_GetAngle(rotation) * 180 / std::numbers::pi_v<float>;

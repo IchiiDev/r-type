@@ -1,6 +1,6 @@
 #include "PhysicsModuleImpl.hpp"
 #include "PhysicsSystem.hpp"
-#include "PlayerBodyImpl.hpp"
+#include "ShapeBodyImpl.hpp"
 #include "RigidBodyImpl.hpp"
 #include "Rte/BasicComponents.hpp"
 #include "Rte/Common.hpp"
@@ -10,7 +10,7 @@
 #include "Rte/Physics/Components.hpp"
 #include "Rte/Physics/Materials.hpp"
 #include "Rte/Physics/PhysicsModule.hpp"
-#include "Rte/Physics/PlayerBody.hpp"
+#include "Rte/Physics/ShapeBody.hpp"
 #include "Rte/Physics/RigidBody.hpp"
 #include "Rte/Physics/SandBox.hpp"
 #include "Rte/Physics/Tool.hpp"
@@ -116,16 +116,16 @@ std::shared_ptr<RigidBody> PhysicsModuleImpl::createRigidBody(const std::shared_
     return std::make_shared<RigidBodyImpl>(interfaceCast<RigidBodyImpl>(rigidBody), pixels, size, m_worldId);
 }
 
-std::shared_ptr<PlayerBody> PhysicsModuleImpl::createPlayerBody(const Rte::Vec2<Rte::u16>& size, float density, float friction, const Rte::Vec2<float>& pos, float rotation, bool fixedRotation) {
-    return std::make_shared<PlayerBodyImpl>(size, density, friction, m_worldId, pos, rotation, fixedRotation);
+std::shared_ptr<ShapeBody> PhysicsModuleImpl::createShapeBody(const Rte::Vec2<Rte::u16>& size, float density, float friction, const Rte::Vec2<float>& pos, float rotation, bool fixedRotation) {
+    return std::make_shared<ShapeBodyImpl>(size, density, friction, m_worldId, pos, rotation, fixedRotation);
 }
 
-void PhysicsModuleImpl::applyForce(const std::shared_ptr<PlayerBody>& playerBody, const Vec2<float>& force) {
-    interfaceCast<PlayerBodyImpl>(playerBody)->applyForce(force);
+void PhysicsModuleImpl::applyForce(const std::shared_ptr<ShapeBody>& ShapeBody, const Vec2<float>& force) {
+    interfaceCast<ShapeBodyImpl>(ShapeBody)->applyForce(force);
 }
 
-void PhysicsModuleImpl::move(const std::shared_ptr<PlayerBody>& playerBody, const Vec2<float>& direction) {
-    interfaceCast<PlayerBodyImpl>(playerBody)->move(direction);
+void PhysicsModuleImpl::move(const std::shared_ptr<ShapeBody>& ShapeBody, const Vec2<float>& direction) {
+    interfaceCast<ShapeBodyImpl>(ShapeBody)->move(direction);
 }
 
 std::shared_ptr<SandBox> PhysicsModuleImpl::createSandBox(const Vec2<u16>& size) {

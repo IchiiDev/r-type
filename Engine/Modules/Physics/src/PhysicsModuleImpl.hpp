@@ -6,7 +6,7 @@
 #include "Rte/Ecs/Types.hpp"
 #include "Rte/Physics/Materials.hpp"
 #include "Rte/Physics/PhysicsModule.hpp"
-#include "Rte/Physics/PlayerBody.hpp"
+#include "Rte/Physics/ShapeBody.hpp"
 #include "Rte/Physics/RigidBody.hpp"
 #include "Rte/Physics/SandBox.hpp"
 
@@ -34,13 +34,13 @@ namespace Rte::Physics {
 
             [[nodiscard]] std::shared_ptr<RigidBody> createRigidBody(const u8* pixels, const Vec2<u16>& size, const Vec2<float>& pos, float rotation) override;
             [[nodiscard]] std::shared_ptr<RigidBody> createRigidBody(const std::shared_ptr<RigidBody>& rigidBody, const u8* pixels, const Rte::Vec2<u16>& size) override;
-            [[nodiscard]] std::shared_ptr<PlayerBody> createPlayerBody(const Vec2<u16>& size, float density, float friction, const Vec2<float>& pos, float rotation, bool fixedRotation) override;
+            [[nodiscard]] std::shared_ptr<ShapeBody> createShapeBody(const Vec2<u16>& size, float density, float friction, const Vec2<float>& pos, float rotation, bool fixedRotation) override;
             [[nodiscard]] std::shared_ptr<SandBox> createSandBox(const Vec2<u16>& size) override;
 
             [[nodiscard]] std::vector<u8> fractureRigidBody(const std::shared_ptr<RigidBody>& rigidBody, Vec2<u16> pixelPos, bool &hasChanged) override;
             void changeSandBoxPixel(Entity sandBox, const Vec2<int>& pos, const Pixel& pixel) override;
-            void applyForce(const std::shared_ptr<PlayerBody>& playerBody, const Vec2<float>& force) override;
-            void move(const std::shared_ptr<PlayerBody>& playerBody, const Vec2<float>& direction) override;
+            void applyForce(const std::shared_ptr<ShapeBody>& ShapeBody, const Vec2<float>& force) override;
+            void move(const std::shared_ptr<ShapeBody>& ShapeBody, const Vec2<float>& direction) override;
 
             [[nodiscard]] const std::vector<Pixel>& getSandBoxCanvas(const std::shared_ptr<SandBox>& sandBox) const override;
             [[nodiscard]] const std::vector<Particle>& getSandBoxParticles(const std::shared_ptr<SandBox>& sandBox) const override;

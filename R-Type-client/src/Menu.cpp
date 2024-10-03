@@ -14,6 +14,7 @@
 void ClientApp::createMenuButtons() {
     m_menuButtons.push_back(std::make_unique<Button>(m_ecs, m_graphicModule, m_transparentTexture, true, Rte::Vec2<float>(0, -80), Rte::Vec2<float>(200, 50), "Play", 30, [&]() {
         std::cout << "Play button clicked\n";
+        m_running = false;
     }));
 
     m_menuButtons.push_back(std::make_unique<Button>(m_ecs, m_graphicModule, m_transparentTexture, true, Rte::Vec2<float>(0, 0), Rte::Vec2<float>(200, 50), "Options", 30, [&]() {
