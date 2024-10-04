@@ -13,6 +13,7 @@
 #include "box2d/box2d.h"
 #include "box2d/id.h"
 #include "box2d/math_functions.h"
+#include "box2d/types.h"
 
 #include <cassert>
 #include <cmath>

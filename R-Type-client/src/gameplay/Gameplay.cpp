@@ -1,5 +1,6 @@
 #include "ClientApp.hpp"
 
+#include "Player.hpp"
 #include "Rte/BasicComponents.hpp"
 #include "Rte/Common.hpp"
 #include "Rte/Ecs/Ecs.hpp"
@@ -117,10 +118,6 @@ std::vector<Rte::u8> andImage(const Rte::u8* image, const std::vector<int>& bina
     }
 
     return newImage;
-}
-
-float getRotFromPoints(const Rte::Vec2<float> p1, const Rte::Vec2<float> p2) {
-    return atan2(p2.y - p1.y, p2.x - p1.x);
 }
 
 void breakEntities(const std::shared_ptr<Rte::Graphic::GraphicModule>& m_graphicModule, const std::shared_ptr<Rte::Physics::PhysicsModule>& m_physicsModule, std::vector<Rte::Entity>& breakableEntities, const Rte::Vec2<Rte::u16>& position, const std::shared_ptr<Rte::Ecs>& ecs) {
@@ -257,32 +254,7 @@ void ClientApp::gameplayLoop() {
 
     // Creation of a player entity
 
-    const std::shared_ptr<Rte::Graphic::Texture> playerTexture = m_graphicModule->createTexture();
-    playerTexture->loadFromFile("../assets/player.png");
-
-    constexpr Rte::Vec2<float> playerScale = {3, 3};
-    const Rte::Vec2<float> playerPosition = {
-        0,
-        0
-    };
-
-    const Rte::Entity playerEntity = m_ecs->createEntity();
-
-    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(playerEntity, Rte::Graphic::Components::Sprite(playerTexture));
-    m_ecs->addComponent<Rte::BasicComponents::Transform>(playerEntity, Rte::BasicComponents::Transform{
-        .position = playerPosition,
-        .scale = playerScale,
-        .rotation = 0
-    });
-
-    m_ecs->addComponent<Rte::Physics::Components::Physics>(playerEntity, Rte::Physics::Components::Physics{.shapeBody = m_physicsModule->createShapeBody(
-        {31 * 3, 47 * 3},
-        1,
-        50,
-        playerPosition,
-        0,
-        true
-    )});
+    Player player(m_ecs, m_graphicModule, m_physicsModule);
 
     // Creation of a crosshair entity
 
@@ -301,6 +273,39 @@ void ClientApp::gameplayLoop() {
     m_ecs->addComponent<Rte::BasicComponents::Transform>(crosshairEntity, Rte::BasicComponents::Transform{
         .position = crosshairPosition,
         .scale = crosshairScale,
+        .rotation = 0
+    });
+
+    // Health Container
+
+    const std::shared_ptr<Rte::Graphic::Texture> healthContainerTexture = m_graphicModule->createTexture();
+    healthContainerTexture->loadFromFile("../assets/health-container.png");
+
+    const Rte::Entity healthContainerEntity = m_ecs->createEntity();
+    
+    Rte::Vec2<float> healthContainerPosition = {
+        (std::round(-240.F / 2.F)) * 8 + 72, 
+        (std::round(-135.F / 2.F)) * 8 + 36
+    };
+
+    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(healthContainerEntity, Rte::Graphic::Components::Sprite(healthContainerTexture));
+    m_ecs->addComponent<Rte::BasicComponents::Transform>(healthContainerEntity, Rte::BasicComponents::Transform{
+        .position = healthContainerPosition,
+        .scale = {8, 8},
+        .rotation = 0
+    });
+
+    // Mana bar
+
+    const std::shared_ptr<Rte::Graphic::Texture> manaBarTexture = m_graphicModule->createTexture();
+    manaBarTexture->loadFromFile("../assets/mana-bar.png");
+    const Rte::u16 manaBarWidth = manaBarTexture->getSize().x;
+    const Rte::Entity manaBarEntity = m_ecs->createEntity();
+
+    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(manaBarEntity, Rte::Graphic::Components::Sprite(manaBarTexture));
+    m_ecs->addComponent<Rte::BasicComponents::Transform>(manaBarEntity, Rte::BasicComponents::Transform{
+        .position = healthContainerPosition,
+        .scale = {8, 8},
         .rotation = 0
     });
 
@@ -328,35 +333,12 @@ void ClientApp::gameplayLoop() {
         const Rte::Vec2<Rte::u16> position = event.getParameter<Rte::Vec2<Rte::u16>>(Rte::Graphic::Events::Params::MOUSE_BUTTON_PRESSED_POSITION);
         std::cout << "Mouse button pressed: " << static_cast<int>(button) << " at position (" << position.x << ", " << position.y << ")\n";
         breakEntities(m_graphicModule, m_physicsModule, breakableEntities, position, m_ecs);
-        Rte::Vec2<float> playerPos = m_ecs->getComponent<Rte::BasicComponents::Transform>(playerEntity).position;
-        float angle = getRotFromPoints(playerPos, {static_cast<float>(position.x - windowSize.x / 2), static_cast<float>(position.y - windowSize.y / 2)});
-        const std::shared_ptr<Rte::Graphic::Texture> projectileTexture = m_graphicModule->createTexture();
-        projectileTexture->loadFromFile("../assets/projectile.png");
-        Rte::Entity projectileEntity = m_ecs->createEntity();
-        m_ecs->addComponent<Rte::Graphic::Components::Sprite>(projectileEntity, Rte::Graphic::Components::Sprite(projectileTexture));
-        m_ecs->addComponent<Rte::BasicComponents::Transform>(projectileEntity, Rte::BasicComponents::Transform{
-            .position = {static_cast<float>(cos(angle) * 100) + playerPos.x, static_cast<float>(sin(angle) * 100) + playerPos.y},
-            .scale = {8, 8},
-            .rotation = -angle
-        });
-        m_ecs->addComponent<Rte::Physics::Components::Physics>(projectileEntity, Rte::Physics::Components::Physics{.shapeBody = m_physicsModule->createShapeBody(
-            {64, 0},
-            1,
-            0.3,
-            {m_ecs->getComponent<Rte::BasicComponents::Transform>(projectileEntity).position.x + m_graphicModule->getWindowSize().x / 2,
-             m_ecs->getComponent<Rte::BasicComponents::Transform>(projectileEntity).position.y + m_graphicModule->getWindowSize().y / 2},
-            m_ecs->getComponent<Rte::BasicComponents::Transform>(projectileEntity).rotation,
-            false
-        )});
-
-        m_physicsModule->applyForce(m_ecs->getComponent<Rte::Physics::Components::Physics>(projectileEntity).shapeBody, {
-            static_cast<float>(cos(angle) * 10),
-            static_cast<float>(sin(-angle) * 10)
-        });
+        player.shoot({static_cast<float>(position.x) - static_cast<float>(windowSize.x) / 2.F, static_cast<float>(position.y) - static_cast<float>(windowSize.y) / 2.F});
     }));
 
     // Main loop
     while (m_running) {
+        /*
         if (m_graphicModule->isKeyPressed(Rte::Graphic::Key::S))
             k = Rte::Physics::MaterialType::SAND;
         else if (m_graphicModule->isKeyPressed(Rte::Graphic::Key::W))
@@ -365,31 +347,41 @@ void ClientApp::gameplayLoop() {
             k = Rte::Physics::MaterialType::STATIC_WOOD;
         else if (m_graphicModule->isKeyPressed(Rte::Graphic::Key::A))
             k = Rte::Physics::MaterialType::ACID;
-        
+        */
         if (m_graphicModule->isKeyPressed(Rte::Graphic::Key::Left)) {
-            m_physicsModule->move(m_ecs->getComponent<Rte::Physics::Components::Physics>(playerEntity).shapeBody, {-10, 0});
+            player.move({-10, 0});
         }
         if (m_graphicModule->isKeyPressed(Rte::Graphic::Key::Right)) {
-            m_physicsModule->move(m_ecs->getComponent<Rte::Physics::Components::Physics>(playerEntity).shapeBody, {10, 0});
+            player.move({10, 0});
         }
         if (m_graphicModule->isKeyPressed(Rte::Graphic::Key::Space)) {
-            m_physicsModule->applyForce(m_ecs->getComponent<Rte::Physics::Components::Physics>(playerEntity).shapeBody, {0, 1});
+            player.fly({0, 1});
         }
         
+        // Update the crosshair position
         m_ecs->getComponent<Rte::BasicComponents::Transform>(crosshairEntity).position = {
             static_cast<float>(m_graphicModule->getMousePosition().x - m_graphicModule->getWindowSize().x / 2),
             static_cast<float>(m_graphicModule->getMousePosition().y - m_graphicModule->getWindowSize().y / 2)
         };
 
-        if (m_graphicModule->isMouseButtonPressed(Rte::Graphic::MouseButton::Left)) {
-            const Rte::Vec2<Rte::u16> position = m_graphicModule->getMousePosition();
-            m_physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8, position.y / 8},     {k, randomColor(Rte::Physics::invMatColors.at(k), 60), 0});
-            m_physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8 + 1, position.y / 8}, {k, randomColor(Rte::Physics::invMatColors.at(k), 60), 0});
-            m_physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8 - 1, position.y / 8}, {k, randomColor(Rte::Physics::invMatColors.at(k), 60), 0});
-            m_physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8, position.y / 8 + 1}, {k, randomColor(Rte::Physics::invMatColors.at(k), 60), 0});
-            m_physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8, position.y / 8 - 1}, {k, randomColor(Rte::Physics::invMatColors.at(k), 60), 0});
-        }
+        // Update the mana bar
+        m_ecs->getComponent<Rte::BasicComponents::Transform>(manaBarEntity).scale.x = player.getMana() / 100.F * 8;
 
+        //MAGIC MATHS
+        m_ecs->getComponent<Rte::BasicComponents::Transform>(manaBarEntity).position.x = -((manaBarWidth / 2.F) - (((player.getMana() * manaBarWidth) / 100.F) / 2.F)) * 6;
+        m_ecs->getComponent<Rte::BasicComponents::Transform>(manaBarEntity).position.x += healthContainerPosition.x;
+        m_ecs->getComponent<Rte::BasicComponents::Transform>(manaBarEntity).position.y = healthContainerPosition.y;
+        
+        //if (m_graphicModule->isMouseButtonPressed(Rte::Graphic::MouseButton::Left)) {
+        //    const Rte::Vec2<Rte::u16> position = m_graphicModule->getMousePosition();
+        //    m_physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8, position.y / 8},     {k, randomColor(Rte::Physics::invMatColors.at(k), 60), 0});
+        //    m_physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8 + 1, position.y / 8}, {k, randomColor(Rte::Physics::invMatColors.at(k), 60), 0});
+        //    m_physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8 - 1, position.y / 8}, {k, randomColor(Rte::Physics::invMatColors.at(k), 60), 0});
+        //    m_physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8, position.y / 8 + 1}, {k, randomColor(Rte::Physics::invMatColors.at(k), 60), 0});
+        //    m_physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8, position.y / 8 - 1}, {k, randomColor(Rte::Physics::invMatColors.at(k), 60), 0});
+        //}
+
+        // Update the canvas (sandbox pixels)
         std::vector<Rte::Physics::Pixel> canvas = m_physicsModule->getSandBoxCanvas(m_ecs->getComponent<Rte::Physics::Components::Physics>(sandBoxEntity).sandBox);
         for (int i = 0; i < sandBoxSize.x * sandBoxSize.y; i++) {
             tempSandBox.at(static_cast<long long>(static_cast<long>(i)) * 4) = canvas.at(i).color.r;
@@ -401,6 +393,9 @@ void ClientApp::gameplayLoop() {
         sandBoxTexture->loadFromMemory(tempSandBox.data(), sandBoxSize);
         m_ecs->removeComponent<Rte::Graphic::Components::Sprite>(sandBoxEntity);
         m_ecs->addComponent<Rte::Graphic::Components::Sprite>(sandBoxEntity, Rte::Graphic::Components::Sprite(sandBoxTexture));
+        
+        // Update the entities
+        player.update();
         m_physicsModule->update();
         m_graphicModule->update();
     }

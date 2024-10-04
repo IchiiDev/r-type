@@ -27,7 +27,6 @@ ShapeBodyImpl::ShapeBodyImpl(const Rte::Vec2<u16>& size, float density, float fr
     b2ShapeDef shapeDef = b2DefaultShapeDef();
     shapeDef.density = density;
     shapeDef.friction = friction;
-
     // Create the shape
     const b2Capsule capsule {
         .center1 = {0, -(static_cast<float>(size.y) / 4.F) / 8.F / PPM},
@@ -36,6 +35,9 @@ ShapeBodyImpl::ShapeBodyImpl(const Rte::Vec2<u16>& size, float density, float fr
     };
 
     b2CreateCapsuleShape(m_bodyId, &shapeDef, &capsule);
+    b2ShapeId shapeArray;
+    b2Body_GetShapes(m_bodyId, &shapeArray, 1);
+    m_shapeId = shapeArray;
     // Set the body to be affected by gravity
 }
 
@@ -75,4 +77,8 @@ void ShapeBodyImpl::move(const Vec2<float>& direction) {
 
 b2BodyId ShapeBodyImpl::getBodyId() const {
     return m_bodyId;
+}
+
+b2ShapeId ShapeBodyImpl::getShapeId() const {
+    return m_shapeId;
 }

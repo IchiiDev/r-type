@@ -19,11 +19,13 @@ namespace Rte::Physics {
             ShapeBodyImpl& operator=(ShapeBodyImpl&&) noexcept = default;
 
             [[nodiscard]] b2BodyId getBodyId() const;
+            [[nodiscard]] b2ShapeId getShapeId() const;
             void applyForce(const Vec2<float>& force);
             void move(const Vec2<float>& direction);
 
         private:
             b2BodyId m_bodyId{};
+            b2ShapeId m_shapeId{};
             Rte::Vec2<u16> m_size;
             b2WorldId m_worldId;
     };
