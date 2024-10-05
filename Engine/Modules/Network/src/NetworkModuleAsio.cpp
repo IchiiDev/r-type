@@ -1,12 +1,24 @@
 #include "NetworkModuleAsio.hpp"
+#include "BetterNetworkLibrary/NetworkMessage.hpp"
 #include "Rte/Ecs/Ecs.hpp"
 #include "Rte/ModuleManager.hpp"
 #include "Rte/Network/NetworkModule.hpp"
-#include "asio/connect.hpp"
+#include "asio/buffer.hpp"
+#include "asio/error_code.hpp"
+#include "asio/io_context.hpp"
+#include "asio/ip/address.hpp"
+#include "asio/ip/tcp.hpp"
 
+#include <cstddef>
+#include <cstdint>
 #include <iostream>
 #include <memory>
+#include <ostream>
 #include <string>
+#include <system_error>
+#include <thread>
+#include <vector>
+#include <chrono>
 
 using namespace Rte;
 
@@ -28,13 +40,36 @@ void handle_accept(const asio::error_code& error) {
     }
 }
 
+void NetworkModuleAsio::handle_accept(const asio::error_code& error, std::shared_ptr<tcp::socket> socket) {
+    if (!error) {
+        std::cout << "New client connected!" << std::endl;
+
+        // Add the newly connected socket to the list of active sockets
+        m_sockets.push_back(socket);
+
+        // Optionally, you can start async reads/writes on this socket for communication
+    } else {
+        std::cerr << "Error accepting connection: " << error.message() << std::endl;
+    }
+
+    // After handling the accepted connection, immediately set up to accept the next one
+    update();
+}
+
 void NetworkModuleAsio::update() {
+    asio::error_code ec;
+
     if (m_connectionType == Rte::Network::connectionType::Client) return;
 
-    // Accept a new client connection
-    m_socket = tcp::socket(m_io_context);
-    m_acceptor.value().async_accept(m_socket.value(), handle_accept);
+    // Create a new socket for an incoming connection and store it in the vector
+    auto new_socket = std::make_shared<tcp::socket>(m_io_context);
 
+    // Start asynchronous accept for the new connection
+    m_acceptor.value().async_accept(*new_socket, [this, new_socket](const asio::error_code& error) {
+        handle_accept(error, new_socket);
+    });
+
+    // Poll the I/O context to process pending events
     m_io_context.poll();
 }
 
@@ -83,28 +118,117 @@ void NetworkModuleAsio::setUpServer(unsigned int maxClientNbr) {
     m_maxClientNbr = maxClientNbr;
 }
 
-bool NetworkModuleAsio::connect_as_client(const std::string& host, const std::string& port) {
-    try {
-        tcp::resolver resolver(m_io_context);
+std::vector<char> vBuffer(1 * 1024);
+
+void GrabSomeData(asio::ip::tcp::socket& socket) {
+    socket.async_read_some(asio::buffer(vBuffer.data(), vBuffer.size()), 
+        [&](std::error_code ec, std::size_t length)
+        {
+            if (!ec) {
+                std::cout << "\n\nRead " << length << " bytes\n\n";
+
+                for (int i = 0; i < length; i++)
+                    std::cout << vBuffer[i];
+
+                GrabSomeData(socket);
+            }
+        }
+    );
+}
+
+enum class CustomMsgType : uint32_t {
+    FireBullet,
+    MovePlayer
+};
+
+
+
+bool NetworkModuleAsio::connect_as_client(const std::string& host, const unsigned int& port) {
+    bnl::net::message<CustomMsgType> msg;
+
+    msg.header.id = CustomMsgType::FireBullet;
+
+    int a = 1;
+    bool b = true;
+    float c = 3.14159265358979323846F;
+
+    struct {
+        float x;
+        float y;
+    } d[5];
+
+    msg << a << b << c << d;
+
+    a = 99;
+    b = false;
+    c = 99.0F;
+
+    msg >> d >> c >> b >> a;
+
+    std::cout << "Received data: " << a << " " << b << " " << c << std::endl;
+
+    return true;
+
+    // try {
+        /*
+        // tcp::resolver resolver(m_io_context);
+        asio::error_code ec;
+
+        // Fake work wtf is this fucking library im literraly going insane
+        asio::io_context::work idleWork(m_io_context);
+
+        std::thread thrContext = std::thread([&]() { m_io_context.run(); });
+
+        asio::ip::tcp::endpoint endpoint(asio::ip::make_address(host, ec), port);
+
+        m_sockets.push_back(std::make_shared<asio::ip::tcp::socket>(m_io_context));
+
+        m_sockets[0]->connect(endpoint, ec);
+
+        if (!ec) {
+            std::cout << "Connected" << std::endl;
+        } else {
+            std::cout << "Failed to connect to address:\n" << ec.message() << std::endl;
+        }
+
+        if (m_sockets[0]->is_open()) {
+            GrabSomeData(*m_sockets[0]);
+
+            std::string sRequest = 
+                "GET /index.html HTTP/1.1\r\n"
+                "Host: example.com\r\n"
+                "Connection: close\r\n\r\n";
+
+            m_sockets[0]->write_some(asio::buffer(sRequest.data(), sRequest.size()), ec);
+
+            using namespace std::chrono_literals;
+            std::this_thread::sleep_for(20000ms);
+
+            m_io_context.stop();
+            if (thrContext.joinable()) thrContext.join();
+        }
+
+        return true;
+        */
+        /*
         tcp::resolver::results_type endpoints = resolver.resolve(host, port);
 
-        // Ensure socket is reset before creating a new one
-        if (m_socket.has_value()) {
-            m_socket->close();
-        }
-
-        // Create the socket
-        m_socket.emplace(m_io_context);
+        // Create a new socket for each connection
+        auto socket = std::make_shared<tcp::socket>(m_io_context);
 
         // Try to connect to the server
-        asio::connect(m_socket.value(), endpoints);
+        asio::connect(*socket, endpoints);
 
         // Check if the socket is open after attempting connection
-        if (m_socket->is_open()) {
+        if (socket->is_open()) {
             std::cout << "Client successfully connected to " << host << ":" << port << std::endl;
+
+            // Store the socket in the vector
+            m_sockets.push_back(socket);
+
             return true;
         }
-        
+
         std::cerr << "Failed to connect to " << host << ":" << port << std::endl;
             return false;
        
@@ -118,34 +242,109 @@ bool NetworkModuleAsio::connect_as_client(const std::string& host, const std::st
         std::cerr << "Exception: " << e.what() << std::endl;
         return false;
     }
+    */
 }
 
-bool NetworkModuleAsio::send_as_client(const std::string& data) {
-    try {
-        asio::write(m_socket.value(), asio::buffer(data, sizeof(std::string)));
+bool NetworkModuleAsio::send_data(const Network::InputPackage& data) {
+    bool all_successful = true;
 
-        return true;
+    // Iterate over all sockets in the m_sockets vector
+    for (auto it = m_sockets.begin(); it!= m_sockets.end();) {
+        try {
+            auto& socket = *it;
 
-    } catch (std::exception& e) {
-        std::cerr << "Exception: " << e.what() << std::endl;
-        return false;
-    }
-}
-
-void NetworkModuleAsio::receive_as_server() {
-    // Create a buffer to hold incoming data
-    auto buffer = std::make_shared<std::array<char, 1024>>();
-    
-    // Asynchronously receive data
-    m_socket.value().async_receive(asio::buffer(*buffer), 
-        [this, buffer](std::error_code ec, std::size_t length) {
-            if (!ec) {
-                std::string data(buffer->data(), length);
-                std::cout << "Received message: " << data << std::endl;
-            } else {
-                std::cerr << "Receive error: " << ec.message() << std::endl;
+            if (!socket->is_open()) {
+                std::cerr << "Error: One of the sockets is not open." << std::endl;
+                all_successful = false;
+                continue; // Go to the next socket
             }
-        });
+
+            asio::write(*socket, asio::buffer(&data, sizeof(Network::InputPackage)));
+
+        } catch (const asio::system_error& e) {
+            if (e.code() == asio::error::broken_pipe) {
+                std::cerr << "Error: Broken pipe on one socket, removing it..." << std::endl;
+                it = m_sockets.erase(it);  // Remove the socket with the broken pipe
+                all_successful = false;
+            }
+            continue;
+        }
+
+        ++it;
+    }
+
+    return all_successful;
+}
+
+bool NetworkModuleAsio::send_data(const std::string& data) {
+    bool all_successful = true;
+
+    // Iterate over all sockets in the m_sockets vector
+    for (auto it = m_sockets.begin(); it != m_sockets.end(); /* no increment here */) {
+        try {
+            auto& socket = *it;
+
+            if (!socket->is_open()) {
+                std::cerr << "Error: One of the sockets is not open." << std::endl;
+                it = m_sockets.erase(it);  // Remove closed sockets
+                all_successful = false;
+                continue; // Go to the next socket
+            }
+
+            asio::write(*socket, asio::buffer(data));
+
+        } catch (const asio::system_error& e) {
+            if (e.code() == asio::error::broken_pipe) {
+                std::cerr << "Error: Broken pipe on one socket, removing it..." << std::endl;
+                it = m_sockets.erase(it);  // Remove the socket with the broken pipe
+                all_successful = false;
+            } else {
+                std::cerr << "Exception: " << e.what() << std::endl;
+                it = m_sockets.erase(it);  // Remove socket with error
+                all_successful = false;
+            }
+            continue;  // Move to the next socket
+        }
+
+        ++it; // Move to the next socket
+    }
+
+    return all_successful;
+}
+
+std::vector<Network::InputPackage> NetworkModuleAsio::receive_as_server() {
+    for (auto& socket : m_sockets) {
+        if (socket && socket->is_open()) {
+            // Create a buffer for receiving data that matches the size of the struct
+            auto buffer = std::make_shared<std::array<char, sizeof(Network::InputPackage)>>();
+
+            // Asynchronously receive data on each connected socket
+            socket->async_receive(asio::buffer(*buffer),
+                [this, buffer, socket](std::error_code ec, std::size_t length) {
+                    if (!ec) {
+                        if (length == sizeof(Network::InputPackage)) {
+                            // Cast the buffer to the struct type
+                            Network::InputPackage received_data{};
+                            std::memcpy(&received_data, buffer->data(), sizeof(Network::InputPackage));
+                            
+                            // Use the received struct data
+                            std::cout << "Received struct: jump=" << received_data.jump
+                                      << ", right=" << received_data.right
+                                      << ", shoot angle=" << received_data.shoot_angle << std::endl;
+
+                            // Optionally, start another receive operation for continuous data
+                            receive_as_server();
+                        } else {
+                            std::cerr << "Received data size mismatch." << std::endl;
+                        }
+                    } else {
+                        std::cerr << "Receive error: " << ec.message() << std::endl;
+                    }
+                });
+        }
+    }
+
+    return {};
 }
 
 bool NetworkModuleAsio::start_as_server(const std::string& port) {
