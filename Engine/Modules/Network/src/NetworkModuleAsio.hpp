@@ -32,10 +32,10 @@ class NetworkModuleAsio : public Rte::Network::NetworkModule {
         Rte::Network::connectionType m_connectionType;
         Rte::Network::connectionProtocol m_connectionProtocol;
 
-        std::optional<tcp::acceptor> m_acceptor;
-        std::vector<std::shared_ptr<tcp::socket>> m_sockets;
         asio::io_context m_io_context;
+        std::optional<tcp::acceptor> m_acceptor;
         std::unique_ptr<asio::steady_timer> m_timer;
+        std::vector<std::shared_ptr<tcp::socket>> m_sockets;
 
         unsigned int m_maxClientNbr;
 

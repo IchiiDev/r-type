@@ -10,6 +10,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <memory>
 #include <ostream>
 #include <sys/types.h>
 #include <type_traits>
@@ -21,7 +22,7 @@ namespace bnl {
         template <typename T>
         struct message_header {
             T id{};
-            uint32_t size = 0;
+            u_int32_t size = 0;
         };
 
         template <typename T>
@@ -29,7 +30,7 @@ namespace bnl {
             message_header<T> header;
             std::vector<u_int8_t> body;
 
-            [[nodiscard]] size_t size() const { return sizeof(message_header<T>) + body.size(); }
+            [[nodiscard]] size_t size() const { return body.size(); }
 
             // debug function
             friend std::ostream& operator << (std::ostream& os, const message<T>& msg) {
@@ -69,6 +70,22 @@ namespace bnl {
                 msg.header.size = msg.size();
 
                 return msg;
+            }
+        };
+
+        // predefinition for the moment
+        template <typename T>
+        class Connection;
+
+
+        template<typename T>
+        struct OwnedMessage {
+            std::shared_ptr<Connection<T>> remote = nullptr;
+            message<T> msg;
+
+            friend std::ostream& operator << (std::ostream& os, const OwnedMessage<T>&msg) {
+                os << msg.msg;
+                return os;
             }
         };
 

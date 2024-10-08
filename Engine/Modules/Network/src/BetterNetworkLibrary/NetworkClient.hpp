@@ -7,12 +7,14 @@
 
 #pragma once
 
-#include "BetterNetworkLibrary/NetworkConnection.hpp"
+#include "NetworkConnection.hpp"
+#include "NetworkMessage.hpp"
 #include "NetworkQueue.hpp"
 #include "asio/io_context.hpp"
 #include "asio/ip/tcp.hpp"
 #include <iostream>
 #include <memory>
+#include <ostream>
 #include <string>
 #include <sys/types.h>
 #include <thread>
@@ -28,12 +30,17 @@ namespace bnl {
             public:
                 bool connect(const std::string& host, const unsigned int port) {
                     try {
-                        m_connection = std::make_unique<Connection<T>>(); // TODO: implement the connection object
-
                         asio::ip::tcp::resolver resolver(m_io_context);
-                        m_endpoints = resolver.resolve(host, std::to_string(port));
+                        asio::ip::tcp::resolver::results_type endpoints = resolver.resolve(host, std::to_string(port));
 
-                        m_connection->connectToServer(m_endpoints);
+                        m_connection = std::make_unique<Connection<T>>(
+                            Connection<T>::owner::client,
+                            m_io_context,
+                            asio::ip::tcp::socket(m_io_context),
+                            m_receiveQueue
+                        );
+
+                        m_connection->connectToServer(endpoints);
 
                         thrContext = std::thread([this]() { m_io_context.run(); });
                     } catch (const std::exception& e) {
@@ -62,10 +69,15 @@ namespace bnl {
 
                     return false;
                 }
-
+            
+            public:
                 TSQueue<OwnedMessage<T>> &getReiceiveQueue() {
                     return m_receiveQueue;
                 }
+
+                void send(const message<T>& msg) {
+                    if (isConnected()) m_connection->send(msg);
+			}
 
             protected:
                 asio::io_context m_io_context;

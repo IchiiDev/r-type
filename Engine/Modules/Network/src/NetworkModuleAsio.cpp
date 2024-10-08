@@ -1,5 +1,8 @@
 #include "NetworkModuleAsio.hpp"
+#include "BetterNetworkLibrary/BetterNetworkLibrary.hpp"
+#include "BetterNetworkLibrary/NetworkClient.hpp"
 #include "BetterNetworkLibrary/NetworkMessage.hpp"
+#include "BetterNetworkLibrary/NetworkServer.hpp"
 #include "Rte/Ecs/Ecs.hpp"
 #include "Rte/ModuleManager.hpp"
 #include "Rte/Network/NetworkModule.hpp"
@@ -11,6 +14,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <cstdio>
 #include <iostream>
 #include <memory>
 #include <ostream>
@@ -136,14 +140,126 @@ void GrabSomeData(asio::ip::tcp::socket& socket) {
     );
 }
 
-enum class CustomMsgType : uint32_t {
-    FireBullet,
-    MovePlayer
+enum class CustomMsgTypes : uint32_t
+{
+	ServerAccept,
+	ServerDeny,
+	ServerPing,
+	MessageAll,
+	ServerMessage,
 };
 
+class CustomClient : public bnl::net::IClient<CustomMsgTypes> {
+    public:
+        void pingServer() {
+            bnl::net::message<CustomMsgTypes> msg;
+            msg.header.id = CustomMsgTypes::ServerPing;
 
+            // cette merde est platerforme dependante
+            // ne pas utiliser des trucs plaform dependant dans du code de profuction
+            std::chrono::system_clock::time_point timeNow = std::chrono::system_clock::now();
+
+            msg << timeNow;
+            send(msg);
+        }
+};
+
+class CustomServer : public bnl::net::IServer<CustomMsgTypes>
+{
+public:
+	CustomServer(uint16_t nPort) : bnl::net::IServer<CustomMsgTypes>(nPort)
+	{
+
+	}
+
+protected:
+	 bool onClientConnect(std::shared_ptr<bnl::net::Connection<CustomMsgTypes>> client) override {
+		return true;
+	}
+
+	// Called when a client appears to have disconnected
+	 void onClientDisconnect(std::shared_ptr<bnl::net::Connection<CustomMsgTypes>> client) override {
+	}
+
+	// Called when a message arrives
+	 void onMessageReceived (std::shared_ptr<bnl::net::Connection<CustomMsgTypes>> client, bnl::net::message<CustomMsgTypes>& msg) override {
+		switch (msg.header.id) {
+		    case CustomMsgTypes::ServerPing:
+		    {
+		    	std::cout << "[" << client->getId() << "]: Server Ping\n";
+
+		    	// Simply bounce message back to client
+		    	client->send(msg);
+		    }
+		    break;
+
+            /*
+		    case CustomMsgTypes::MessageAll:
+		    {
+		    	std::cout << "[" << client->getID() << "]: Message All\n";
+
+		    	// Construct a new message and send it to all clients
+		    	bnl::net::message<CustomMsgTypes> msg;
+		    	msg.header.id = CustomMsgTypes::ServerMessage;
+		    	msg << client->getId();
+		    	messageAllClients(msg, client);
+
+		    }
+		    break;
+            */
+		}
+	}
+};
 
 bool NetworkModuleAsio::connect_as_client(const std::string& host, const unsigned int& port) {
+	CustomClient c;
+	c.connect("127.0.0.1", 60000);
+
+	bool bQuit = false;
+    bool responseNeeded = false;
+	while (!bQuit) {
+
+		if (c.isConnected()) {
+            if (!responseNeeded) {
+                std::string input;
+                std::getline(std::cin, input);
+                responseNeeded = true;
+
+                if (input == "PING") c.pingServer();
+                else {
+                    responseNeeded = false;
+                    std:: cout << "Invalid Input" << std::endl;
+                }
+            }
+
+            if (!c.getReiceiveQueue().empty()) {
+                auto msg = c.getReiceiveQueue().popFront().msg;
+                responseNeeded = false;
+
+                switch (msg.header.id) {
+                    case CustomMsgTypes::ServerPing: {
+                        std::chrono::system_clock::time_point timeNow = std::chrono::system_clock::now();
+					    std::chrono::system_clock::time_point timeThen;
+					    msg >> timeThen;
+					    std::cout << "Ping: " << std::chrono::duration<double>(timeNow - timeThen).count() << "\n";
+                    }
+                    case CustomMsgTypes::ServerAccept:
+                    case CustomMsgTypes::ServerDeny:
+                    case CustomMsgTypes::MessageAll:
+                    case CustomMsgTypes::ServerMessage:
+                      break;
+                    }
+            }
+        } else {
+			std::cout << "Server Down\n";
+			bQuit = true;
+		}
+
+	}
+
+	return false;
+}
+    /*
     bnl::net::message<CustomMsgType> msg;
 
     msg.header.id = CustomMsgType::FireBullet;
@@ -168,6 +284,7 @@ bool NetworkModuleAsio::connect_as_client(const std::string& host, const unsigne
     std::cout << "Received data: " << a << " " << b << " " << c << std::endl;
 
     return true;
+    */
 
     // try {
         /*
@@ -242,8 +359,8 @@ bool NetworkModuleAsio::connect_as_client(const std::string& host, const unsigne
         std::cerr << "Exception: " << e.what() << std::endl;
         return false;
     }
-    */
 }
+*/
 
 bool NetworkModuleAsio::send_data(const Network::InputPackage& data) {
     bool all_successful = true;
@@ -348,6 +465,15 @@ std::vector<Network::InputPackage> NetworkModuleAsio::receive_as_server() {
 }
 
 bool NetworkModuleAsio::start_as_server(const std::string& port) {
+    CustomServer server(60000); 
+	server.start();
+
+	while (true) {
+		server.update();
+	}
+
+	return false;
+    /*
     try {
         // Resolve the port for the server to listen on
         m_acceptor.emplace(m_io_context, tcp::endpoint(tcp::v4(), std::stoi(port)));
@@ -364,4 +490,5 @@ bool NetworkModuleAsio::start_as_server(const std::string& port) {
         std::cerr << "Exception: " << e.what() << std::endl;
         return false;
     }
+    */
 }

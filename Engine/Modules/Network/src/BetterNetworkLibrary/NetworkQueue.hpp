@@ -8,7 +8,7 @@
 #pragma once
 
 #include "BetterNetworkLibrary.hpp"
-#include "BetterNetworkLibrary/NetworkMessage.hpp"
+#include "NetworkMessage.hpp"
 #include <cstddef>
 #include <deque>
 #include <memory>
@@ -46,9 +46,9 @@ namespace bnl {
                     deqQueue.emplace_front(std::move(data));
                 }
 
-                void empty() {
+                bool empty() {
                     std::scoped_lock lock(muxQueue);
-                    deqQueue.empty();
+                    return deqQueue.empty();
                 }
 
                 size_t size() {
@@ -81,22 +81,5 @@ namespace bnl {
                 // double ended queue for ease of use and performance
                 std::deque<T> deqQueue;
         };
-
-        // predefinition for the moment
-        template <typename T>
-        class connection;
-
-
-        template<typename T>
-        struct OwnedMessage {
-            std::shared_ptr<connection<T>> connection = nullptr;
-            message<T> msg;
-
-            friend std::ostream& operator << (std::ostream& os, const OwnedMessage<T>&msg) {
-                os << msg.msg;
-                return os;
-            }
-        };
-
     } // namespace net
 } // namespace bnl
