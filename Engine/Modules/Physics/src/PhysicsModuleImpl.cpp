@@ -22,6 +22,8 @@
 #include "box2d/types.h"
 
 #include <cmath>
+#include <cstddef>
+#include <iostream>
 #include <memory>
 #include <vector>
 
@@ -83,8 +85,8 @@ std::vector<Rte::u8> PhysicsModuleImpl::fractureRigidBody(const std::shared_ptr<
     std::vector<std::vector<PixelCringe>> rotatedPixels = rigidBodyImpl->getRotatedPixels();
     for (std::vector<PixelCringe>& rotatedPixelArray : rotatedPixels) {
         for (PixelCringe& rotatedPixel : rotatedPixelArray) {
-            if (rotatedPixel.pos.x + bodyPos.x - 2 <= static_cast<float>(pixelPos.x) && rotatedPixel.pos.x + bodyPos.x + 2 >= static_cast<float>(pixelPos.x)
-            && rotatedPixel.pos.y + bodyPos.y - 2 <= static_cast<float>(pixelPos.y) && rotatedPixel.pos.y + bodyPos.y + 2 >= static_cast<float>(pixelPos.y)) {
+            if (rotatedPixel.pos.x + bodyPos.x - 3 <= static_cast<float>(pixelPos.x) && rotatedPixel.pos.x + bodyPos.x + 3 >= static_cast<float>(pixelPos.x)
+            && rotatedPixel.pos.y + bodyPos.y - 3 <= static_cast<float>(pixelPos.y) && rotatedPixel.pos.y + bodyPos.y + 3 >= static_cast<float>(pixelPos.y)) {
                 if (rotatedPixel.a == 255) {
                     hasChanged = true;
                     rotatedPixel.a = 0;
@@ -142,4 +144,18 @@ const std::vector<Particle>& PhysicsModuleImpl::getSandBoxParticles(const std::s
 
 void PhysicsModuleImpl::changeSandBoxPixel(Entity sandBox, const Vec2<int>& pos, const Pixel& pixel) {
     interfaceCast<SandBoxImpl>(m_ecs->getComponent<Components::Physics>(sandBox).sandBox)->changePixel(pos, pixel);
+}
+
+bool PhysicsModuleImpl::colliding(const std::shared_ptr<ShapeBody> &shapeBody) const {
+    const std::shared_ptr<ShapeBodyImpl> &shapeBodyImpl = interfaceCast<ShapeBodyImpl>(shapeBody);
+
+    std::vector<b2ContactData> contactData(100);
+    b2Body_GetContactData(shapeBodyImpl->getBodyId(), contactData.data(), 100);
+
+    for (const b2ContactData &contact : contactData) {
+        if (shapeBodyImpl->getShapeId().index1 == contact.shapeIdA.index1 || shapeBodyImpl->getShapeId().index1 == contact.shapeIdB.index1) {
+            return true;
+        }
+    }
+    return false;
 }

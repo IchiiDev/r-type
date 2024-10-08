@@ -45,6 +45,7 @@ namespace Rte::Physics {
             [[nodiscard]] const std::vector<Pixel>& getSandBoxCanvas(const std::shared_ptr<SandBox>& sandBox) const override;
             [[nodiscard]] const std::vector<Particle>& getSandBoxParticles(const std::shared_ptr<SandBox>& sandBox) const override;
 
+            [[nodiscard]] bool colliding(const std::shared_ptr<ShapeBody> &shapeBody) const override;
 
         private:
             std::shared_ptr<Ecs> m_ecs;

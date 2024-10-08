@@ -1,4 +1,5 @@
 #include "Player.hpp"
+#include "Rte/Common.hpp"
 #include "Rte/Graphic/Texture.hpp"
 #include <cmath>
 #include <memory>
@@ -12,7 +13,7 @@ float getRotFromPoints(const Rte::Vec2<float> p1, const Rte::Vec2<float> p2) {
     return atan2(p2.y - p1.y, p2.x - p1.x);
 }
 
-Player::Player(const std::shared_ptr<Rte::Ecs>& m_ecs, const std::shared_ptr<Rte::Graphic::GraphicModule>& m_graphicModule, const std::shared_ptr<Rte::Physics::PhysicsModule>& m_physicsModule) : m_player(m_ecs->createEntity()), m_ecs(m_ecs), m_graphicModule(m_graphicModule), m_physicsModule(m_physicsModule) {
+Player::Player(const std::shared_ptr<Rte::Ecs>& ecs, const std::shared_ptr<Rte::Graphic::GraphicModule>& graphicModule, const std::shared_ptr<Rte::Physics::PhysicsModule>& physicsModule) : m_player(ecs->createEntity()), m_ecs(ecs), m_graphicModule(graphicModule), m_physicsModule(physicsModule) {
     const std::shared_ptr<Rte::Graphic::Texture> playerTexture = m_graphicModule->createTexture();
     playerTexture->loadFromFile("../assets/player.png");
 
@@ -85,6 +86,7 @@ void Player::update() {
     if (m_mana > 100.F)
         m_mana = 100.F;
     m_health += 1.F;
+    updateProjectiles();
 }
 
 float Player::getHealth() const {
@@ -98,3 +100,21 @@ float Player::getMana() const {
 float Player::getFlightTime() const {
     return m_flightTime;
 };
+
+Rte::Vec2<float> Player::getDestroyedProjectilePos() {
+    if (m_destroyedProjectiles.empty())
+        return {};
+    Rte::Vec2<float> pos = m_destroyedProjectiles.at(0);
+    m_destroyedProjectiles.erase(m_destroyedProjectiles.begin());
+    return pos;
+}
+
+void Player::updateProjectiles() {
+    for (int i = 0; i < m_projectiles.size(); i++) {
+        if (m_physicsModule->colliding(m_ecs->getComponent<Rte::Physics::Components::Physics>(m_projectiles[i]).shapeBody)) {
+            m_destroyedProjectiles.push_back(m_ecs->getComponent<Rte::BasicComponents::Transform>(m_projectiles[i]).position);
+            m_ecs->destroyEntity(m_projectiles[i]);
+            m_projectiles.erase(m_projectiles.begin() + i);
+        }
+    }
+}

@@ -26,14 +26,19 @@ class Player {
         [[nodiscard]] float getHealth() const;
         [[nodiscard]] float getMana() const;
         [[nodiscard]] float getFlightTime() const;
+        [[nodiscard]] Rte::Vec2<float> getDestroyedProjectilePos();
 
     private:
+        void updateProjectiles();
+        
         Rte::Entity m_player;
         std::shared_ptr<Rte::Ecs> m_ecs;
         std::shared_ptr<Rte::Graphic::GraphicModule> m_graphicModule;
         std::shared_ptr<Rte::Physics::PhysicsModule> m_physicsModule;
 
         std::vector<Rte::Entity> m_projectiles;
+
+        std::vector<Rte::Vec2<float>> m_destroyedProjectiles;
 
         float m_health = 100.F;
         float m_mana = 100.F;
