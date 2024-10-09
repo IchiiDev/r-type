@@ -289,21 +289,21 @@ void ClientApp::gameplayLoop() {
         .rotation = 0
     });
 
-    // Health Container
+    // ManaBar Container
 
-    const std::shared_ptr<Rte::Graphic::Texture> healthContainerTexture = m_graphicModule->createTexture();
-    healthContainerTexture->loadFromFile("../assets/health-container.png");
+    const std::shared_ptr<Rte::Graphic::Texture> barContainerTexture = m_graphicModule->createTexture();
+    barContainerTexture->loadFromFile("../assets/health-container.png");
 
-    const Rte::Entity healthContainerEntity = m_ecs->createEntity();
+    const Rte::Entity manaContainerEntity = m_ecs->createEntity();
     
-    Rte::Vec2<float> healthContainerPosition = {
+    Rte::Vec2<float> manaContainerPosition = {
         (std::round(-240.F / 2.F)) * 8 + 72, 
         (std::round(-135.F / 2.F)) * 8 + 36
     };
 
-    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(healthContainerEntity, Rte::Graphic::Components::Sprite(healthContainerTexture));
-    m_ecs->addComponent<Rte::BasicComponents::Transform>(healthContainerEntity, Rte::BasicComponents::Transform{
-        .position = healthContainerPosition,
+    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(manaContainerEntity, Rte::Graphic::Components::Sprite(barContainerTexture));
+    m_ecs->addComponent<Rte::BasicComponents::Transform>(manaContainerEntity, Rte::BasicComponents::Transform{
+        .position = manaContainerPosition,
         .scale = {8, 8},
         .rotation = 0
     });
@@ -317,6 +317,38 @@ void ClientApp::gameplayLoop() {
 
     m_ecs->addComponent<Rte::Graphic::Components::Sprite>(manaBarEntity, Rte::Graphic::Components::Sprite(manaBarTexture));
     m_ecs->addComponent<Rte::BasicComponents::Transform>(manaBarEntity, Rte::BasicComponents::Transform{
+        .position = manaContainerPosition,
+        .scale = {8, 8},
+        .rotation = 0
+    });
+
+    // ManaBar Container
+
+    const std::shared_ptr<Rte::Graphic::Texture> healthContainerTexture = m_graphicModule->createTexture();
+
+    const Rte::Entity healthContainerEntity = m_ecs->createEntity();
+    
+    Rte::Vec2<float> healthContainerPosition = {
+        (std::round(-240.F / 2.F)) * 8 + 72, 
+        (std::round(-135.F / 2.F)) * 8 + 80
+    };
+
+    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(healthContainerEntity, Rte::Graphic::Components::Sprite(barContainerTexture));
+    m_ecs->addComponent<Rte::BasicComponents::Transform>(healthContainerEntity, Rte::BasicComponents::Transform{
+        .position = healthContainerPosition,
+        .scale = {8, 8},
+        .rotation = 0
+    });
+
+    // Health bar
+
+    const std::shared_ptr<Rte::Graphic::Texture> healthBarTexture = m_graphicModule->createTexture();
+    healthBarTexture->loadFromFile("../assets/health-bar.png");
+    const Rte::u16 healthBarWidth = healthBarTexture->getSize().x;
+    const Rte::Entity healthBarEntity = m_ecs->createEntity();
+
+    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(healthBarEntity, Rte::Graphic::Components::Sprite(healthBarTexture));
+    m_ecs->addComponent<Rte::BasicComponents::Transform>(healthBarEntity, Rte::BasicComponents::Transform{
         .position = healthContainerPosition,
         .scale = {8, 8},
         .rotation = 0
@@ -358,10 +390,10 @@ void ClientApp::gameplayLoop() {
             k = Rte::Physics::MaterialType::STATIC_WOOD;
         else if (m_graphicModule->isKeyPressed(Rte::Graphic::Key::A))
             k = Rte::Physics::MaterialType::ACID;
-        if (m_graphicModule->isKeyPressed(Rte::Graphic::Key::Left)) {
+        if (m_graphicModule->isKeyPressed(Rte::Graphic::Key::Left) || m_graphicModule->isKeyPressed(Rte::Graphic::Key::Q) ) {
             player.move({-10, 0});
         }
-        if (m_graphicModule->isKeyPressed(Rte::Graphic::Key::Right)) {
+        if (m_graphicModule->isKeyPressed(Rte::Graphic::Key::Right) || m_graphicModule->isKeyPressed(Rte::Graphic::Key::D)) {
             player.move({10, 0});
         }
         if (m_graphicModule->isKeyPressed(Rte::Graphic::Key::Space)) {
@@ -376,12 +408,16 @@ void ClientApp::gameplayLoop() {
 
         // Update the mana bar
         m_ecs->getComponent<Rte::BasicComponents::Transform>(manaBarEntity).scale.x = player.getMana() / 100.F * 8;
-
-        //MAGIC MATHS
         m_ecs->getComponent<Rte::BasicComponents::Transform>(manaBarEntity).position.x = -((manaBarWidth / 2.F) - (((player.getMana() * manaBarWidth) / 100.F) / 2.F)) * 6;
-        m_ecs->getComponent<Rte::BasicComponents::Transform>(manaBarEntity).position.x += healthContainerPosition.x;
-        m_ecs->getComponent<Rte::BasicComponents::Transform>(manaBarEntity).position.y = healthContainerPosition.y;
+        m_ecs->getComponent<Rte::BasicComponents::Transform>(manaBarEntity).position.x += manaContainerPosition.x;
+        m_ecs->getComponent<Rte::BasicComponents::Transform>(manaBarEntity).position.y = manaContainerPosition.y;
         
+        // Update the health bar
+        m_ecs->getComponent<Rte::BasicComponents::Transform>(healthBarEntity).scale.x = player.getHealth() / 100.F * 8;
+        m_ecs->getComponent<Rte::BasicComponents::Transform>(healthBarEntity).position.x = -((healthBarWidth / 2.F) - (((player.getHealth() * healthBarWidth) / 100.F) / 2.F)) * 6;
+        m_ecs->getComponent<Rte::BasicComponents::Transform>(healthBarEntity).position.x += healthContainerPosition.x;
+        m_ecs->getComponent<Rte::BasicComponents::Transform>(healthBarEntity).position.y = healthContainerPosition.y;
+
         if (m_graphicModule->isMouseButtonPressed(Rte::Graphic::MouseButton::Left)) {
             const Rte::Vec2<Rte::u16> position = m_graphicModule->getMousePosition();
             m_physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8, position.y / 8},     {k, randomColor(Rte::Physics::invMatColors.at(k), 60), 0});
@@ -423,14 +459,11 @@ void ClientApp::gameplayLoop() {
                 if (pos.x == 0 && pos.y == 0)
                     break;
                 breakEntities(m_graphicModule, m_physicsModule, breakableEntities, {static_cast<unsigned short>(pos.x + windowSize.x / 2), static_cast<unsigned short>(pos.y + windowSize.y / 2)}, m_ecs);
-                std::cout << pos.x << " " << pos.y << "\n";
-                std::cout << player.getPos().x << " " << player.getPos().y << "\n";
                 if (getDistanceFrome2Points(pos, player.getPos()) < 200) {
                     player.takeDamage();
                 }
             }
         }
-        std::cout << player.getHealth() << "\n";
         m_graphicModule->update();
     }
 }
