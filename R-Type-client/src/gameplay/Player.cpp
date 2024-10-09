@@ -78,7 +78,7 @@ void Player::shoot(Rte::Vec2<float> mousePos) {
         m_ecs->getComponent<Rte::BasicComponents::Transform>(m_projectiles.at(m_projectiles.size() - 1)).rotation,
         false,
         false,
-        Rte::Physics::ShapeType::CAPSULE
+        Rte::Physics::ShapeType::CIRCLE
     )});
     float force = 0.4;
     m_physicsModule->applyForce(m_ecs->getComponent<Rte::Physics::Components::Physics>(m_projectiles.at(m_projectiles.size() - 1)).shapeBody, {

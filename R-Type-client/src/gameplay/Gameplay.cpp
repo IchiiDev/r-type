@@ -482,7 +482,7 @@ void ClientApp::gameplayLoop() {
         m_physicsModule->update();
         player.update();
         enemies.at(0).update();
-        if (rand() % 60 == 0) {
+        if (rand() % 10 == 0) {
             enemies.at(0).shoot(player.getPos());
         }
         while (true) {

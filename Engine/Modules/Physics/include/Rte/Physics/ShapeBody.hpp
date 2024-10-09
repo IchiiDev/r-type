@@ -3,6 +3,7 @@
 namespace Rte::Physics {
 
     enum class ShapeType {
+        CIRCLE,
         CAPSULE,
         RECTANGLE
     };
