@@ -7,13 +7,9 @@
 
 #pragma once
 
-#include "BetterNetworkLibrary.hpp"
-#include "NetworkMessage.hpp"
 #include <cstddef>
 #include <deque>
-#include <memory>
 #include <mutex>
-#include <ostream>
 #include <utility>
 
 namespace bnl {

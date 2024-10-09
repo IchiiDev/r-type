@@ -7,10 +7,9 @@
 
 #pragma once
 
-#include "NetworkCommon.hpp"
 #include "NetworkQueue.hpp"
-#include "NetworkMessage.hpp"
 #include "NetworkConnection.hpp"
+#include "NetworkMessage.hpp"
 #include "asio/io_context.hpp"
 #include "asio/ip/tcp.hpp"
 #include <cstddef>

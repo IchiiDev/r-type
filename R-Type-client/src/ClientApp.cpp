@@ -9,7 +9,7 @@
 #include "Rte/Graphic/GraphicModule.hpp"
 #include "Rte/Graphic/Texture.hpp"
 #include "Rte/ModuleManager.hpp"
-#include "Rte/Network/NetworkModule.hpp"
+#include "Rte/Network/NetworkModuleClient.hpp"
 
 
 #include <memory>
@@ -20,18 +20,4 @@ ClientApp::ClientApp() {
 }
 
 void ClientApp::run() {
-    // Load the graphic module
-    const std::shared_ptr<Rte::Network::NetworkModule> networkModule = Rte::interfaceCast<Rte::Network::NetworkModule>(moduleManager.loadModule("RteNetwork"));
-    // networkModule->init(m_ecs);
-    // networkModule->setUpConnection(Rte::Network::connectionType::Client, Rte::Network::connectionProtocol::TCP);
-    networkModule->connect_as_client("51.38.81.49", 80);
-
-
-    // Main loop
-    /*
-    while (true) {
-        // networkModule->update();
-        // networkModule->send_data(Rte::Network::InputPackage{.player_id = 69, .jump = true, .right = false, .left = false, .shot = true, .shoot_angle = 90});
-    }
-    */
 }
