@@ -57,7 +57,7 @@ void Player::shoot(Rte::Vec2<float> mousePos) {
     const std::shared_ptr<Rte::Graphic::Texture> projectileTexture = m_graphicModule->createTexture();
     projectileTexture->loadFromFile("../assets/projectile.png");
     m_projectiles.push_back(m_ecs->createEntity());
-    
+
     m_ecs->addComponent<Rte::Graphic::Components::Sprite>(m_projectiles.at(m_projectiles.size() - 1), Rte::Graphic::Components::Sprite(projectileTexture));
     m_ecs->addComponent<Rte::BasicComponents::Transform>(m_projectiles.at(m_projectiles.size() - 1), Rte::BasicComponents::Transform{
         .position = {static_cast<float>(cos(angle) * 100) + playerPos.x, static_cast<float>(sin(angle) * 100) + playerPos.y},

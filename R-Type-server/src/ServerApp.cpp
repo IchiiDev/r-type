@@ -1,5 +1,7 @@
 #include "ServerApp.hpp"
 
+#include "Rte/Audio/AudioModule.hpp"
+#include "Rte/Audio/SoundBuffer.hpp"
 #include "Rte/BasicComponents.hpp"
 #include "Rte/Common.hpp"
 #include "Rte/Ecs/Ecs.hpp"
@@ -25,6 +27,16 @@ void ServerApp::run() {
     graphicModule->setWindowTitle("R-Type");
     graphicModule->setWindowSize({1280, 720});
     graphicModule->setDaltonismMode(Rte::Graphic::DaltonismMode::NONE);
+
+
+    // Load audio module
+    const std::shared_ptr<Rte::Audio::AudioModule> audioModule = Rte::interfaceCast<Rte::Audio::AudioModule>(moduleManager.loadModule("RteAudio"));
+    audioModule->init(m_ecs);
+    audioModule->update();
+
+    const std::shared_ptr<Rte::Audio::SoundBuffer> soundBuffer = audioModule->createSoundBuffer("../assets/fail.mp3");
+    const std::shared_ptr<Rte::Audio::Sound> sound = audioModule->createSound(soundBuffer);
+    sound->play();
 
 
     // Creation of a 1*1 red texture
