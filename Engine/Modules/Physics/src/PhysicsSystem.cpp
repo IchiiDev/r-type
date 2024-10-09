@@ -31,7 +31,7 @@ void PhysicsSystem::init(const std::shared_ptr<Rte::Ecs>& ecs, b2WorldId worldId
 }
 
 void PhysicsSystem::update() {  // NOLINT (readability-function-cognitive-complexity)
-    assert(m_ecs != nullptr && "Cannot update render system: Not initialized.");
+    assert(m_ecs != nullptr && "Cannot update physics system: Not initialized.");
     b2World_Step(m_worldId, m_timeStep, m_subStepCount);
 
     std::shared_ptr<SandBoxImpl> sandBox;

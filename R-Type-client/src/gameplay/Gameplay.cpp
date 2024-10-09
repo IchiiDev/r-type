@@ -332,7 +332,6 @@ void ClientApp::gameplayLoop() {
         const Rte::Graphic::MouseButton button = event.getParameter<Rte::Graphic::MouseButton>(Rte::Graphic::Events::Params::MOUSE_BUTTON_PRESSED);
         const Rte::Vec2<Rte::u16> position = event.getParameter<Rte::Vec2<Rte::u16>>(Rte::Graphic::Events::Params::MOUSE_BUTTON_PRESSED_POSITION);
         std::cout << "Mouse button pressed: " << static_cast<int>(button) << " at position (" << position.x << ", " << position.y << ")\n";
-        breakEntities(m_graphicModule, m_physicsModule, breakableEntities, position, m_ecs);
         player.shoot({static_cast<float>(position.x) - static_cast<float>(windowSize.x) / 2.F, static_cast<float>(position.y) - static_cast<float>(windowSize.y) / 2.F});
     }));
 
@@ -395,8 +394,17 @@ void ClientApp::gameplayLoop() {
         m_ecs->addComponent<Rte::Graphic::Components::Sprite>(sandBoxEntity, Rte::Graphic::Components::Sprite(sandBoxTexture));
         
         // Update the entities
-        player.update();
         m_physicsModule->update();
+        player.update();
+
+        while (1) {
+            Rte::Vec2<float> pos = player.getDestroyedProjectilePos();
+            if (pos.x == 0 && pos.y == 0)
+                break;
+            breakEntities(m_graphicModule, m_physicsModule, breakableEntities, {static_cast<unsigned short>(pos.x + windowSize.x / 2), static_cast<unsigned short>(pos.y + windowSize.y / 2)}, m_ecs);
+
+        }
+
         m_graphicModule->update();
     }
 }
