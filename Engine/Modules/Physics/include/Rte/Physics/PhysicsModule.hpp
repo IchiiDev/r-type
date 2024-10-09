@@ -46,6 +46,7 @@ namespace Rte::Physics {
             [[nodiscard]] virtual const std::vector<Particle>& getSandBoxParticles(const std::shared_ptr<SandBox>& sandBox) const = 0;
 
             [[nodiscard]] virtual bool colliding(const std::shared_ptr<ShapeBody> &shapeBody) const = 0;
+            [[nodiscard]] virtual bool colliding(const std::shared_ptr<ShapeBody> &shapeBody1, const std::shared_ptr<ShapeBody> &shapeBody2) const = 0;
     };
 
 }   // namespace Rte::Physics

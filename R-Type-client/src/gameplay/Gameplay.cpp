@@ -1,5 +1,6 @@
 #include "ClientApp.hpp"
 
+#include "Enemy.hpp"
 #include "Player.hpp"
 #include "Rte/BasicComponents.hpp"
 #include "Rte/Common.hpp"
@@ -35,6 +36,10 @@ Rte::Physics::Color randomColor(Rte::Physics::Color color, int offset) {
     color.b = std::clamp(color.b, 0, 255);
 
     return color;
+}
+
+static float getDistanceFrome2Points(const Rte::Vec2<float>& p1, const Rte::Vec2<float>& p2) {
+    return sqrt(pow(p2.x - p1.x, 2) + pow(p2.y - p1.y, 2));
 }
 
 std::vector<int> convertToBinary(const Rte::u8* image, const Rte::Vec2<Rte::u16>& size) {
@@ -256,6 +261,14 @@ void ClientApp::gameplayLoop() {
 
     Player player(m_ecs, m_graphicModule, m_physicsModule);
 
+    // Creation of the enemies vector
+
+    std::vector<Enemy> enemies;
+
+    // Creation of a enemy entity
+
+    enemies.emplace_back(m_ecs, m_graphicModule, m_physicsModule);
+
     // Creation of a crosshair entity
 
     const std::shared_ptr<Rte::Graphic::Texture> crosshairTexture = m_graphicModule->createTexture();
@@ -337,7 +350,6 @@ void ClientApp::gameplayLoop() {
 
     // Main loop
     while (m_running) {
-        /*
         if (m_graphicModule->isKeyPressed(Rte::Graphic::Key::S))
             k = Rte::Physics::MaterialType::SAND;
         else if (m_graphicModule->isKeyPressed(Rte::Graphic::Key::W))
@@ -346,7 +358,6 @@ void ClientApp::gameplayLoop() {
             k = Rte::Physics::MaterialType::STATIC_WOOD;
         else if (m_graphicModule->isKeyPressed(Rte::Graphic::Key::A))
             k = Rte::Physics::MaterialType::ACID;
-        */
         if (m_graphicModule->isKeyPressed(Rte::Graphic::Key::Left)) {
             player.move({-10, 0});
         }
@@ -371,14 +382,14 @@ void ClientApp::gameplayLoop() {
         m_ecs->getComponent<Rte::BasicComponents::Transform>(manaBarEntity).position.x += healthContainerPosition.x;
         m_ecs->getComponent<Rte::BasicComponents::Transform>(manaBarEntity).position.y = healthContainerPosition.y;
         
-        //if (m_graphicModule->isMouseButtonPressed(Rte::Graphic::MouseButton::Left)) {
-        //    const Rte::Vec2<Rte::u16> position = m_graphicModule->getMousePosition();
-        //    m_physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8, position.y / 8},     {k, randomColor(Rte::Physics::invMatColors.at(k), 60), 0});
-        //    m_physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8 + 1, position.y / 8}, {k, randomColor(Rte::Physics::invMatColors.at(k), 60), 0});
-        //    m_physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8 - 1, position.y / 8}, {k, randomColor(Rte::Physics::invMatColors.at(k), 60), 0});
-        //    m_physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8, position.y / 8 + 1}, {k, randomColor(Rte::Physics::invMatColors.at(k), 60), 0});
-        //    m_physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8, position.y / 8 - 1}, {k, randomColor(Rte::Physics::invMatColors.at(k), 60), 0});
-        //}
+        if (m_graphicModule->isMouseButtonPressed(Rte::Graphic::MouseButton::Left)) {
+            const Rte::Vec2<Rte::u16> position = m_graphicModule->getMousePosition();
+            m_physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8, position.y / 8},     {k, randomColor(Rte::Physics::invMatColors.at(k), 60), 0});
+            m_physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8 + 1, position.y / 8}, {k, randomColor(Rte::Physics::invMatColors.at(k), 60), 0});
+            m_physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8 - 1, position.y / 8}, {k, randomColor(Rte::Physics::invMatColors.at(k), 60), 0});
+            m_physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8, position.y / 8 + 1}, {k, randomColor(Rte::Physics::invMatColors.at(k), 60), 0});
+            m_physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8, position.y / 8 - 1}, {k, randomColor(Rte::Physics::invMatColors.at(k), 60), 0});
+        }
 
         // Update the canvas (sandbox pixels)
         std::vector<Rte::Physics::Pixel> canvas = m_physicsModule->getSandBoxCanvas(m_ecs->getComponent<Rte::Physics::Components::Physics>(sandBoxEntity).sandBox);
@@ -396,15 +407,30 @@ void ClientApp::gameplayLoop() {
         // Update the entities
         m_physicsModule->update();
         player.update();
-
-        while (1) {
+        enemies.at(0).update();
+        if (rand() % 60 == 0) {
+            enemies.at(0).shoot(player.getPos());
+        }
+        while (true) {
             Rte::Vec2<float> pos = player.getDestroyedProjectilePos();
             if (pos.x == 0 && pos.y == 0)
                 break;
             breakEntities(m_graphicModule, m_physicsModule, breakableEntities, {static_cast<unsigned short>(pos.x + windowSize.x / 2), static_cast<unsigned short>(pos.y + windowSize.y / 2)}, m_ecs);
-
         }
-
+        for (auto & enemie : enemies) {
+            while (true) {
+                Rte::Vec2<float> pos = enemie.getDestroyedProjectilePos();
+                if (pos.x == 0 && pos.y == 0)
+                    break;
+                breakEntities(m_graphicModule, m_physicsModule, breakableEntities, {static_cast<unsigned short>(pos.x + windowSize.x / 2), static_cast<unsigned short>(pos.y + windowSize.y / 2)}, m_ecs);
+                std::cout << pos.x << " " << pos.y << "\n";
+                std::cout << player.getPos().x << " " << player.getPos().y << "\n";
+                if (getDistanceFrome2Points(pos, player.getPos()) < 200) {
+                    player.takeDamage();
+                }
+            }
+        }
+        std::cout << player.getHealth() << "\n";
         m_graphicModule->update();
     }
 }

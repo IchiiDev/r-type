@@ -159,3 +159,18 @@ bool PhysicsModuleImpl::colliding(const std::shared_ptr<ShapeBody> &shapeBody) c
     }
     return false;
 }
+
+bool PhysicsModuleImpl::colliding(const std::shared_ptr<ShapeBody> &shapeBody1, const std::shared_ptr<ShapeBody> &shapeBody2) const {
+    const std::shared_ptr<ShapeBodyImpl> &shapeBodyImpl1 = interfaceCast<ShapeBodyImpl>(shapeBody1);
+    const std::shared_ptr<ShapeBodyImpl> &shapeBodyImpl2 = interfaceCast<ShapeBodyImpl>(shapeBody2);
+
+    std::vector<b2ContactData> contactData(100);
+    b2Body_GetContactData(shapeBodyImpl1->getBodyId(), contactData.data(), 100);
+
+    for (const b2ContactData &contact : contactData) {
+        if (shapeBodyImpl2->getShapeId().index1 == contact.shapeIdA.index1 || shapeBodyImpl2->getShapeId().index1 == contact.shapeIdB.index1) {
+            return true;
+        }
+    }
+    return false;
+}

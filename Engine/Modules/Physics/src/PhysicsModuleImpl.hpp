@@ -46,6 +46,7 @@ namespace Rte::Physics {
             [[nodiscard]] const std::vector<Particle>& getSandBoxParticles(const std::shared_ptr<SandBox>& sandBox) const override;
 
             [[nodiscard]] bool colliding(const std::shared_ptr<ShapeBody> &shapeBody) const override;
+            [[nodiscard]] bool colliding(const std::shared_ptr<ShapeBody> &shapeBody1, const std::shared_ptr<ShapeBody> &shapeBody2) const override;
 
         private:
             std::shared_ptr<Ecs> m_ecs;
