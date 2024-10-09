@@ -45,4 +45,12 @@ class Player {
         float m_health = 100.F;
         float m_mana = 100.F;
         float m_flightTime = 0.F;
+
+        float m_maxHealth = 100.F;
+        float m_maxMana = 100.F;
+        float m_maxFlightTime = 100.F;
+
+        float m_healthRegen = 0.05F;
+        float m_manaRegen = 0.5F;
+
 };

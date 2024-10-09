@@ -9,7 +9,7 @@ namespace Rte::Physics {
 
     class ShapeBodyImpl : public ShapeBody {
         public:
-            ShapeBodyImpl(const Rte::Vec2<u16>& size, float density, float friction, const b2WorldId& worldId, const Vec2<float>& pos, float rotation, bool fixedRotation);
+            ShapeBodyImpl(const Rte::Vec2<u16>& size, float density, float friction, const b2WorldId& worldId, const Vec2<float>& pos, float rotation, bool fixedRotation, bool isStatic, ShapeType shapeType);
             ~ShapeBodyImpl() override;
 
             ShapeBodyImpl(const ShapeBodyImpl&) = delete;

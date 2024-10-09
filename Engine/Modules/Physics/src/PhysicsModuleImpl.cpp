@@ -118,8 +118,8 @@ std::shared_ptr<RigidBody> PhysicsModuleImpl::createRigidBody(const std::shared_
     return std::make_shared<RigidBodyImpl>(interfaceCast<RigidBodyImpl>(rigidBody), pixels, size, m_worldId);
 }
 
-std::shared_ptr<ShapeBody> PhysicsModuleImpl::createShapeBody(const Rte::Vec2<Rte::u16>& size, float density, float friction, const Rte::Vec2<float>& pos, float rotation, bool fixedRotation) {
-    return std::make_shared<ShapeBodyImpl>(size, density, friction, m_worldId, pos, rotation, fixedRotation);
+std::shared_ptr<ShapeBody> PhysicsModuleImpl::createShapeBody(const Rte::Vec2<Rte::u16>& size, float density, float friction, const Rte::Vec2<float>& pos, float rotation, bool fixedRotation, bool isStatic, ShapeType shapeType) {
+    return std::make_shared<ShapeBodyImpl>(size, density, friction, m_worldId, pos, rotation, fixedRotation, isStatic, shapeType);
 }
 
 void PhysicsModuleImpl::applyForce(const std::shared_ptr<ShapeBody>& ShapeBody, const Vec2<float>& force) {

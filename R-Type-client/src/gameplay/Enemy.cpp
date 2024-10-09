@@ -36,7 +36,9 @@ Enemy::Enemy(const std::shared_ptr<Rte::Ecs>& ecs, const std::shared_ptr<Rte::Gr
         50,
         enemyPosition,
         0,
-        true
+        true,
+        false,
+        Rte::Physics::ShapeType::CAPSULE
     )});
 }
 
@@ -72,7 +74,9 @@ void Enemy::shoot(Rte::Vec2<float> playerPos) {
         {m_ecs->getComponent<Rte::BasicComponents::Transform>(m_projectiles.at(m_projectiles.size() - 1)).position.x + m_graphicModule->getWindowSize().x / 2,
             m_ecs->getComponent<Rte::BasicComponents::Transform>(m_projectiles.at(m_projectiles.size() - 1)).position.y + m_graphicModule->getWindowSize().y / 2},
         m_ecs->getComponent<Rte::BasicComponents::Transform>(m_projectiles.at(m_projectiles.size() - 1)).rotation,
-        false
+        false,
+        false,
+        Rte::Physics::ShapeType::CAPSULE
     )});
 
     m_physicsModule->applyForce(m_ecs->getComponent<Rte::Physics::Components::Physics>(m_projectiles.at(m_projectiles.size() - 1)).shapeBody, {
@@ -85,9 +89,11 @@ void Enemy::update() {
     m_mana += .5F;
     if (m_mana > 100.F)
         m_mana = 100.F;
-    m_health += 1.F;
+    m_health += .05F;
 
     updateProjectiles();
+    srand(time(nullptr));
+    this->fly({static_cast<float>(rand() % 10 - 5), static_cast<float>(rand() % 10 - 5)});
 }
 
 float Enemy::getHealth() const {

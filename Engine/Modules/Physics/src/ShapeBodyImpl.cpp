@@ -1,6 +1,7 @@
 #include "Rte/Common.hpp"
 
 #include "ShapeBodyImpl.hpp"
+#include "Rte/Physics/ShapeBody.hpp"
 #include "Rte/Physics/Tool.hpp"
 #include "box2d/box2d.h"
 #include "box2d/collision.h"
@@ -14,10 +15,14 @@
 using namespace Rte::Physics;
 
 //Where image is an array of pixels in rgba format
-ShapeBodyImpl::ShapeBodyImpl(const Rte::Vec2<u16>& size, float density, float friction, const b2WorldId& worldId, const Vec2<float>& pos, float rotation, bool fixedRotation) : m_worldId(worldId), m_size(size) {
+ShapeBodyImpl::ShapeBodyImpl(const Rte::Vec2<u16>& size, float density, float friction, const b2WorldId& worldId, const Vec2<float>& pos, float rotation, bool fixedRotation, bool isStatic, ShapeType shapeType) : m_worldId(worldId), m_size(size) {
     // Create a kinematic body using box2d
     b2BodyDef bodyDef = b2DefaultBodyDef();
-    bodyDef.type = b2BodyType::b2_dynamicBody;
+    if (isStatic) {
+        bodyDef.type = b2BodyType::b2_staticBody;
+    } else {
+        bodyDef.type = b2BodyType::b2_dynamicBody;
+    }
     bodyDef.position = {(pos.x - 1920 / 2.F) / 8.F / PPM, -(pos.y - 1080 / 2.F) / 8.F / PPM};
     bodyDef.rotation = b2MakeRot(rotation * std::numbers::pi_v<float> / 180.F);
     bodyDef.fixedRotation = fixedRotation; // Fix the rotation of the body
@@ -28,13 +33,17 @@ ShapeBodyImpl::ShapeBodyImpl(const Rte::Vec2<u16>& size, float density, float fr
     shapeDef.density = density;
     shapeDef.friction = friction;
     // Create the shape
-    const b2Capsule capsule {
-        .center1 = {0, -(static_cast<float>(size.y) / 4.F) / 8.F / PPM},
-        .center2 = {0, (static_cast<float>(size.y) / 4.F) / 8.F / PPM},
-        .radius = (static_cast<float>(size.x) / 2.F) / 8.F / PPM
-    };
-
-    b2CreateCapsuleShape(m_bodyId, &shapeDef, &capsule);
+    if (shapeType == ShapeType::CAPSULE) {
+        const b2Capsule capsule {
+            .center1 = {0, -(static_cast<float>(size.y) / 4.F) / 8.F / PPM},
+            .center2 = {0, (static_cast<float>(size.y) / 4.F) / 8.F / PPM},
+            .radius = (static_cast<float>(size.x) / 2.F) / 8.F / PPM
+        };
+        b2CreateCapsuleShape(m_bodyId, &shapeDef, &capsule);
+    } else if (shapeType == ShapeType::RECTANGLE) {
+        const b2Polygon rectangle = b2MakeBox(static_cast<float>(size.x) / 8.F / PPM, static_cast<float>(size.y) / 8.F / PPM);
+        b2CreatePolygonShape(m_bodyId, &shapeDef, &rectangle);
+    }
     b2ShapeId shapeArray;
     b2Body_GetShapes(m_bodyId, &shapeArray, 1);
     m_shapeId = shapeArray;

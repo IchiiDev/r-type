@@ -2,6 +2,11 @@
 
 namespace Rte::Physics {
 
+    enum class ShapeType {
+        CAPSULE,
+        RECTANGLE
+    };
+    
     class ShapeBody {
         public:
             ShapeBody() = default;

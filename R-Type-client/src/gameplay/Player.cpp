@@ -2,12 +2,14 @@
 #include "Rte/Common.hpp"
 #include "Rte/Graphic/Texture.hpp"
 #include <cmath>
+#include <cstdlib>
 #include <memory>
 #include "Rte/Graphic/GraphicModule.hpp"
 #include "Rte/Graphic/Components.hpp"
 #include "Rte/Graphic/Texture.hpp"
 #include "Rte/Physics/PhysicsModule.hpp"
 #include "Rte/Physics/Components.hpp"
+#include "Rte/Physics/ShapeBody.hpp"
 
 static float getRotFromPoints(const Rte::Vec2<float> p1, const Rte::Vec2<float> p2) {
     return atan2(p2.y - p1.y, p2.x - p1.x);
@@ -36,7 +38,9 @@ Player::Player(const std::shared_ptr<Rte::Ecs>& ecs, const std::shared_ptr<Rte::
         50,
         playerPosition,
         0,
-        true
+        true,
+        false,
+        Rte::Physics::ShapeType::CAPSULE
     )});
 }
 
@@ -72,7 +76,9 @@ void Player::shoot(Rte::Vec2<float> mousePos) {
         {m_ecs->getComponent<Rte::BasicComponents::Transform>(m_projectiles.at(m_projectiles.size() - 1)).position.x + m_graphicModule->getWindowSize().x / 2,
             m_ecs->getComponent<Rte::BasicComponents::Transform>(m_projectiles.at(m_projectiles.size() - 1)).position.y + m_graphicModule->getWindowSize().y / 2},
         m_ecs->getComponent<Rte::BasicComponents::Transform>(m_projectiles.at(m_projectiles.size() - 1)).rotation,
-        false
+        false,
+        false,
+        Rte::Physics::ShapeType::CAPSULE
     )});
     float force = 0.4;
     m_physicsModule->applyForce(m_ecs->getComponent<Rte::Physics::Components::Physics>(m_projectiles.at(m_projectiles.size() - 1)).shapeBody, {
@@ -89,12 +95,12 @@ void Player::takeDamage() {
 
 
 void Player::update() {
-    m_mana += .5F;
-    if (m_mana > 100.F)
-        m_mana = 100.F;
-    m_health += .05F;
-    if (m_health > 100.F)
-        m_health = 100.F;
+    m_mana += m_manaRegen;
+    if (m_mana > m_maxMana)
+        m_mana = m_maxMana;
+    m_health += m_healthRegen;
+    if (m_health > m_maxHealth)
+        m_health = m_maxHealth;
     updateProjectiles();
 }
 

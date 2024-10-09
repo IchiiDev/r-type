@@ -354,6 +354,42 @@ void ClientApp::gameplayLoop() {
         .rotation = 0
     });
 
+    // Invisible walls
+
+    Rte::Entity leftwall = m_ecs->createEntity();
+    m_ecs->addComponent<Rte::BasicComponents::Transform>(leftwall, Rte::BasicComponents::Transform{
+        .position = {-100, 0},
+        .scale = {8, 8},
+        .rotation = 0
+    });
+    m_ecs->addComponent<Rte::Physics::Components::Physics>(leftwall, Rte::Physics::Components::Physics{.shapeBody = m_physicsModule->createShapeBody(
+        {100, 10000},
+        1,
+        0.3,
+        m_ecs->getComponent<Rte::BasicComponents::Transform>(leftwall).position,
+        0,
+        true,
+        true,
+        Rte::Physics::ShapeType::RECTANGLE
+    )});
+
+    Rte::Entity rightWall = m_ecs->createEntity();
+    m_ecs->addComponent<Rte::BasicComponents::Transform>(rightWall, Rte::BasicComponents::Transform{
+        .position = {2020, 0},
+        .scale = {8, 8},
+        .rotation = 0
+    });
+    m_ecs->addComponent<Rte::Physics::Components::Physics>(rightWall, Rte::Physics::Components::Physics{.shapeBody = m_physicsModule->createShapeBody(
+        {100, 10000},
+        1,
+        0.3,
+        m_ecs->getComponent<Rte::BasicComponents::Transform>(rightWall).position,
+        0,
+        true,
+        true,
+        Rte::Physics::ShapeType::RECTANGLE
+    )});
+
     // Callback to move the sprite and make it at the center of the window
     m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Graphic::Events::RESIZED,
         [&](Rte::Event& event) {
@@ -418,6 +454,7 @@ void ClientApp::gameplayLoop() {
         m_ecs->getComponent<Rte::BasicComponents::Transform>(healthBarEntity).position.x += healthContainerPosition.x;
         m_ecs->getComponent<Rte::BasicComponents::Transform>(healthBarEntity).position.y = healthContainerPosition.y;
 
+        /*
         if (m_graphicModule->isMouseButtonPressed(Rte::Graphic::MouseButton::Left)) {
             const Rte::Vec2<Rte::u16> position = m_graphicModule->getMousePosition();
             m_physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8, position.y / 8},     {k, randomColor(Rte::Physics::invMatColors.at(k), 60), 0});
@@ -426,6 +463,7 @@ void ClientApp::gameplayLoop() {
             m_physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8, position.y / 8 + 1}, {k, randomColor(Rte::Physics::invMatColors.at(k), 60), 0});
             m_physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8, position.y / 8 - 1}, {k, randomColor(Rte::Physics::invMatColors.at(k), 60), 0});
         }
+        */
 
         // Update the canvas (sandbox pixels)
         std::vector<Rte::Physics::Pixel> canvas = m_physicsModule->getSandBoxCanvas(m_ecs->getComponent<Rte::Physics::Components::Physics>(sandBoxEntity).sandBox);
@@ -459,7 +497,7 @@ void ClientApp::gameplayLoop() {
                 if (pos.x == 0 && pos.y == 0)
                     break;
                 breakEntities(m_graphicModule, m_physicsModule, breakableEntities, {static_cast<unsigned short>(pos.x + windowSize.x / 2), static_cast<unsigned short>(pos.y + windowSize.y / 2)}, m_ecs);
-                if (getDistanceFrome2Points(pos, player.getPos()) < 200) {
+                if (getDistanceFrome2Points(pos, player.getPos()) < 100) {
                     player.takeDamage();
                 }
             }

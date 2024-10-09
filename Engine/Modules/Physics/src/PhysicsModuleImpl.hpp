@@ -34,7 +34,7 @@ namespace Rte::Physics {
 
             [[nodiscard]] std::shared_ptr<RigidBody> createRigidBody(const u8* pixels, const Vec2<u16>& size, const Vec2<float>& pos, float rotation) override;
             [[nodiscard]] std::shared_ptr<RigidBody> createRigidBody(const std::shared_ptr<RigidBody>& rigidBody, const u8* pixels, const Rte::Vec2<u16>& size) override;
-            [[nodiscard]] std::shared_ptr<ShapeBody> createShapeBody(const Vec2<u16>& size, float density, float friction, const Vec2<float>& pos, float rotation, bool fixedRotation) override;
+            [[nodiscard]] std::shared_ptr<ShapeBody> createShapeBody(const Vec2<u16>& size, float density, float friction, const Vec2<float>& pos, float rotation, bool fixedRotation, bool isStatic, ShapeType shapeType) override;
             [[nodiscard]] std::shared_ptr<SandBox> createSandBox(const Vec2<u16>& size) override;
 
             [[nodiscard]] std::vector<u8> fractureRigidBody(const std::shared_ptr<RigidBody>& rigidBody, Vec2<u16> pixelPos, bool &hasChanged) override;
