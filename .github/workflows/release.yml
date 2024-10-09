@@ -26,7 +26,7 @@ jobs:
               run: |
                 $files = Get-ChildItem -Path build\*.dll, build\R-Type-server.exe, build\R-Type-client.exe -Recurse
                 $assets = Get-ChildItem -Path assets -Recurse
-                tar -czf rtype-win.tar.gz -C build $($files | % { $_.FullName }) -C build $($assets | % { $_.FullName })
+                tar -czf rtype-win.tar.gz -C build $($files | % { $_.FullName }) -C assets $($assets | % { $_.FullName })
 
             - name: Upload binaries
               uses: actions/upload-artifact@v4
