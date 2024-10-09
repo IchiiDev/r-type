@@ -25,7 +25,8 @@ jobs:
             - name: Package bins in tar.gz
               run: |
                 $files = Get-ChildItem -Path build\*.dll, build\R-Type-server.exe, build\R-Type-client.exe -Recurse
-                tar -czf rtype-win.tar.gz -C build $($files | % { $_.FullName })
+                $assets = Get-ChildItem -Path build\assets -Recurse
+                tar -czf rtype-win.tar.gz -C build $($files | % { $_.FullName }) -C build $($assets | % { $_.FullName })
 
             - name: Upload binaries
               uses: actions/upload-artifact@v4
@@ -61,7 +62,8 @@ jobs:
             - name: Package bins in tar.gz
               run: |
                 FILES=$(find build -type f \( -name "*.so" -o -name "R-Type-server" -o -name "R-Type-client" \))
-                tar -czf rtype-linux.tar.gz $FILES
+                ASSETS=$(find build/assets -type f)
+                tar -czf rtype-linux.tar.gz $FILES $ASSETS
 
             - name: Upload binaries
               uses: actions/upload-artifact@v4
