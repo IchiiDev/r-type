@@ -3,6 +3,7 @@ project(Build-All CXX)
 
 # Include directories of modules
 include_directories(${CMAKE_SOURCE_DIR}/Engine/Modules/Graphic/include)
+include_directories(${CMAKE_SOURCE_DIR}/Engine/Modules/Network/include)
 include_directories(${CMAKE_SOURCE_DIR}/Engine/Modules/Physics/include)
 include_directories(${CMAKE_SOURCE_DIR}/Engine/Modules/Audio/include)
 

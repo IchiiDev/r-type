@@ -10,4 +10,8 @@ namespace Rte::BasicComponents {
         float rotation{0};
     };
 
+    struct UidComponents {
+        uid_t uid;
+    };
+
 }   // namespace Rte::BasicComponents

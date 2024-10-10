@@ -8,6 +8,10 @@
 -I./Engine/Modules/Graphic/include
 -I./Engine/Modules/Graphic/src
 
+# Network module
+-I./Engine/Modules/Network/include
+-I./Engine/Modules/Network/src
+
 # Physics module
 -I./Engine/Modules/Physics/include
 -I./Engine/Modules/Physics/src
@@ -22,5 +26,6 @@
 
 # External dependencies
 -I./external/SFML/include
+-I./external/asio/asio/include
 -I./external/box2d/include
 -I./external/poly2tri
