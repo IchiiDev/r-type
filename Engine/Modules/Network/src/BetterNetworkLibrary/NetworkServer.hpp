@@ -28,9 +28,7 @@ namespace bnl {
         template<typename T>
         class IServer {
             public:
-                IServer(const unsigned int port) : m_acceptor(m_asioContext, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), port)) {
-                    
-                }
+                IServer(const unsigned int port) : m_acceptor(m_asioContext, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), port)) {}
 
                 virtual ~IServer() {
                     stop();

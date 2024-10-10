@@ -8,8 +8,8 @@
 #pragma once
 
 #include "Rte/Network/NetworkModuleClient.hpp"
-#include "BetterNetworkLibrary/BetterNetworkLibrary.hpp"
 #include "NetworkModuleImpl.hpp"
+#include "Rte/Network/NetworkModule.hpp"
 
 #include <memory>
 #include <sys/types.h>
@@ -25,12 +25,16 @@ namespace Rte::Network {
             void update() override;
         
         public:
-            void connect(const std::string& host, const unsigned int& port);
+            void connect(const std::string& host, const unsigned int& port) override;
+            void updateInputs(PackedInput input) override;
+
+        private:
+            PackedInput m_input;
+
+        private:
+            std::unique_ptr<CustomClient> m_client = nullptr;
 
         private:
             std::shared_ptr<Ecs> m_ecs;
-        
-        private:
-            std::unique_ptr<CustomClient> m_client = nullptr;
     };
 } // namespace Rte::Network

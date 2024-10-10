@@ -9,6 +9,7 @@
 #include "Rte/Graphic/GraphicModule.hpp"
 #include "Rte/Graphic/Texture.hpp"
 #include "Rte/ModuleManager.hpp"
+#include "Rte/Network/NetworkModule.hpp"
 #include "Rte/Network/NetworkModuleClient.hpp"
 
 
@@ -20,4 +21,11 @@ ClientApp::ClientApp() {
 }
 
 void ClientApp::run() {
+    const std::shared_ptr<Rte::Network::NetworkModule> networkModule = Rte::interfaceCast<Rte::Network::NetworkModule>(moduleManager.loadModule("RteNetwork"));
+    const std::shared_ptr<Rte::Network::NetworkModuleClient> networkModuleClient = networkModule->getClient();
+
+    while(true) {
+        // networkModuleClient->updateInputs(PackedInput input)
+        networkModuleClient->update();
+    }
 }

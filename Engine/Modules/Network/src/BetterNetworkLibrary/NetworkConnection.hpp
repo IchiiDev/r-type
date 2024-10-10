@@ -12,6 +12,7 @@
 #include "NetworkMessage.hpp"
 #include "asio/io_context.hpp"
 #include "asio/ip/tcp.hpp"
+#include "asio/ip/udp.hpp"
 #include "asio/post.hpp"
 #include "asio/read.hpp"
 #include "asio/write.hpp"

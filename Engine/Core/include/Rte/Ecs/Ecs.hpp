@@ -23,6 +23,7 @@ namespace Rte {
                 m_systemManager = std::make_unique<SystemManager>();
 
                 this->registerComponent<BasicComponents::Transform>();
+                this->registerComponent<BasicComponents::UidComponents>();
             }
 
 

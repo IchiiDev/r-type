@@ -19,18 +19,23 @@ namespace Rte::Network {
         public:
             NetworkServerModuleAsio() = default;
             ~NetworkServerModuleAsio() = default;
-        
+
         public:
             void init(const std::shared_ptr<Ecs>& ecs) override;
             void update() override;
-        
+
         public:
-            void start(unsigned int port);
+            void start(unsigned int port) override;
+            void updateEntity(const std::shared_ptr<std::vector<Entity>>& entities) override;
 
         private:
             std::shared_ptr<Ecs> m_ecs;
-        
+
         private:
             std::unique_ptr<CustomServer> m_server = nullptr;
+
+        private:
+            std::shared_ptr<std::vector<Entity>> m_entities = nullptr;
+            std::vector<Entity> m_alreadySentEntity;
     };
 } // namespace Rte::Network

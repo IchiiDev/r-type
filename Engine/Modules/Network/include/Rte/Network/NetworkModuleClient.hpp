@@ -7,26 +7,16 @@
 
 #pragma once
 
-#include "Rte/Common.hpp"
 #include "Rte/Ecs/Ecs.hpp"
 #include "Rte/ModuleManager.hpp"
-
+#include <sys/types.h>
+#include "NetworkModuleTypes.hpp"
 
 namespace Rte::Network {
     class NetworkModuleClient : public IModule {
         public:
-            NetworkModuleClient();
-            ~NetworkModuleClient();
-
-        public:
-            void init(const std::shared_ptr<Ecs>& ecs) override = 0;
-            void update() override = 0;
+            virtual void connect(const std::string& host, const unsigned int& port) = 0;
+            virtual void updateInputs(PackedInput input) = 0;
     };
-
-    namespace Events::Network {
-        const EventType DISCONNECTED = "Events::Network::DISCONNECTED"_hash;
-    } // namespace Events::Network
 } // namespace Rte::Network
 
-
-extern "C" EXPORT Rte::IModule* createModule();
