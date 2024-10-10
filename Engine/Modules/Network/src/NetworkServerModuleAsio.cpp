@@ -39,7 +39,7 @@ void Rte::Network::NetworkServerModuleAsio::update() {
             m_alreadySentEntity.push_back(entity);
 
             Graphic::Components::Sprite spriteComponent = m_ecs->getComponent<Graphic::Components::Sprite>(entity);
-            std::vector<u8> texturePixels = spriteComponent.texture->getPixels();
+            const u8 *texturePixels = spriteComponent.texture->getPixels();
             Vec2<u16> textureSize = spriteComponent.texture->getSize();
 
             m_server->sendNewEntity(transformComponent, texturePixels, textureSize, uidComponent);
