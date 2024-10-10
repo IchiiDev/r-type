@@ -12,6 +12,14 @@
 -I./Engine/Modules/Network/include
 -I./Engine/Modules/Network/src
 
+# Physics module
+-I./Engine/Modules/Physics/include
+-I./Engine/Modules/Physics/src
+
+# Audio module
+-I./Engine/Modules/Audio/include
+-I./Engine/Modules/Audio/src
+
 # R-Type
 -I./R-Type-client/include
 -I./R-Type-server/include
@@ -19,3 +27,5 @@
 # External dependencies
 -I./external/SFML/include
 -I./external/asio/asio/include
+-I./external/box2d/include
+-I./external/poly2tri
