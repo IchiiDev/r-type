@@ -15,6 +15,7 @@
 #include "Rte/Ecs/Types.hpp"
 #include "Rte/Network/NetworkModuleServer.hpp"
 #include "Rte/Network/NetworkModule.hpp"
+#include "Rte/Network/NetworkModuleTypes.hpp"
 
 #include <cstdint>
 #include <memory>
@@ -68,7 +69,14 @@ namespace Rte::Network {
 
         protected:
             bool onClientConnect(std::shared_ptr<bnl::net::Connection<CustomMsgTypes>> client) override {
-                return m_connectionsQueue.size() <= 8;
+                bool result = m_connectionsQueue.size() <= 8;
+
+                if (result) {
+                    Event event(Rte::Network::Events::PLAYER_CREATED);
+                    m_ecs->sendEvent(event);
+                }
+
+                return result;
             }
 
             void onClientDisconnect(std::shared_ptr<bnl::net::Connection<CustomMsgTypes>> client) override {
@@ -83,6 +91,7 @@ namespace Rte::Network {
 
                         Event event(Rte::Network::Events::INPUT);
                         event.setParameter<PackedInput>(Rte::Network::Events::Params::PACKED_UPDATE_ENTITY, input);
+                        m_ecs->sendEvent(event);
                         break;
                     } break;
                 }

@@ -7,9 +7,9 @@
 
 #pragma once
 
-#include "Rte/Ecs/Ecs.hpp"
 #include "Rte/Ecs/Types.hpp"
 #include "Rte/ModuleManager.hpp"
+#include "Rte/Network/NetworkModuleTypes.hpp"
 
 
 namespace Rte::Network {
@@ -17,5 +17,6 @@ namespace Rte::Network {
         public:
             virtual void start(unsigned int port) = 0;
             virtual void updateEntity(const std::shared_ptr<std::vector<Entity>>& entities) = 0;
+            virtual void updateTexture(std::map<Entity, PackedTexture>& textures) = 0;
     };
 } // namespace Rte::Network

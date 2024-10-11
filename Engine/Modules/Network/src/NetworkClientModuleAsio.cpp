@@ -51,6 +51,7 @@ void Rte::Network::NetworkClientModuleAsio::update() {
 
                 Event event(Rte::Network::Events::ENTITY_CREATED);
                 event.setParameter<PackedNewEntity>(Rte::Network::Events::Params::PACKED_NEW_ENTITY, packedNewEntity);
+                m_ecs->sendEvent(event);
                 break;
             } case Rte::Network::CustomMsgTypes::EntityUpdated: {
                 BasicComponents::UidComponents id{};
@@ -64,6 +65,7 @@ void Rte::Network::NetworkClientModuleAsio::update() {
 
                 Event event(Rte::Network::Events::ENTITY_UPDATED);
                 event.setParameter<PackedUpdateEntity>(Rte::Network::Events::Params::PACKED_UPDATE_ENTITY, packedUpdateEntity);
+                m_ecs->sendEvent(event);
                 break;
             }
             break;

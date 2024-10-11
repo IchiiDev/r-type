@@ -8,8 +8,13 @@
 #include "NetworkServerModuleAsio.hpp"
 #include "NetworkModuleImpl.hpp"
 #include "Rte/BasicComponents.hpp"
-#include "Rte/Graphic/Components.hpp"
+#include "Rte/Common.hpp"
+#include "Rte/Ecs/Types.hpp"
+#include "Rte/Network/NetworkModuleTypes.hpp"
+#include <algorithm>
+#include <map>
 #include <memory>
+#include <vector>
 
 using namespace Rte;
 
@@ -26,6 +31,10 @@ void Rte::Network::NetworkServerModuleAsio::updateEntity(const std::shared_ptr<s
     m_entities = entities;
 }
 
+void Rte::Network::NetworkServerModuleAsio::updateTexture(std::map<Entity, PackedTexture>& textures) {
+    m_textures = textures;
+}
+
 void Rte::Network::NetworkServerModuleAsio::update() {
     if (m_server == nullptr) return;
     if (m_entities == nullptr) return;
@@ -38,13 +47,22 @@ void Rte::Network::NetworkServerModuleAsio::update() {
         if (it != m_alreadySentEntity.end()) {
             m_alreadySentEntity.push_back(entity);
 
-            Graphic::Components::Sprite spriteComponent = m_ecs->getComponent<Graphic::Components::Sprite>(entity);
-            const u8 *texturePixels = spriteComponent.texture->getPixels();
-            Vec2<u16> textureSize = spriteComponent.texture->getSize();
-
-            m_server->sendNewEntity(transformComponent, texturePixels, textureSize, uidComponent);
+            m_server->sendNewEntity(transformComponent, m_textures[entity].pixels.data(), m_textures[entity].size, uidComponent);
         } else {
             m_server->sendUpdatedEntity(transformComponent, uidComponent);
+        }
+
+    }
+
+    for (auto& alreadySentEntity : m_alreadySentEntity) {
+        auto it = std::find(m_entities->begin(), m_entities->end(), alreadySentEntity);
+
+        if (it != m_entities->end()) {
+            Event event(Rte::Network::Events::ENTITY_DELETED);
+            event.setParameter<Entity>(Rte::Network::Events::Params::ENTITY_ID, *it);
+            m_ecs->sendEvent(event);
+
+            m_alreadySentEntity.erase(std::find(m_alreadySentEntity.begin(), m_alreadySentEntity.end(), alreadySentEntity));
         }
     }
 }
