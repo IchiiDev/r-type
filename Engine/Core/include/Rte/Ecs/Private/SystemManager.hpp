@@ -17,6 +17,16 @@ namespace Rte {
      */
     class SystemManager {
         public:
+            SystemManager() = default;
+            ~SystemManager() = default;
+
+            SystemManager(const SystemManager&) = delete;
+            SystemManager& operator=(const SystemManager&) = delete;
+
+            SystemManager(SystemManager&&) noexcept = default;
+            SystemManager& operator=(SystemManager&&) noexcept = default;
+
+
             /**
              * @brief Register a system of type T.
              * /!\ The system must not be already registered.

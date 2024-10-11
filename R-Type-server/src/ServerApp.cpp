@@ -6,6 +6,7 @@
 #include "Rte/Network/NetworkModule.hpp"
 #include "Rte/Network/NetworkModuleServer.hpp"
 
+#include <iostream>
 #include <memory>
 #include <vector>
 #include <iostream>
@@ -22,7 +23,6 @@ void ServerApp::run() {
     networkModuleServer->start(123456);
 
     while (true) {
-        // networkModuleServer->updateEntity(nullptr);
         networkModuleServer->update();
     }
 }

@@ -25,6 +25,13 @@ namespace Rte {
                 this->registerComponent<BasicComponents::Transform>();
                 this->registerComponent<BasicComponents::UidComponents>();
             }
+            ~Ecs() = default;
+
+            Ecs(const Ecs&) = delete;
+            Ecs& operator=(const Ecs&) = delete;
+
+            Ecs(Ecs&&) noexcept = default;
+            Ecs& operator=(Ecs&&) noexcept = default;
 
 
 

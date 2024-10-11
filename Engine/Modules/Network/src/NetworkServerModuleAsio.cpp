@@ -47,7 +47,7 @@ void Rte::Network::NetworkServerModuleAsio::update() {
         if (it != m_alreadySentEntity.end()) {
             m_alreadySentEntity.push_back(entity);
 
-            m_server->sendNewEntity(transformComponent, m_textures[entity].pixels, m_textures[entity].size, uidComponent);
+            m_server->sendNewEntity(transformComponent, m_textures[entity].pixels.data(), m_textures[entity].size, uidComponent);
         } else {
             m_server->sendUpdatedEntity(transformComponent, uidComponent);
         }

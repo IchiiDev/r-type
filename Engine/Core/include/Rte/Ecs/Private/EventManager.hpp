@@ -15,6 +15,16 @@ namespace Rte {
      */
     class EventManager {
         public:
+            EventManager() = default;
+            ~EventManager() = default;
+
+            EventManager(const EventManager&) = delete;
+            EventManager& operator=(const EventManager&) = delete;
+
+            EventManager(EventManager&&) noexcept = default;
+            EventManager& operator=(EventManager&&) noexcept = default;
+
+
             /**
              * @brief Add a listener to a specific event type.
              *

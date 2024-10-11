@@ -46,13 +46,14 @@ namespace Rte::Network {
     class CustomServer : public bnl::net::IServer<CustomMsgTypes> {
         public:
             CustomServer(uint16_t nPort, std::shared_ptr<Ecs>& ecs) : bnl::net::IServer<CustomMsgTypes>(nPort), m_ecs(ecs) {}
-        
+
         public:
-            void sendNewEntity(BasicComponents::Transform transform, const std::vector<u8>& pixels, Vec2<u16> size, BasicComponents::UidComponents uidComponent) {
+            void sendNewEntity(BasicComponents::Transform transform, const u8 *pixels, Vec2<u16> size, BasicComponents::UidComponents uidComponent) {
                 bnl::net::message<CustomMsgTypes> msg;
                 msg.header.id = CustomMsgTypes::EntityCreated;
 
-                msg << uidComponent << transform << pixels << size;
+                std::vector<u8> pixelsInVector(pixels, pixels + size.x * size.y * 4);
+                msg << uidComponent << transform << pixelsInVector << size;
 
                 messageAllClient(msg);
             }

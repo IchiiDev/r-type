@@ -17,6 +17,16 @@ namespace Rte {
      */
     class ComponentManager {
         public:
+            ComponentManager() = default;
+            ~ComponentManager() = default;
+
+            ComponentManager(const ComponentManager&) = delete;
+            ComponentManager& operator=(const ComponentManager&) = delete;
+
+            ComponentManager(ComponentManager&&) noexcept = default;
+            ComponentManager& operator=(ComponentManager&&) noexcept = default;
+
+
             /**
              * @brief Register a component type.
              * /!\ Each component type must be unique. (No two components of the same type can be registered.)
