@@ -10,10 +10,12 @@
 #include "Rte/Graphic/Components.hpp"
 #include "Rte/Graphic/GraphicModule.hpp"
 #include "Rte/Graphic/Texture.hpp"
+#include "Rte/Network/NetworkModuleTypes.hpp"
 #include "Rte/Physics/Components.hpp"
 #include "Rte/Physics/Materials.hpp"
 #include "Rte/Physics/PhysicsModule.hpp"
 #include "Rte/Physics/RigidBody.hpp"
+#include "Rte/Network/NetworkModule.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -197,35 +199,6 @@ void ClientApp::gameplayLoop() {
     m_ecs->addComponent<Rte::Physics::Components::Physics>(breakableEntities.at(breakableEntities.size() - 1), Rte::Physics::Components::Physics{m_physicsModule->createRigidBody(
         material->getPixels(),
         material->getSize(),
-        m_ecs->getComponent<Rte::BasicComponents::Transform>(breakableEntities.at(breakableEntities.size() - 1)).position,
-        m_ecs->getComponent<Rte::BasicComponents::Transform>(breakableEntities.at(breakableEntities.size() - 1)).rotation
-    )});
-
-
-    // Creation of second entity
-    const std::shared_ptr<Rte::Graphic::Texture> textureM = m_graphicModule->createTexture();
-    textureM->loadFromFile("../assets/mushroom-tex.png");
-    const std::shared_ptr<Rte::Graphic::Texture> materialM = m_graphicModule->createTexture();
-    materialM->loadFromFile("../assets/mushroom-mat.png");
-
-    constexpr Rte::Vec2<float> entityScaleM = {8, 8};
-    const Rte::Vec2<float> entityPositionM = {
-        0,
-        135.F / 2 * 8 - (static_cast<float>(texture->getSize().y) / 2 * 8) - 256 - 64 + 16
-    };
-    breakableEntities.push_back(m_ecs->createEntity());
-
-    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(breakableEntities.at(breakableEntities.size() - 1), Rte::Graphic::Components::Sprite(textureM));
-    m_ecs->addComponent<Rte::BasicComponents::Transform>(breakableEntities.at(breakableEntities.size() - 1), Rte::BasicComponents::Transform{
-        .position = entityPositionM,
-        .scale = entityScaleM,
-        .rotation = 0,
-    });
-
-
-    m_ecs->addComponent<Rte::Physics::Components::Physics>(breakableEntities.at(breakableEntities.size() - 1), Rte::Physics::Components::Physics{m_physicsModule->createRigidBody(
-        materialM->getPixels(),
-        materialM->getSize(),
         m_ecs->getComponent<Rte::BasicComponents::Transform>(breakableEntities.at(breakableEntities.size() - 1)).position,
         m_ecs->getComponent<Rte::BasicComponents::Transform>(breakableEntities.at(breakableEntities.size() - 1)).rotation
     )});
@@ -416,16 +389,12 @@ void ClientApp::gameplayLoop() {
         player.shoot({static_cast<float>(position.x) - static_cast<float>(windowSize.x) / 2.F, static_cast<float>(position.y) - static_cast<float>(windowSize.y) / 2.F});
     }));
 
+    //m_ecs->addEventListener(Rte::Network::Events::ENTITY_CREATED, [&](Event& event) {
+    //    const Rte::Entity entity = event.getParameter<Rte::Entity>(Rte::Network::Events::Params::ENTITY_CREATED_ENTITY);
+    //});
+
     // Main loop
     while (m_running) {
-        if (m_graphicModule->isKeyPressed(Rte::Graphic::Key::S))
-            k = Rte::Physics::MaterialType::SAND;
-        else if (m_graphicModule->isKeyPressed(Rte::Graphic::Key::W))
-            k = Rte::Physics::MaterialType::WATER;
-        else if (m_graphicModule->isKeyPressed(Rte::Graphic::Key::B))
-            k = Rte::Physics::MaterialType::STATIC_WOOD;
-        else if (m_graphicModule->isKeyPressed(Rte::Graphic::Key::A))
-            k = Rte::Physics::MaterialType::ACID;
         if (m_graphicModule->isKeyPressed(Rte::Graphic::Key::Left) || m_graphicModule->isKeyPressed(Rte::Graphic::Key::Q) ) {
             player.move({-10, 0});
         }
@@ -453,17 +422,6 @@ void ClientApp::gameplayLoop() {
         m_ecs->getComponent<Rte::BasicComponents::Transform>(healthBarEntity).position.x = -((healthBarWidth / 2.F) - (((player.getHealth() * healthBarWidth) / 100.F) / 2.F)) * 6;
         m_ecs->getComponent<Rte::BasicComponents::Transform>(healthBarEntity).position.x += healthContainerPosition.x;
         m_ecs->getComponent<Rte::BasicComponents::Transform>(healthBarEntity).position.y = healthContainerPosition.y;
-
-        /*
-        if (m_graphicModule->isMouseButtonPressed(Rte::Graphic::MouseButton::Left)) {
-            const Rte::Vec2<Rte::u16> position = m_graphicModule->getMousePosition();
-            m_physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8, position.y / 8},     {k, randomColor(Rte::Physics::invMatColors.at(k), 60), 0});
-            m_physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8 + 1, position.y / 8}, {k, randomColor(Rte::Physics::invMatColors.at(k), 60), 0});
-            m_physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8 - 1, position.y / 8}, {k, randomColor(Rte::Physics::invMatColors.at(k), 60), 0});
-            m_physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8, position.y / 8 + 1}, {k, randomColor(Rte::Physics::invMatColors.at(k), 60), 0});
-            m_physicsModule->changeSandBoxPixel(sandBoxEntity, {position.x / 8, position.y / 8 - 1}, {k, randomColor(Rte::Physics::invMatColors.at(k), 60), 0});
-        }
-        */
 
         // Update the canvas (sandbox pixels)
         std::vector<Rte::Physics::Pixel> canvas = m_physicsModule->getSandBoxCanvas(m_ecs->getComponent<Rte::Physics::Components::Physics>(sandBoxEntity).sandBox);
@@ -503,5 +461,7 @@ void ClientApp::gameplayLoop() {
             }
         }
         m_graphicModule->update();
+        m_networkModuleClient->updateInputs({false, false, true, false, 0.0F});
+        m_networkModuleClient->update();
     }
 }

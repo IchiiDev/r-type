@@ -5,6 +5,7 @@
 #include "Rte/Ecs/Event.hpp"
 #include "Rte/Ecs/Types.hpp"
 #include "Rte/Graphic/GraphicModule.hpp"
+#include "Rte/Network/NetworkModule.hpp"
 #include "Rte/ModuleManager.hpp"
 #include "Rte/Physics/PhysicsModule.hpp"
 
@@ -25,6 +26,10 @@ ClientApp::ClientApp() {
     // Load the physics module
     m_physicsModule = Rte::interfaceCast<Rte::Physics::PhysicsModule>(moduleManager.loadModule("RtePhysics"));
     m_physicsModule->init(m_ecs);
+
+    // Load the network module
+    const std::shared_ptr<Rte::Network::NetworkModule> networkModule = Rte::interfaceCast<Rte::Network::NetworkModule>(moduleManager.loadModule("RteNetwork"));
+    m_networkModuleClient = networkModule->getClient();
 
     // Event callback to close window
     m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Graphic::Events::QUIT,

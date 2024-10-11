@@ -6,6 +6,7 @@
 #include "Rte/Graphic/GraphicModule.hpp"
 #include "Rte/ModuleManager.hpp"
 #include "Rte/Physics/PhysicsModule.hpp"
+#include "Rte/Network/NetworkModule.hpp"
 
 #include <memory>
 
@@ -31,6 +32,7 @@ class ClientApp {
         std::shared_ptr<Rte::Ecs> m_ecs;
         std::shared_ptr<Rte::Graphic::GraphicModule> m_graphicModule;
         std::shared_ptr<Rte::Physics::PhysicsModule> m_physicsModule;
+        std::shared_ptr<Rte::Network::NetworkModuleClient> m_networkModuleClient;
 
         std::vector<std::unique_ptr<Button>> m_menuButtons;
         std::shared_ptr<Rte::Graphic::Texture> m_transparentTexture;

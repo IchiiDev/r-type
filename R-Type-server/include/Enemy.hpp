@@ -22,7 +22,7 @@ class Enemy {
 
         void shoot(Rte::Vec2<float> playerPos);
         void update();
-
+        
         [[nodiscard]] Rte::Entity getEntity() const;
         [[nodiscard]] float getHealth() const;
         [[nodiscard]] float getMana() const;
