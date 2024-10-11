@@ -7,8 +7,10 @@
 
 #pragma once
 
+#include "Rte/Common.hpp"
 #include <cstddef>
 #include <cstring>
+#include <iostream>
 #include <memory>
 #include <ostream>
 #include <sys/types.h>

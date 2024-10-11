@@ -34,11 +34,11 @@ namespace bnl {
                     client
                 };
             public:
-                Connection(owner parent, asio::io_context& ioContext, asio::ip::tcp::socket socket, TSQueue<OwnedMessage<T>>& receiveQueue) 
+                Connection(owner parent, asio::io_context& ioContext, asio::ip::tcp::socket socket, TSQueue<OwnedMessage<T>>& receiveQueue)
                     : m_asioContext(ioContext), m_socket(std::move(socket)), m_receiveQueue(receiveQueue), m_ownerType(parent) {
                 }
                 virtual ~Connection() {}
-            
+
             public:
                 void connectToClient(u_int32_t id = 0) {
                     if (m_ownerType == owner::server) {
@@ -68,10 +68,10 @@ namespace bnl {
                 }
 
                 [[nodiscard]] bool isConnected() const { return m_socket.is_open(); }
-            
+
             public:
                 void send(const message<T>& msg) {
-                    asio::post(m_asioContext, 
+                    asio::post(m_asioContext,
                     [this, msg]() {
                         bool messageBeingWritten = !m_sendQueue.empty();
 
@@ -80,10 +80,10 @@ namespace bnl {
                         if (!messageBeingWritten) writeHeader();
                     });
                 }
-            
+
             public:
                 [[nodiscard]] u_int32_t getId() const { return m_id; }
-            
+
             private:
                 void readHeader() {
                     asio::async_read(m_socket, asio::buffer(&m_tempReceiveMsg.header, sizeof(message_header<T>)),
@@ -160,7 +160,7 @@ namespace bnl {
 
                     readHeader();
                 }
-            
+
             protected:
                 asio::ip::tcp::socket m_socket;
                 asio::io_context& m_asioContext;

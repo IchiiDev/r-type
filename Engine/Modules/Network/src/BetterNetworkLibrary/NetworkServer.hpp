@@ -64,7 +64,7 @@ namespace bnl {
 
                                 std::shared_ptr<Connection<T>> newConnection = std::make_shared<Connection<T>>(Connection<T>::owner::server,
                                     m_asioContext, std::move(socket), m_receivedMessage);
-                                
+
                                 if (onClientConnect(newConnection)) {
                                     m_connectionsQueue.push_back(std::move(newConnection));
 
@@ -108,7 +108,7 @@ namespace bnl {
                         }
                     }
 
-                    if (invalidClient) 
+                    if (invalidClient)
                         m_connectionsQueue.erase(std::remove(m_connectionsQueue.begin(), m_connectionsQueue.end(), nullptr), m_connectionsQueue.end());
                 }
 
@@ -123,7 +123,7 @@ namespace bnl {
                     }
 
                 }
-            
+
             protected:
                 virtual bool onClientConnect(std::shared_ptr<Connection<T>> client) {
                     return false;
@@ -136,7 +136,7 @@ namespace bnl {
                 virtual void onMessageReceived(std::shared_ptr<Connection<T>> client, message<T>& msg) {
 
                 }
-            
+
             protected:
                 TSQueue<OwnedMessage<T>> m_receivedMessage;
 

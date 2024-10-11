@@ -18,6 +18,7 @@
 #include "Rte/Network/NetworkModuleTypes.hpp"
 
 #include <cstdint>
+#include <iostream>
 #include <memory>
 #include <optional>
 #include <sys/types.h>
@@ -48,12 +49,14 @@ namespace Rte::Network {
             CustomServer(uint16_t nPort, std::shared_ptr<Ecs>& ecs) : bnl::net::IServer<CustomMsgTypes>(nPort), m_ecs(ecs) {}
 
         public:
-            void sendNewEntity(BasicComponents::Transform transform, const u8 *pixels, Vec2<u16> size, BasicComponents::UidComponents uidComponent) {
+            void sendNewEntity(BasicComponents::Transform transform, const std::vector<u8>& pixels, Vec2<u16> size, BasicComponents::UidComponents uidComponent) {
                 bnl::net::message<CustomMsgTypes> msg;
                 msg.header.id = CustomMsgTypes::EntityCreated;
 
-                std::vector<u8> pixelsInVector(pixels, pixels + size.x * size.y * 4);
-                msg << uidComponent << transform << pixelsInVector << size;
+                std::array<u8, 3840 * 2160> pixelArray; // TODO: REMOVE THIS !!!!!!??????
+                memcpy(pixelArray.data(), pixels.data(), pixels.size());
+
+                msg << uidComponent << transform << pixelArray << size;
 
                 messageAllClient(msg);
             }
@@ -80,6 +83,8 @@ namespace Rte::Network {
             }
 
             void onClientDisconnect(std::shared_ptr<bnl::net::Connection<CustomMsgTypes>> client) override {
+                Event event(Rte::Network::Events::DISCONNECTED);
+                m_ecs->sendEvent(event);
             }
 
             void onMessageReceived (std::shared_ptr<bnl::net::Connection<CustomMsgTypes>> client, bnl::net::message<CustomMsgTypes>& msg) override {
@@ -90,7 +95,7 @@ namespace Rte::Network {
                         msg >> input;
 
                         Event event(Rte::Network::Events::INPUT);
-                        event.setParameter<PackedInput>(Rte::Network::Events::Params::PACKED_UPDATE_ENTITY, input);
+                        event.setParameter<PackedInput>(Rte::Network::Events::Params::INPUT, input);
                         m_ecs->sendEvent(event);
                         break;
                     } break;

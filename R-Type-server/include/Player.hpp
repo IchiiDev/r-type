@@ -9,13 +9,15 @@
 
 class Player {
     public:
-        Player(const std::shared_ptr<Rte::Ecs>& m_ecs, const std::shared_ptr<Rte::Graphic::GraphicModule>& m_graphicModule, const std::shared_ptr<Rte::Physics::PhysicsModule>& m_physicsModule);
+        Player(const std::shared_ptr<Rte::Ecs>& m_ecs, const std::shared_ptr<Rte::Graphic::GraphicModule>& m_graphicModule, const std::shared_ptr<Rte::Physics::PhysicsModule>& m_physicsModule, uint32_t uid);
         ~Player() = default;
-        
+
         Player(const Player&) = delete;
         Player& operator=(const Player&) = delete;
+
         Player(Player&&) noexcept = default;
         Player& operator=(Player&&) noexcept = default;
+
 
         void move(Rte::Vec2<float> direction);
         void fly(Rte::Vec2<float> direction);
@@ -31,9 +33,10 @@ class Player {
         [[nodiscard]] float getFlightTime() const;
         [[nodiscard]] Rte::Vec2<float> getDestroyedProjectilePos();
 
+
     private:
         void updateProjectiles();
-        
+
         Rte::Entity m_player;
         std::shared_ptr<Rte::Ecs> m_ecs;
         std::shared_ptr<Rte::Graphic::GraphicModule> m_graphicModule;
@@ -53,5 +56,4 @@ class Player {
 
         float m_healthRegen = 0.05F;
         float m_manaRegen = 0.5F;
-
 };

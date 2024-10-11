@@ -12,6 +12,7 @@
 #include "Rte/Ecs/Types.hpp"
 #include "Rte/Network/NetworkModuleTypes.hpp"
 #include <algorithm>
+#include <iostream>
 #include <map>
 #include <memory>
 #include <vector>
@@ -44,10 +45,10 @@ void Rte::Network::NetworkServerModuleAsio::update() {
         const BasicComponents::Transform& transformComponent = m_ecs->getComponent<BasicComponents::Transform>(entity);
         auto it = std::find(m_alreadySentEntity.begin(), m_alreadySentEntity.end(), entity);
 
-        if (it != m_alreadySentEntity.end()) {
+        if (it == m_alreadySentEntity.end()) {
             m_alreadySentEntity.push_back(entity);
 
-            m_server->sendNewEntity(transformComponent, m_textures[entity].pixels.data(), m_textures[entity].size, uidComponent);
+            m_server->sendNewEntity(transformComponent, m_textures[entity].pixels, m_textures[entity].size, uidComponent);
         } else {
             m_server->sendUpdatedEntity(transformComponent, uidComponent);
         }
@@ -57,7 +58,7 @@ void Rte::Network::NetworkServerModuleAsio::update() {
     for (auto& alreadySentEntity : m_alreadySentEntity) {
         auto it = std::find(m_entities->begin(), m_entities->end(), alreadySentEntity);
 
-        if (it != m_entities->end()) {
+        if (it == m_entities->end()) {
             Event event(Rte::Network::Events::ENTITY_DELETED);
             event.setParameter<Entity>(Rte::Network::Events::Params::ENTITY_ID, *it);
             m_ecs->sendEvent(event);
@@ -65,4 +66,6 @@ void Rte::Network::NetworkServerModuleAsio::update() {
             m_alreadySentEntity.erase(std::find(m_alreadySentEntity.begin(), m_alreadySentEntity.end(), alreadySentEntity));
         }
     }
+
+    m_server->update();
 }

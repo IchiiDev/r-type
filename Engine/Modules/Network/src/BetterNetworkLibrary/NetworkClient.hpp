@@ -69,15 +69,17 @@ namespace bnl {
 
                     return false;
                 }
-            
+
             public:
                 TSQueue<OwnedMessage<T>> &getReiceiveQueue() {
                     return m_receiveQueue;
                 }
 
                 void send(const message<T>& msg) {
-                    if (isConnected()) m_connection->send(msg);
-			}
+                    if (isConnected()) {
+                        m_connection->send(msg);
+                    }
+			    }
 
             protected:
                 asio::io_context m_io_context;

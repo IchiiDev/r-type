@@ -13,7 +13,7 @@
 
 
 namespace Rte::Network {
-    class NetworkModuleServer : public IModule {     
+    class NetworkModuleServer : public IModule {
         public:
             virtual void start(unsigned int port) = 0;
             virtual void updateEntity(const std::shared_ptr<std::vector<Entity>>& entities) = 0;

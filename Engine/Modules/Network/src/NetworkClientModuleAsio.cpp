@@ -10,6 +10,8 @@
 #include "NetworkClientModuleAsio.hpp"
 #include "NetworkModuleImpl.hpp"
 
+#include <array>
+#include <iostream>
 #include <memory>
 
 using namespace Rte;
@@ -35,6 +37,8 @@ void Rte::Network::NetworkClientModuleAsio::update() {
         m_client = nullptr;
     }
 
+    m_client->sendInputs(m_input);
+
     if (!m_client->getReiceiveQueue().empty()) {
         auto msg = m_client->getReiceiveQueue().popFront().msg;
 
@@ -42,12 +46,17 @@ void Rte::Network::NetworkClientModuleAsio::update() {
             case Rte::Network::CustomMsgTypes::EntityCreated: {
                 BasicComponents::UidComponents id{};
                 BasicComponents::Transform transform;
-                std::vector<u8> pixels;
+                std::array<u8, 3840 * 2160> pixels; // TODO: REMOVE THIS !!!!!!??????
                 Vec2<u16> size{};
 
                 msg >> size >> pixels >> transform >> id;
 
-                PackedNewEntity packedNewEntity(id.uid, transform, pixels, size);
+                PackedNewEntity packedNewEntity = {
+                    .id = id.uid,
+                    .transform = transform,
+                    .pixels = std::vector<u8>(pixels.begin(), pixels.end()),
+                    .size = size
+                };
 
                 Event event(Rte::Network::Events::ENTITY_CREATED);
                 event.setParameter<PackedNewEntity>(Rte::Network::Events::Params::PACKED_NEW_ENTITY, packedNewEntity);
@@ -55,17 +64,19 @@ void Rte::Network::NetworkClientModuleAsio::update() {
                 break;
             } case Rte::Network::CustomMsgTypes::EntityUpdated: {
                 BasicComponents::UidComponents id{};
-                BasicComponents::Transform transform;
+                BasicComponents::Transform transform{};
 
-                msg >> transform >> id;
+                msg >> id >> transform;
 
-                PackedUpdateEntity packedUpdateEntity;
-                packedUpdateEntity.id = id.uid;
-                packedUpdateEntity.transform = transform;
+                const PackedUpdateEntity packedUpdateEntity{
+                    .id = id.uid,
+                    .transform = transform
+                };
 
                 Event event(Rte::Network::Events::ENTITY_UPDATED);
                 event.setParameter<PackedUpdateEntity>(Rte::Network::Events::Params::PACKED_UPDATE_ENTITY, packedUpdateEntity);
                 m_ecs->sendEvent(event);
+
                 break;
             }
             break;
