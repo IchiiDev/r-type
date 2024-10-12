@@ -2,6 +2,8 @@
 
 #include "Rte/Common.hpp"
 
+#include <cstdint>
+
 namespace Rte::BasicComponents {
 
     struct Transform {
@@ -11,7 +13,7 @@ namespace Rte::BasicComponents {
     };
 
     struct UidComponents {
-        uid_t uid;
+        uint32_t uid;
     };
 
 }   // namespace Rte::BasicComponents

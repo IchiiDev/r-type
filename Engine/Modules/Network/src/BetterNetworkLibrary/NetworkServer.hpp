@@ -147,7 +147,7 @@ namespace bnl {
 
                 asio::ip::tcp::acceptor m_acceptor;
 
-                u_int32_t m_idCounter = 10000;
+                uint32_t m_idCounter = 10000;
         };
     } // namespace net
 } // namespace bnl

@@ -40,7 +40,7 @@ namespace bnl {
                 virtual ~Connection() {}
 
             public:
-                void connectToClient(u_int32_t id = 0) {
+                void connectToClient(uint32_t id = 0) {
                     if (m_ownerType == owner::server) {
                         if (m_socket.is_open()) {
                             m_id = id;
@@ -82,7 +82,7 @@ namespace bnl {
                 }
 
             public:
-                [[nodiscard]] u_int32_t getId() const { return m_id; }
+                [[nodiscard]] uint32_t getId() const { return m_id; }
 
             private:
                 void readHeader() {
@@ -171,7 +171,7 @@ namespace bnl {
                 message<T> m_tempReceiveMsg;
 
                 owner m_ownerType = owner::server;
-                u_int32_t m_id = 0;
+                uint32_t m_id = 0;
         };
     } // namespace net
 } // namespace bnl

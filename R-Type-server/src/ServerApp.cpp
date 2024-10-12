@@ -29,7 +29,7 @@ ServerApp::ServerApp() {
     m_graphicModule = Rte::interfaceCast<Rte::Graphic::GraphicModule>(moduleManager.loadModule("RteGraphic"));
     m_graphicModule->init(m_ecs);
     m_graphicModule->setWindowTitle("R-Type");
-    m_graphicModule->setWindowSize({1920, 1080});
+    m_graphicModule->setWindowSize({1, 1});
     m_graphicModule->setDaltonismMode(Rte::Graphic::DaltonismMode::NONE);
     m_graphicModule->loadFontFromFile("../assets/alagard.ttf");
     m_graphicModule->setLayerCount(10);

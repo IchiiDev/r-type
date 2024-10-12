@@ -99,7 +99,6 @@ void ClientApp::run() {
     }));
 
 
-    int frame = 0;
     while(m_running) {
         // Get inputs from player
         m_networkModuleClient->updateInputs(Rte::Network::PackedInput{

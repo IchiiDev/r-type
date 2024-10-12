@@ -23,13 +23,13 @@ namespace bnl {
         template <typename T>
         struct message_header {
             T id{};
-            u_int32_t size = 0;
+            uint32_t size = 0;
         };
 
         template <typename T>
         struct message {
             message_header<T> header;
-            std::vector<u_int8_t> body;
+            std::vector<uint8_t> body;
 
             [[nodiscard]] size_t size() const { return body.size(); }
 

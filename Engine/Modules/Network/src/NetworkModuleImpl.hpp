@@ -53,7 +53,7 @@ namespace Rte::Network {
                 bnl::net::message<CustomMsgTypes> msg;
                 msg.header.id = CustomMsgTypes::EntityCreated;
 
-                std::array<u8, 3840 * 2160> pixelArray; // TODO: REMOVE THIS !!!!!!??????
+                std::array<u8, 1000 * 1000> pixelArray; // TODO: REMOVE THIS !!!!!!??????
                 memcpy(pixelArray.data(), pixels.data(), pixels.size());
 
                 msg << uidComponent << transform << pixelArray << size;

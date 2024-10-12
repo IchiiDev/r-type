@@ -46,7 +46,7 @@ void Rte::Network::NetworkClientModuleAsio::update() {
             case Rte::Network::CustomMsgTypes::EntityCreated: {
                 BasicComponents::UidComponents id{};
                 BasicComponents::Transform transform;
-                std::array<u8, 3840 * 2160> pixels; // TODO: REMOVE THIS !!!!!!??????
+                std::array<u8, 1000 * 1000> pixels; // TODO: REMOVE THIS !!!!!!??????
                 Vec2<u16> size{};
 
                 msg >> size >> pixels >> transform >> id;

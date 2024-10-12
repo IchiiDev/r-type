@@ -10,9 +10,8 @@
 #include "Rte/Physics/ShapeBody.hpp"
 
 #include <cmath>
-#include <cstdlib>
-#include <iostream>
 #include <memory>
+#include <numbers>
 
 static float getRotFromPoints(const Rte::Vec2<float> p1, const Rte::Vec2<float> p2) {
     return atan2(p2.y - p1.y, p2.x - p1.x);

@@ -19,11 +19,11 @@ namespace Rte::Network {
         public:
             NetworkClientModuleAsio() = default;
             ~NetworkClientModuleAsio() = default;
-        
+
         public:
             void init(const std::shared_ptr<Ecs>& ecs) override;
             void update() override;
-        
+
         public:
             void connect(const std::string& host, const unsigned int& port) override;
             void updateInputs(PackedInput input) override;
