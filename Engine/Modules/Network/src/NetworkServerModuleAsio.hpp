@@ -11,6 +11,7 @@
 #include "Rte/Network/NetworkModuleServer.hpp"
 #include "BetterNetworkLibrary/BetterNetworkLibrary.hpp"
 #include "NetworkModuleImpl.hpp"
+#include "Rte/Network/NetworkModuleTypes.hpp"
 
 #include <memory>
 #include <sys/types.h>
@@ -29,6 +30,8 @@ namespace Rte::Network {
             void start(unsigned int port) override;
             void updateEntity(const std::shared_ptr<std::vector<Entity>>& entities) override;
             void updateTexture(std::map<Entity, PackedTexture>& textures) override;
+            void sendUpdate() override;
+            void deleteEntity(BasicComponents::UidComponents id) override;
 
         private:
             std::shared_ptr<Ecs> m_ecs;

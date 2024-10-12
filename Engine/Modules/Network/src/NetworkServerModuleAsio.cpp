@@ -12,6 +12,7 @@
 #include "Rte/Ecs/Types.hpp"
 #include "Rte/Network/NetworkModuleTypes.hpp"
 #include <algorithm>
+#include <cstdint>
 #include <iostream>
 #include <map>
 #include <memory>
@@ -36,7 +37,22 @@ void Rte::Network::NetworkServerModuleAsio::updateTexture(std::map<Entity, Packe
     m_textures = textures;
 }
 
+void Rte::Network::NetworkServerModuleAsio::deleteEntity(BasicComponents::UidComponents id) {
+    m_server->sendDeleteEntity(id);
+}
+
+// JB me send mtn que les entity qui ont gechan
+// JB me dit mtn qq les entity sont deleted
+
 void Rte::Network::NetworkServerModuleAsio::update() {
+    m_server->update();
+
+    Event event(Rte::Network::Events::INPUT);
+    event.setParameter<PackedInput>(Rte::Network::Events::Params::INPUT, m_server->getCurrentInput());
+    m_ecs->sendEvent(event);
+}
+
+void Rte::Network::NetworkServerModuleAsio::sendUpdate() {
     if (m_server == nullptr) return;
     if (m_entities == nullptr) return;
 
@@ -54,18 +70,4 @@ void Rte::Network::NetworkServerModuleAsio::update() {
         }
 
     }
-
-    for (auto& alreadySentEntity : m_alreadySentEntity) {
-        auto it = std::find(m_entities->begin(), m_entities->end(), alreadySentEntity);
-
-        if (it == m_entities->end()) {
-            Event event(Rte::Network::Events::ENTITY_DELETED);
-            event.setParameter<Entity>(Rte::Network::Events::Params::ENTITY_ID, *it);
-            m_ecs->sendEvent(event);
-
-            m_alreadySentEntity.erase(std::find(m_alreadySentEntity.begin(), m_alreadySentEntity.end(), alreadySentEntity));
-        }
-    }
-
-    m_server->update();
 }

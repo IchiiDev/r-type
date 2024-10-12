@@ -29,7 +29,9 @@ namespace Rte::Network {
     enum class CustomMsgTypes : uint32_t {
 	    EntityUpdated, // BasicComponents::UidComponents id <------> BasicComponets::Transform transform
         EntityCreated, // BasicComponents::UidComponents id <------> BasicComponets::Transform transform <------> std::vector<u8> pixels <------> Vec2<u16> size
+        EntityDeleted, // BasicComponents::UidComponents id
         Input // Packed Input
+
     };
 
     class CustomClient : public bnl::net::IClient<CustomMsgTypes> {
@@ -70,12 +72,25 @@ namespace Rte::Network {
                 messageAllClient(msg);
             }
 
+            void sendDeleteEntity(BasicComponents::UidComponents uidComponent) {
+                bnl::net::message<CustomMsgTypes> msg;
+                msg.header.id = CustomMsgTypes::EntityDeleted;
+
+                msg << uidComponent;
+
+                messageAllClient(msg);
+            }
+        
+        public:
+            PackedInput getCurrentInput() { return m_currentInput; }
+
         protected:
             bool onClientConnect(std::shared_ptr<bnl::net::Connection<CustomMsgTypes>> client) override {
                 bool result = m_connectionsQueue.size() <= 8;
 
                 if (result) {
                     Event event(Rte::Network::Events::PLAYER_CREATED);
+                    event.setParameter<uint32_t>(Events::Params::PLAYER_ID, client->getId());
                     m_ecs->sendEvent(event);
                 }
 
@@ -83,7 +98,8 @@ namespace Rte::Network {
             }
 
             void onClientDisconnect(std::shared_ptr<bnl::net::Connection<CustomMsgTypes>> client) override {
-                Event event(Rte::Network::Events::DISCONNECTED);
+                Event event(Rte::Network::Events::PLAYER_DELTED);
+                event.setParameter<uint32_t>(Events::Params::PLAYER_ID, client->getId());
                 m_ecs->sendEvent(event);
             }
 
@@ -94,14 +110,13 @@ namespace Rte::Network {
 
                         msg >> input;
 
-                        Event event(Rte::Network::Events::INPUT);
-                        event.setParameter<PackedInput>(Rte::Network::Events::Params::INPUT, input);
-                        m_ecs->sendEvent(event);
+                        m_currentInput = input;
                         break;
                     } break;
                 }
             }
         private:
             std::shared_ptr<Ecs> m_ecs;
+            PackedInput m_currentInput;
     };
 } // namespace Rte::Network

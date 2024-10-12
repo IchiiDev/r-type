@@ -17,6 +17,7 @@ namespace Rte::Network {
         public:
             virtual void connect(const std::string& host, const unsigned int& port) = 0;
             virtual void updateInputs(PackedInput input) = 0;
+            virtual void sendUpdate() = 0;
     };
 } // namespace Rte::Network
 

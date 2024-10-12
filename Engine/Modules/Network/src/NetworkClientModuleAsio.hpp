@@ -27,6 +27,7 @@ namespace Rte::Network {
         public:
             void connect(const std::string& host, const unsigned int& port) override;
             void updateInputs(PackedInput input) override;
+            void sendUpdate() override;
 
         private:
             PackedInput m_input;

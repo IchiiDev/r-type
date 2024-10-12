@@ -107,6 +107,7 @@ void ServerApp::run() {
         m_networkModuleServer->updateTexture(m_newEntitiesTextures);
         m_networkModuleServer->updateEntity(m_entities);
         m_networkModuleServer->update();
+        m_networkModuleServer->sendUpdate();
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
 }

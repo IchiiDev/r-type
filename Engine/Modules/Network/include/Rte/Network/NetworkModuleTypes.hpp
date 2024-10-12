@@ -45,6 +45,7 @@ namespace Rte::Network {
         const EventType ENTITY_UPDATED = "Events::ENTITY_UPDATED"_hash;
         const EventType ENTITY_DELETED = "Events::ENTITY_DELETED"_hash;
         const EventType PLAYER_CREATED = "Events::PLAYER_CREATED"_hash;
+        const EventType PLAYER_DELTED = "Events::PLAYER_DELETED"_hash;
         const EventType INPUT = "Events::INPUT"_hash;
     } // namespace Events
 
@@ -52,6 +53,7 @@ namespace Rte::Network {
         const ParamId PACKED_NEW_ENTITY = "Events::Params::PACKED_NEW_ENTITY"_hash;
         const ParamId PACKED_UPDATE_ENTITY = "Events::Params::PACKED_UPDATE_ENTITY"_hash;
         const ParamId ENTITY_ID = "Events::Params::ENTITY_UID"_hash;
+        const ParamId PLAYER_ID = "Events::Params::PLAYER_ID"_hash;
         const ParamId INPUT = "Events::Params::INPUT"_hash;
     } // namespace Events::Params
 };

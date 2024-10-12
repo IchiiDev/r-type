@@ -111,5 +111,6 @@ void ClientApp::run() {
 
         m_graphicModule->update();
         m_networkModuleClient->update();
+        m_networkModuleClient->sendUpdate();
     }
 }

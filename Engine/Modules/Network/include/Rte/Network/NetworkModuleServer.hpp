@@ -18,5 +18,7 @@ namespace Rte::Network {
             virtual void start(unsigned int port) = 0;
             virtual void updateEntity(const std::shared_ptr<std::vector<Entity>>& entities) = 0;
             virtual void updateTexture(std::map<Entity, PackedTexture>& textures) = 0;
+            virtual void sendUpdate() = 0;
+            virtual void deleteEntity(BasicComponents::UidComponents id) = 0;
     };
 } // namespace Rte::Network
