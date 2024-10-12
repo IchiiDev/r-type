@@ -32,6 +32,7 @@ namespace Rte::Network {
             void updateTexture(std::map<Entity, PackedTexture>& textures) override;
             void sendUpdate() override;
             void deleteEntity(BasicComponents::UidComponents id) override;
+            void deletePlayer(BasicComponents::UidComponents id, uint32_t playerId) override;
 
         private:
             std::shared_ptr<Ecs> m_ecs;

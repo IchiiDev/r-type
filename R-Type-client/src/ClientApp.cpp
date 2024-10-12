@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <iostream>
 #include <memory>
+#include <thread>
 
 ClientApp::ClientApp() {
     m_ecs = std::make_shared<Rte::Ecs>();
@@ -68,11 +69,11 @@ void ClientApp::run() {
 
     // Entity destroyed event
     m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Network::Events::ENTITY_DELETED, [&](Rte::Event& event) {
-        const Rte::Entity destroyedEntityId = event.getParameter<Rte::Entity>(Rte::Network::Events::Params::ENTITY_ID);
+        const Rte::BasicComponents::UidComponents destroyedEntityUid = event.getParameter<Rte::BasicComponents::UidComponents>(Rte::Network::Events::Params::ENTITY_ID);
 
         // Search for the entity with the given uid and destroy it
         for (const Rte::Entity& entity : m_entities) {
-            if (m_ecs->getComponent<Rte::BasicComponents::UidComponents>(entity).uid == destroyedEntityId) {
+            if (m_ecs->getComponent<Rte::BasicComponents::UidComponents>(entity).uid == destroyedEntityUid.uid) {
                 m_ecs->destroyEntity(entity);
                 m_entities.erase(std::remove(m_entities.begin(), m_entities.end(), entity), m_entities.end());
                 break;
@@ -99,6 +100,14 @@ void ClientApp::run() {
     }));
 
 
+    // Network thread
+    std::thread networkThread([&] {
+        while (m_running)
+            m_networkModuleClient->update();
+    });
+
+
+    // Main loop
     while(m_running) {
         // Get inputs from player
         m_networkModuleClient->updateInputs(Rte::Network::PackedInput{
@@ -110,7 +119,8 @@ void ClientApp::run() {
         });
 
         m_graphicModule->update();
-        m_networkModuleClient->update();
         m_networkModuleClient->sendUpdate();
     }
+
+    networkThread.join();
 }

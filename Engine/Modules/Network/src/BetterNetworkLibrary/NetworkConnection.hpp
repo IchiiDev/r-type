@@ -17,6 +17,7 @@
 #include "asio/read.hpp"
 #include "asio/write.hpp"
 #include <cstddef>
+#include <cstdint>
 #include <iostream>
 #include <memory>
 #include <ostream>
@@ -37,16 +38,15 @@ namespace bnl {
                 Connection(owner parent, asio::io_context& ioContext, asio::ip::tcp::socket socket, TSQueue<OwnedMessage<T>>& receiveQueue)
                     : m_asioContext(ioContext), m_socket(std::move(socket)), m_receiveQueue(receiveQueue), m_ownerType(parent) {
                 }
-                virtual ~Connection() {}
+                virtual ~Connection() = default;
 
             public:
-                void connectToClient(uint32_t id = 0) {
-                    if (m_ownerType == owner::server) {
-                        if (m_socket.is_open()) {
-                            m_id = id;
+                void setId(uint32_t id) { m_id = id; }
+
+                void connectToClient() {
+                    if (m_ownerType == owner::server)
+                        if (m_socket.is_open())
                             readHeader();
-                        }
-                    }
                 }
 
                 void connectToServer(const asio::ip::tcp::resolver::results_type& endpoints) {

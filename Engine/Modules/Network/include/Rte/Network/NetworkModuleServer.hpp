@@ -20,5 +20,6 @@ namespace Rte::Network {
             virtual void updateTexture(std::map<Entity, PackedTexture>& textures) = 0;
             virtual void sendUpdate() = 0;
             virtual void deleteEntity(BasicComponents::UidComponents id) = 0;
+            virtual void deletePlayer(BasicComponents::UidComponents id, uint32_t playerId) = 0;
     };
 } // namespace Rte::Network

@@ -45,7 +45,7 @@ namespace Rte::Network {
         const EventType ENTITY_UPDATED = "Events::ENTITY_UPDATED"_hash;
         const EventType ENTITY_DELETED = "Events::ENTITY_DELETED"_hash;
         const EventType PLAYER_CREATED = "Events::PLAYER_CREATED"_hash;
-        const EventType PLAYER_DELTED = "Events::PLAYER_DELETED"_hash;
+        const EventType PLAYER_DELETED = "Events::PLAYER_DELETED"_hash;
         const EventType INPUT = "Events::INPUT"_hash;
     } // namespace Events
 

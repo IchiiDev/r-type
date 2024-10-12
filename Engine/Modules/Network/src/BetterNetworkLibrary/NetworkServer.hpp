@@ -65,10 +65,12 @@ namespace bnl {
                                 std::shared_ptr<Connection<T>> newConnection = std::make_shared<Connection<T>>(Connection<T>::owner::server,
                                     m_asioContext, std::move(socket), m_receivedMessage);
 
+                                newConnection->setId(m_idCounter++);
+
                                 if (onClientConnect(newConnection)) {
                                     m_connectionsQueue.push_back(std::move(newConnection));
 
-                                    m_connectionsQueue.back()->connectToClient(m_idCounter++);
+                                    m_connectionsQueue.back()->connectToClient();
 
                                     std::cout << "[" << m_connectionsQueue.back()->getId() << "] Connection approved" << std::endl;
                                 } else {
@@ -95,6 +97,7 @@ namespace bnl {
 
                 void messageAllClient(const message<T>& msg, std::shared_ptr<Connection<T>> ignoredClient = nullptr) {
                     bool invalidClient = false;
+
 
                     for (auto& connection : m_connectionsQueue) {
                         if (connection && connection->isConnected()) {

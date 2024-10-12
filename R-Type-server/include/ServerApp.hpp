@@ -8,6 +8,8 @@
 #include "Rte/Network/NetworkModuleServer.hpp"
 #include "Rte/Physics/PhysicsModule.hpp"
 
+#include <cstdint>
+#include <map>
 #include <memory>
 #include <vector>
 
@@ -32,7 +34,7 @@ class ServerApp {
         std::shared_ptr<Rte::Graphic::GraphicModule> m_graphicModule;
         std::shared_ptr<Rte::Network::NetworkModuleServer> m_networkModuleServer;
 
-        std::vector<Player> m_players;
+        std::map<uint32_t, std::unique_ptr<Player>> m_players;
         std::shared_ptr<std::vector<Rte::Entity>> m_entities;
         std::map<Rte::Entity, Rte::Network::PackedTexture> m_newEntitiesTextures;
 

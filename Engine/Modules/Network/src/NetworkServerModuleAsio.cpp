@@ -16,6 +16,7 @@
 #include <iostream>
 #include <map>
 #include <memory>
+#include <thread>
 #include <vector>
 
 using namespace Rte;
@@ -41,30 +42,30 @@ void Rte::Network::NetworkServerModuleAsio::deleteEntity(BasicComponents::UidCom
     m_server->sendDeleteEntity(id);
 }
 
+void Rte::Network::NetworkServerModuleAsio::deletePlayer(BasicComponents::UidComponents id, uint32_t playerId) {
+    m_server->sendDeletePlayer(id, playerId);
+}
+
 // JB me send mtn que les entity qui ont gechan
 // JB me dit mtn qq les entity sont deleted
 
 void Rte::Network::NetworkServerModuleAsio::update() {
     m_server->update();
-
-    Event event(Rte::Network::Events::INPUT);
-    event.setParameter<PackedInput>(Rte::Network::Events::Params::INPUT, m_server->getCurrentInput());
-    m_ecs->sendEvent(event);
 }
 
 void Rte::Network::NetworkServerModuleAsio::sendUpdate() {
     if (m_server == nullptr) return;
     if (m_entities == nullptr) return;
 
-    for (auto& entity : *m_entities) {
-        const BasicComponents::UidComponents uidComponent = m_ecs->getComponent<BasicComponents::UidComponents>(entity);
-        const BasicComponents::Transform& transformComponent = m_ecs->getComponent<BasicComponents::Transform>(entity);
-        auto it = std::find(m_alreadySentEntity.begin(), m_alreadySentEntity.end(), entity);
+    for (int i = 0; i < m_entities->size(); i++) {
+        const BasicComponents::UidComponents uidComponent = m_ecs->getComponent<BasicComponents::UidComponents>(m_entities->at(i));
+        const BasicComponents::Transform& transformComponent = m_ecs->getComponent<BasicComponents::Transform>(m_entities->at(i));
+        auto it = std::find(m_alreadySentEntity.begin(), m_alreadySentEntity.end(), m_entities->at(i));
 
         if (it == m_alreadySentEntity.end()) {
-            m_alreadySentEntity.push_back(entity);
+            m_alreadySentEntity.push_back(m_entities->at(i));
 
-            m_server->sendNewEntity(transformComponent, m_textures[entity].pixels, m_textures[entity].size, uidComponent);
+            m_server->sendNewEntity(transformComponent, m_textures[m_entities->at(i)].pixels, m_textures[m_entities->at(i)].size, uidComponent);
         } else {
             m_server->sendUpdatedEntity(transformComponent, uidComponent);
         }

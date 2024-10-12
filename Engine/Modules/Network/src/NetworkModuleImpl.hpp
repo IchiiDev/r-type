@@ -80,7 +80,21 @@ namespace Rte::Network {
 
                 messageAllClient(msg);
             }
-        
+
+            void sendDeletePlayer(BasicComponents::UidComponents uidComponent, uint32_t playerId) {
+                bnl::net::message<CustomMsgTypes> msg;
+                msg.header.id = CustomMsgTypes::EntityDeleted;
+
+                msg << uidComponent;
+
+                for (auto& client : m_connectionsQueue) {
+                    if (client && client->isConnected() && client->getId() == playerId) {
+                        messageClient(client, msg);
+                        break;
+                    }
+                }
+            }
+
         public:
             PackedInput getCurrentInput() { return m_currentInput; }
 
@@ -98,7 +112,7 @@ namespace Rte::Network {
             }
 
             void onClientDisconnect(std::shared_ptr<bnl::net::Connection<CustomMsgTypes>> client) override {
-                Event event(Rte::Network::Events::PLAYER_DELTED);
+                Event event(Rte::Network::Events::PLAYER_DELETED);
                 event.setParameter<uint32_t>(Events::Params::PLAYER_ID, client->getId());
                 m_ecs->sendEvent(event);
             }
@@ -107,10 +121,14 @@ namespace Rte::Network {
                 switch (msg.header.id) {
                     case CustomMsgTypes::Input: {
                         PackedInput input;
-
                         msg >> input;
-
                         m_currentInput = input;
+
+                        Event event(Rte::Network::Events::INPUT);
+                        event.setParameter<PackedInput>(Rte::Network::Events::Params::INPUT, input);
+                        event.setParameter<uint32_t>(Rte::Network::Events::Params::PLAYER_ID, client->getId());
+                        m_ecs->sendEvent(event);
+
                         break;
                     } break;
                 }
