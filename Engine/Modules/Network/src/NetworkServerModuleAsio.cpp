@@ -23,6 +23,10 @@ using namespace Rte;
 
 void Rte::Network::NetworkServerModuleAsio::init(const std::shared_ptr<Ecs>& ecs) {
     m_ecs = ecs;
+
+    m_ecs->addEventListener(LAMBDA_LISTENER(Events::MICRO_EVENT, [&](const Event& /* UNUSED */) {
+        m_alreadySentEntity.clear();
+    }));
 }
 
 void Rte::Network::NetworkServerModuleAsio::start(const unsigned int port) {

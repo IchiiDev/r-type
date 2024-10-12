@@ -106,6 +106,9 @@ namespace Rte::Network {
                     Event event(Rte::Network::Events::PLAYER_CREATED);
                     event.setParameter<uint32_t>(Events::Params::PLAYER_ID, client->getId());
                     m_ecs->sendEvent(event);
+
+                    event = Event(Events::MICRO_EVENT);
+                    m_ecs->sendEvent(event);
                 }
 
                 return result;

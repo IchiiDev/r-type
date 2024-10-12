@@ -53,6 +53,10 @@ void ClientApp::run() {
     // Entity created event
     m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Network::Events::ENTITY_CREATED, [&](Rte::Event& event) {
         const Rte::Network::PackedNewEntity& packedNewEntity = event.getParameter<Rte::Network::PackedNewEntity>(Rte::Network::Events::Params::PACKED_NEW_ENTITY);
+        if (std::find_if(m_entities.begin(), m_entities.end(), [&](const Rte::Entity& entity) {
+            return m_ecs->getComponent<Rte::BasicComponents::UidComponents>(entity).uid == packedNewEntity.id;
+        }) != m_entities.end())
+            return;
 
         std::shared_ptr<Rte::Graphic::Texture> newEntityTexture = m_graphicModule->createTexture();
         newEntityTexture->loadFromMemory(packedNewEntity.pixels.data(), packedNewEntity.size);

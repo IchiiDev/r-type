@@ -14,6 +14,7 @@
 #include <vector>
 
 namespace Rte::Network {
+
     struct PackedNewEntity {
         uint32_t id{};
         BasicComponents::Transform transform;
@@ -47,6 +48,7 @@ namespace Rte::Network {
         const EventType PLAYER_CREATED = "Events::PLAYER_CREATED"_hash;
         const EventType PLAYER_DELETED = "Events::PLAYER_DELETED"_hash;
         const EventType INPUT = "Events::INPUT"_hash;
+        const EventType MICRO_EVENT = "Events::MICRO_EVENT"_hash;
     } // namespace Events
 
     namespace Events::Params {
@@ -56,4 +58,5 @@ namespace Rte::Network {
         const ParamId PLAYER_ID = "Events::Params::PLAYER_ID"_hash;
         const ParamId INPUT = "Events::Params::INPUT"_hash;
     } // namespace Events::Params
-};
+
+}   // namespace Rte::Network
