@@ -170,18 +170,22 @@ void GraphicModuleImpl::update() {
 
         // Check for key pressed
         if (const sf::Event::KeyPressed *keyPressed = event->getIf<sf::Event::KeyPressed>()) {
-            Event event(Events::KEY_PRESSED);
-            event.setParameter<Key>(Events::Params::KEY_PRESSED, sfmlKeyToRteKey.at(keyPressed->code));
-            m_ecs->sendEvent(event);
+            if (m_window.hasFocus()) {
+                Event event(Events::KEY_PRESSED);
+                event.setParameter<Key>(Events::Params::KEY_PRESSED, sfmlKeyToRteKey.at(keyPressed->code));
+                m_ecs->sendEvent(event);
+            }
         }
 
 
         // Check for mouse button pressed
         if (const sf::Event::MouseButtonPressed *mouseButtonPressed = event->getIf<sf::Event::MouseButtonPressed>()) {
-            Event event(Events::MOUSE_BUTTON_PRESSED);
-            event.setParameter<MouseButton>(Events::Params::MOUSE_BUTTON_PRESSED, sfmlMouseButtonToRteMouseButton.at(mouseButtonPressed->button));
-            event.setParameter<Vec2<u16>>(Events::Params::MOUSE_BUTTON_PRESSED_POSITION, Vec2<u16>(mouseButtonPressed->position.x, mouseButtonPressed->position.y));
-            m_ecs->sendEvent(event);
+            if (m_window.hasFocus()) {
+                Event event(Events::MOUSE_BUTTON_PRESSED);
+                event.setParameter<MouseButton>(Events::Params::MOUSE_BUTTON_PRESSED, sfmlMouseButtonToRteMouseButton.at(mouseButtonPressed->button));
+                event.setParameter<Vec2<u16>>(Events::Params::MOUSE_BUTTON_PRESSED_POSITION, Vec2<u16>(mouseButtonPressed->position.x, mouseButtonPressed->position.y));
+                m_ecs->sendEvent(event);
+            }
         }
     }
 
@@ -195,11 +199,11 @@ void GraphicModuleImpl::update() {
 }
 
 bool GraphicModuleImpl::isKeyPressed(Key key) const {
-    return sf::Keyboard::isKeyPressed(rteKeyToSfmlKey.at(key));
+    return m_window.hasFocus() && sf::Keyboard::isKeyPressed(rteKeyToSfmlKey.at(key));
 }
 
 bool GraphicModuleImpl::isMouseButtonPressed(MouseButton button) const {
-    return sf::Mouse::isButtonPressed(rteMouseButtonToSfmlMouseButton.at(button));
+    return m_window.hasFocus() && sf::Mouse::isButtonPressed(rteMouseButtonToSfmlMouseButton.at(button));
 }
 
 Rte::Vec2<Rte::u16> GraphicModuleImpl::getMousePosition() const {
