@@ -8,6 +8,7 @@
 #include "Rte/Network/NetworkModuleClient.hpp"
 
 #include <memory>
+#include <mutex>
 #include <vector>
 
 class ClientApp {
@@ -53,5 +54,6 @@ class ClientApp {
         //////////////////
         // Game Related //
         //////////////////
+        std::mutex m_entitiesMutex;
         std::vector<Rte::Entity> m_entities;
 };
