@@ -116,10 +116,6 @@ void ServerApp::run() {
         if (packedInput.fly)
             m_players.at(playerId)->move({0, -20});
         if (packedInput.shoot) {
-            std::cout << "Player " << playerId << " is shooting" << std::endl;
-
-            std::cout << "Player Pos " << m_players.at(playerId)->getPos().x << " " << m_players.at(playerId)->getPos().y << std::endl;
-            std::cout << "Mouse Pos " << packedInput.mousePos.x - m_graphicModule->getWindowSize().x / 2.F << " " << packedInput.mousePos.y - m_graphicModule->getWindowSize().y / 2.F << std::endl;
             const float shootAngle = -std::atan2(
                 static_cast<float>(m_players.at(playerId)->getPos().x) - (static_cast<float>(packedInput.mousePos.x) - m_graphicModule->getWindowSize().x / 2.F),
                 static_cast<float>(m_players.at(playerId)->getPos().y) - (static_cast<float>(packedInput.mousePos.y) - m_graphicModule->getWindowSize().y / 2.F)
@@ -141,7 +137,6 @@ void ServerApp::run() {
 
             Rte::Network::PackedTexture packedTexture{};
             packedTexture.size = texture->getSize();
-            std::cout << "Texture size: " << packedTexture.size.x << " " << packedTexture.size.y << std::endl;
             packedTexture.pixels = pixelsVector;
 
             m_newEntitiesTextures[projectile] = packedTexture;

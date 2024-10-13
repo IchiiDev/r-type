@@ -69,7 +69,7 @@ Rte::Entity Player::shoot(float angle) {
         false,
         Rte::Physics::ShapeType::CIRCLE
     )});
-    float force = 0.4;
+    float force = 0.2;
     m_physicsModule->applyForce(m_ecs->getComponent<Rte::Physics::Components::Physics>(projectile).shapeBody, {
         static_cast<float>(cos(angle) * force),
         static_cast<float>(sin(-angle) * force)
