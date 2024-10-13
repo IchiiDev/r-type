@@ -118,10 +118,12 @@ void ServerApp::run() {
         if (packedInput.shoot) {
             std::cout << "Player " << playerId << " is shooting" << std::endl;
 
-            const float shootAngle = std::atan2(
-                static_cast<float>(m_players.at(playerId)->getPos().x) - static_cast<float>(packedInput.mousePos.x),
-                static_cast<float>(m_players.at(playerId)->getPos().y) - static_cast<float>(packedInput.mousePos.y)
-            );
+            std::cout << "Player Pos " << m_players.at(playerId)->getPos().x << " " << m_players.at(playerId)->getPos().y << std::endl;
+            std::cout << "Mouse Pos " << packedInput.mousePos.x - m_graphicModule->getWindowSize().x / 2.F << " " << packedInput.mousePos.y - m_graphicModule->getWindowSize().y / 2.F << std::endl;
+            const float shootAngle = -std::atan2(
+                static_cast<float>(m_players.at(playerId)->getPos().x) - (static_cast<float>(packedInput.mousePos.x) - m_graphicModule->getWindowSize().x / 2.F),
+                static_cast<float>(m_players.at(playerId)->getPos().y) - (static_cast<float>(packedInput.mousePos.y) - m_graphicModule->getWindowSize().y / 2.F)
+            ) - std::numbers::pi_v<float> / 2;
 
             Rte::Entity projectile = m_players.at(playerId)->shoot(shootAngle);
             if (projectile == 0)
