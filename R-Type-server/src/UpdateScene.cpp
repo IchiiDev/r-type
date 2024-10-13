@@ -24,6 +24,7 @@ void ServerApp::updateScene() {
     if (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - m_clock).count() > 3000) {
         createEnemy({1800, std::clamp(static_cast<float>(rand() % 1080), 100.F, 1000.F)});
     }
+    updatePowerups();
     updateEnemies();
     updatePlayers();
 }

@@ -51,13 +51,18 @@ void ServerApp::updateProjectiles() {
         for (auto& [enemyId, enemy] : m_enemies) {
             if (m_physicsModule->colliding(m_ecs->getComponent<Rte::Physics::Components::Physics>(*m_projectiles[i]).shapeBody, m_ecs->getComponent<Rte::Physics::Components::Physics>(enemy->getEntity()).shapeBody)) {
                 enemy->takeDamage();
+                if (enemy->getHealth() <= 0 && rand() % 5 == 1) {
+                    Rte::Vec2<float> pos = enemy->getPos();
+                    destroyEnemy(enemy->getEntity());
+                    createPowerup(pos);
+                }
                 destroyProjectile(*m_projectiles[i]);
                 return;
             }
         }
         for (auto& [playerId, player] : m_players) {
             if (m_physicsModule->colliding(m_ecs->getComponent<Rte::Physics::Components::Physics>(*m_projectiles[i]).shapeBody, m_ecs->getComponent<Rte::Physics::Components::Physics>(player->getEntity()).shapeBody)) {
-                player->takeDamage();
+                player->takeDamage(20);
                 destroyProjectile(*m_projectiles[i]);
                 return;
             }

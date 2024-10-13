@@ -93,7 +93,12 @@ Rte::Entity Player::shoot(float angle) {
     return projectile;
 }
 
-void Player::takeDamage() {
+void Player::heal(float amount) {
+    m_health += 10;
+    if (m_health > m_maxHealth)
+        m_health = m_maxHealth;
+}
+void Player::takeDamage(float amount) {
     m_health -= 10;
     if (m_health < 0)
         m_health = 0;

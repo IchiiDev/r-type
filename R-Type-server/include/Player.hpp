@@ -25,14 +25,14 @@ class Player {
 
         Rte::Entity shoot(float angle);
         void update();
-        void takeDamage();
+        void takeDamage(float amount);
+        void heal(float amount);
 
         [[nodiscard]] Rte::Entity getEntity() const;
         [[nodiscard]] float getHealth() const;
         [[nodiscard]] Rte::Vec2<float> getPos() const;
         [[nodiscard]] float getMana() const;
         [[nodiscard]] float getFlightTime() const;
-        [[nodiscard]] Rte::Vec2<float> getDestroyedProjectilePos();
 
 
     private:

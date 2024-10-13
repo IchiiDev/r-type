@@ -32,8 +32,6 @@ class Enemy {
         [[nodiscard]] Rte::Vec2<float> getPos() const;
         [[nodiscard]] float getMana() const;
         [[nodiscard]] float getFlightTime() const;
-        [[nodiscard]] Rte::Vec2<float> getDestroyedProjectilePos();
-
 
     private:
         Rte::Entity m_enemy;

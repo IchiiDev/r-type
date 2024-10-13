@@ -26,15 +26,28 @@ class ServerApp {
         ServerApp& operator=(ServerApp&&) noexcept = delete;
 
         void run();
+
+        // Scene
         void initScene();
         void updateScene();
-        void destroyProjectile(const Rte::Entity& projectile);
-        void updateProjectiles();
+        
+        // Players
+        void updatePlayers();
+
+        // Enemies
         void createEnemy(Rte::Vec2<float> pos);
         void destroyEnemy(const Rte::Entity& enemy);
         void updateEnemies();
+        
+        // Projectiles
         void createProjectile(Rte::Entity projectile);
-        void updatePlayers();
+        void updateProjectiles();
+        void destroyProjectile(const Rte::Entity& projectile);
+
+        // Powerups
+        void updatePowerups();
+        void createPowerup(Rte::Vec2<float> pos);
+        void destroyPowerup(const Rte::Entity& powerup);
 
     private:
         Rte::ModuleManager moduleManager;
@@ -50,6 +63,8 @@ class ServerApp {
         std::map<uint32_t, std::unique_ptr<Player>> m_players;
         std::shared_ptr<std::vector<Rte::Entity>> m_entities;
         std::vector<std::unique_ptr<Rte::Entity>> m_projectiles;
+        std::vector<std::unique_ptr<Rte::Entity>> m_powerups;
+        std::vector<std::unique_ptr<Rte::Entity>> m_obstacles;
         std::map<uint32_t, std::unique_ptr<Enemy>> m_enemies;
         Rte::Entity m_rightWall;
         Rte::Entity m_leftWall;
