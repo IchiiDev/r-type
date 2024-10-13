@@ -49,7 +49,6 @@ ServerApp::ServerApp() {
 }
 
 void ServerApp::run() {
-    std::mutex mutex;
 
     // Sandbox creation
     constexpr Rte::Vec2<float> sandBoxScale = {8, 8};
@@ -60,6 +59,8 @@ void ServerApp::run() {
     m_ecs->addComponent<Rte::BasicComponents::Transform>(sandBoxEntity, Rte::BasicComponents::Transform{sandBoxPosition, sandBoxScale, 0});
     m_ecs->addComponent<Rte::Physics::Components::Physics>(sandBoxEntity, Rte::Physics::Components::Physics{.sandBox = m_physicsModule->createSandBox(sandBoxSize)});
 
+    // Init scene
+    initScene();
 
     // Player creation event
     m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Network::Events::PLAYER_CREATED, [&](Rte::Event& event) {
@@ -90,18 +91,15 @@ void ServerApp::run() {
         const uint32_t playerId = event.getParameter<uint32_t>(Rte::Network::Events::Params::PLAYER_ID);
         const Rte::Entity playerEntity = m_players.at(playerId)->getEntity();
 
-        mutex.lock(); {
-            const Rte::BasicComponents::UidComponents uid = m_ecs->getComponent<Rte::BasicComponents::UidComponents>(playerEntity);
+        const Rte::BasicComponents::UidComponents uid = m_ecs->getComponent<Rte::BasicComponents::UidComponents>(playerEntity);
 
-            m_entities->erase(std::remove(m_entities->begin(), m_entities->end(), playerEntity), m_entities->end());
-            m_ecs->destroyEntity(playerEntity);
-            m_players.erase(playerId);
+        m_entities->erase(std::remove(m_entities->begin(), m_entities->end(), playerEntity), m_entities->end());
+        m_ecs->destroyEntity(playerEntity);
+        m_players.erase(playerId);
 
-            for (auto& [playerId, player] : m_players)
-                m_networkModuleServer->deletePlayer(uid, playerId);
-            m_networkModuleServer->updateEntity(m_entities);
-        }
-        mutex.unlock();
+        for (auto& [playerId, player] : m_players)
+            m_networkModuleServer->deletePlayer(uid, playerId);
+        m_networkModuleServer->updateEntity(m_entities);
     }));
 
 
@@ -166,6 +164,7 @@ void ServerApp::run() {
 
         for (auto& [playerId, player] : m_players)
             player->update();
+        updateScene();
         m_networkModuleServer->update();
         m_networkModuleServer->updateTexture(m_newEntitiesTextures);
         m_networkModuleServer->updateEntity(m_entities);
