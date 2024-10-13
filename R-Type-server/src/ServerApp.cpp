@@ -12,15 +12,11 @@
 #include "Rte/Physics/Components.hpp"
 #include "Rte/Physics/PhysicsModule.hpp"
 
-#include <chrono>
-#include <cmath>
 #include <cstdint>
 #include <iostream>
 #include <memory>
 #include <mutex>
-#include <thread>
 #include <vector>
-#include <numbers>
 
 ServerApp::ServerApp() {
     m_ecs = std::make_shared<Rte::Ecs>();
@@ -42,7 +38,6 @@ ServerApp::ServerApp() {
     m_networkModule = Rte::interfaceCast<Rte::Network::NetworkModule>(moduleManager.loadModule("RteNetwork"));
     m_networkModuleServer = m_networkModule->getServer();
     m_networkModuleServer->init(m_ecs);
-    m_networkModuleServer->start(123456);
 
     // Allocs
     m_entities = std::make_shared<std::vector<Rte::Entity>>();
@@ -90,18 +85,15 @@ void ServerApp::run() {
         const uint32_t playerId = event.getParameter<uint32_t>(Rte::Network::Events::Params::PLAYER_ID);
         const Rte::Entity playerEntity = m_players.at(playerId)->getEntity();
 
-        mutex.lock(); {
-            const Rte::BasicComponents::UidComponents uid = m_ecs->getComponent<Rte::BasicComponents::UidComponents>(playerEntity);
+        const Rte::BasicComponents::UidComponents uid = m_ecs->getComponent<Rte::BasicComponents::UidComponents>(playerEntity);
 
-            m_entities->erase(std::remove(m_entities->begin(), m_entities->end(), playerEntity), m_entities->end());
-            m_ecs->destroyEntity(playerEntity);
-            m_players.erase(playerId);
+        m_entities->erase(std::remove(m_entities->begin(), m_entities->end(), playerEntity), m_entities->end());
+        m_ecs->destroyEntity(playerEntity);
+        m_players.erase(playerId);
 
-            for (auto& [playerId, player] : m_players)
-                m_networkModuleServer->deletePlayer(uid, playerId);
-            m_networkModuleServer->updateEntity(m_entities);
-        }
-        mutex.unlock();
+        for (auto& [playerId, player] : m_players)
+            m_networkModuleServer->deletePlayer(uid, playerId);
+        m_networkModuleServer->updateEntity(m_entities);
     }));
 
 

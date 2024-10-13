@@ -6,32 +6,114 @@
 */
 
 #include "NetworkServerModuleAsio.hpp"
-#include "NetworkModuleImpl.hpp"
 #include "Rte/BasicComponents.hpp"
-#include "Rte/Common.hpp"
 #include "Rte/Ecs/Types.hpp"
 #include "Rte/Network/NetworkModuleTypes.hpp"
-#include <algorithm>
+#include "machin.hpp"
 #include <cstdint>
 #include <iostream>
 #include <map>
 #include <memory>
-#include <thread>
+#include <string>
 #include <vector>
 
 using namespace Rte;
 
 void Rte::Network::NetworkServerModuleAsio::init(const std::shared_ptr<Ecs>& ecs) {
     m_ecs = ecs;
+    m_buffer = new char[4096];
 
     m_ecs->addEventListener(LAMBDA_LISTENER(Events::MICRO_EVENT, [&](const Event& /* UNUSED */) {
         m_alreadySentEntity.clear();
     }));
+
+#ifdef _WIN32
+    WSADATA wsaData;
+    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+        std::cerr << "WSAStartup failed." << std::endl;
+        exit(1);
+    }
+#endif
+
+    m_sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (m_sockfd < 0) {
+        std::cerr << "Error opening socket." << std::endl;
+        exit(1);
+    }
+
+    memset(&m_serverAddr, 0, sizeof(m_serverAddr));
+    m_serverAddr.sin_family = AF_INET;
+    m_serverAddr.sin_addr.s_addr = INADDR_ANY;
+    m_serverAddr.sin_port = htons(m_port);
+
+    if (bind(m_sockfd, (struct sockaddr *)&m_serverAddr, sizeof(m_serverAddr)) < 0) {
+        std::cerr << "Error binding socket." << std::endl;
+        exit(1);
+    }
+
+    // Start
+    m_clientLen = sizeof(m_clientAddr);
+
+    fd_set readfds;
+    struct timeval tv;
+    int retval;
+
+    m_thread = std::thread([&]() {
+        while (true) {
+            FD_ZERO(&readfds);
+            FD_SET(m_sockfd, &readfds);
+
+            // Never timeout
+            tv.tv_sec = 10000000;
+            tv.tv_usec = 0;
+
+            retval = select(m_sockfd + 1, &readfds, NULL, NULL, &tv);
+
+            if (retval == -1) {
+                std::cerr << "Error in select." << std::endl;
+                continue;
+            } if (retval == 0) {
+                std::cout << "Timeout occurred! No data received." << std::endl;
+                continue;
+            }
+
+            if (FD_ISSET(m_sockfd, &readfds)) {
+                size_t receivedSize = receiveMessage();
+                if (receivedSize < 0) {
+                    std::cerr << "Error receiving data." << std::endl;
+                    continue;
+                }
+
+                std::string message = m_buffer;
+                switch (static_cast<MessageType>(std::stoi(message))) {
+                    case MessageType::CONNECTION_REQUEST: {
+                        std::cout << "Received connection request (message = \"" << message << "\")" << std::endl;
+                        std::string connectionResponse = std::to_string(static_cast<uint32_t>(MessageType::CONNECTION_REPONSE)) + " " + std::to_string(m_lastClientId);
+                        sendMessage(connectionResponse.c_str(), connectionResponse.size());
+                        break;
+                    }
+                    case MessageType::INPUT: {
+                        std::cout << "Received input (message = \"" << message << "\")" << std::endl;
+                        break;
+                    }
+                    default:
+                        std::cerr << "Unknown message type (message = \"" << message << "\")" << std::endl;
+                        break;
+                }
+            }
+        }
+    });
 }
 
-void Rte::Network::NetworkServerModuleAsio::start(const unsigned int port) {
-    m_server = std::make_unique<CustomServer>(port, m_ecs);
-	m_server->start();
+size_t Rte::Network::NetworkServerModuleAsio::receiveMessage() {
+    memset(m_buffer, 0, 4096);
+    return recvfrom(m_sockfd, m_buffer, 4096, 0, (struct sockaddr *)&m_clientAddr, &m_clientLen);
+}
+
+void Rte::Network::NetworkServerModuleAsio::sendMessage(const char* message, int size) {
+    int sentSize = sendto(m_sockfd, message, size, 0, (struct sockaddr *)&m_clientAddr, m_clientLen);
+    if (sentSize < 0)
+        std::cerr << "Error sending data." << std::endl;
 }
 
 void Rte::Network::NetworkServerModuleAsio::updateEntity(const std::shared_ptr<std::vector<Entity>>& entities) {
@@ -43,36 +125,13 @@ void Rte::Network::NetworkServerModuleAsio::updateTexture(std::map<Entity, Packe
 }
 
 void Rte::Network::NetworkServerModuleAsio::deleteEntity(BasicComponents::UidComponents id) {
-    m_server->sendDeleteEntity(id);
 }
 
 void Rte::Network::NetworkServerModuleAsio::deletePlayer(BasicComponents::UidComponents id, uint32_t playerId) {
-    m_server->sendDeletePlayer(id, playerId);
 }
 
-// JB me send mtn que les entity qui ont gechan
-// JB me dit mtn qq les entity sont deleted
-
 void Rte::Network::NetworkServerModuleAsio::update() {
-    m_server->update();
 }
 
 void Rte::Network::NetworkServerModuleAsio::sendUpdate() {
-    if (m_server == nullptr) return;
-    if (m_entities == nullptr) return;
-
-    for (int i = 0; i < m_entities->size(); i++) {
-        const BasicComponents::UidComponents uidComponent = m_ecs->getComponent<BasicComponents::UidComponents>(m_entities->at(i));
-        const BasicComponents::Transform& transformComponent = m_ecs->getComponent<BasicComponents::Transform>(m_entities->at(i));
-        auto it = std::find(m_alreadySentEntity.begin(), m_alreadySentEntity.end(), m_entities->at(i));
-
-        if (it == m_alreadySentEntity.end()) {
-            m_alreadySentEntity.push_back(m_entities->at(i));
-
-            m_server->sendNewEntity(transformComponent, m_textures[m_entities->at(i)].pixels, m_textures[m_entities->at(i)].size, uidComponent);
-        } else {
-            m_server->sendUpdatedEntity(transformComponent, uidComponent);
-        }
-
-    }
 }

@@ -8,11 +8,23 @@
 #pragma once
 
 #include "Rte/Network/NetworkModuleClient.hpp"
-#include "NetworkModuleImpl.hpp"
 #include "Rte/Network/NetworkModule.hpp"
 
+#include <array>
+#include <iostream>
 #include <memory>
 #include <sys/types.h>
+#include <thread>
+
+#ifdef _WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#pragma comment(lib, "ws2_32.lib")
+#else
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#endif
 
 namespace Rte::Network {
     class NetworkClientModuleAsio : public NetworkModuleClient {
@@ -25,19 +37,23 @@ namespace Rte::Network {
             void update() override;
 
         public:
-            void connect(const std::string& host, const unsigned int& port) override;
-            void connectUdp(const std::string& host, const unsigned int& port, unsigned int maxTry) override;
+            void connect(const char *host, uint32_t port) override;
             void updateInputs(PackedInput input) override;
             void sendUpdate() override;
 
         private:
+            void sendMessageToServer(const char *message, int size);
+            size_t receiveMessageFromServer();
+
+        private:
             PackedInput m_input;
-
-        private:
-            std::unique_ptr<CustomClient> m_client = nullptr;
             bool m_synAck = false;
-
-        private:
             std::shared_ptr<Ecs> m_ecs;
+
+            int m_socket;
+            struct sockaddr_in m_serverAddr;
+
+            char *m_buffer;
+            int m_clientId = 0;
     };
 } // namespace Rte::Network

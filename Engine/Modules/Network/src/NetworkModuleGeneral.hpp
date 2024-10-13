@@ -19,7 +19,7 @@ namespace Rte::Network {
         public:
             NetworkModuleGeneral() = default;
             ~NetworkModuleGeneral() = default;
-        
+
         public:
             void init(const std::shared_ptr<Ecs>& ecs) override {};
             void update() override {};
