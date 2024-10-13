@@ -46,6 +46,10 @@ ServerApp::ServerApp() {
 
     // Allocs
     m_entities = std::make_shared<std::vector<Rte::Entity>>();
+
+    // Time init
+    m_clock = std::chrono::high_resolution_clock::now();
+    m_startTime = std::chrono::high_resolution_clock::now();
 }
 
 void ServerApp::run() {
@@ -120,24 +124,8 @@ void ServerApp::run() {
 
         if (packedInput.shoot) {
             Rte::Entity projectile = m_players.at(playerId)->shoot(0);
-            if (projectile == 0)
-                return;
-
-            m_ecs->addComponent(projectile, Rte::BasicComponents::UidComponents{m_currentUid++});
-
-            m_projectiles.push_back(std::make_unique<Rte::Entity>(projectile));
-            m_entities->emplace_back(projectile);
-
-
-            const std::shared_ptr<Rte::Graphic::Texture>& texture = m_ecs->getComponent<Rte::Graphic::Components::Sprite>(projectile).texture;
-            const Rte::u8 *pixels = texture->getPixels();
-            std::vector<Rte::u8> pixelsVector(pixels, pixels + texture->getSize().x * texture->getSize().y * 4);
-
-            Rte::Network::PackedTexture packedTexture{};
-            packedTexture.size = texture->getSize();
-            packedTexture.pixels = pixelsVector;
-
-            m_newEntitiesTextures[projectile] = packedTexture;
+            if (projectile != 0)
+                createProjectile(projectile);
         }
     }));
 

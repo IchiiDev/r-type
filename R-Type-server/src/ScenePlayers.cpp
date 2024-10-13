@@ -19,11 +19,14 @@
 #include <memory>
 #include <numbers>
 
-void ServerApp::updateScene() {
-    updateProjectiles();
-    if (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - m_clock).count() > 3000) {
-        createEnemy({1800, std::clamp(static_cast<float>(rand() % 1080), 100.F, 1000.F)});
+void ServerApp::updatePlayers() {
+    for (auto& [playerId, player] : m_players) {
+        player->update();
+        for (auto& [enemyId, enemy] : m_enemies) {
+            if (m_physicsModule->colliding(m_ecs->getComponent<Rte::Physics::Components::Physics>(player->getEntity()).shapeBody, m_ecs->getComponent<Rte::Physics::Components::Physics>(enemy->getEntity()).shapeBody)) {
+                player->takeDamage();
+                destroyEnemy(enemy->getEntity());
+            }
+        }
     }
-    updateEnemies();
-    updatePlayers();
 }
