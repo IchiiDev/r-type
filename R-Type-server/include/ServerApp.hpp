@@ -36,6 +36,7 @@ class ServerApp {
 
         std::map<uint32_t, std::unique_ptr<Player>> m_players;
         std::shared_ptr<std::vector<Rte::Entity>> m_entities;
+        std::vector<std::unique_ptr<Rte::Entity>> m_projectiles;
         std::map<Rte::Entity, Rte::Network::PackedTexture> m_newEntitiesTextures;
 
         uint32_t m_currentUid = 0;

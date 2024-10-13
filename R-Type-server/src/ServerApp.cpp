@@ -114,8 +114,26 @@ void ServerApp::run() {
             m_players.at(playerId)->move({20, 0});
         if (packedInput.fly)
             m_players.at(playerId)->move({0, -20});
+        if (packedInput.shoot) {
+            std::cout << "Player " << playerId << " is shooting" << std::endl;
+            Rte::Entity projectile = m_players.at(playerId)->shoot(packedInput.shootingAngle);
+            m_ecs->addComponent(projectile, Rte::BasicComponents::UidComponents{m_currentUid++});
+            
+            m_projectiles.push_back(std::make_unique<Rte::Entity>(projectile));
+            m_entities->emplace_back(projectile);
 
-        // TODO: handle shoot
+
+            const std::shared_ptr<Rte::Graphic::Texture>& texture = m_ecs->getComponent<Rte::Graphic::Components::Sprite>(projectile).texture;
+            const Rte::u8 *pixels = texture->getPixels();
+            std::vector<Rte::u8> pixelsVector(pixels, pixels + texture->getSize().x * texture->getSize().y * 4);
+    
+            Rte::Network::PackedTexture packedTexture{};
+            packedTexture.size = texture->getSize();
+            std::cout << "Texture size: " << packedTexture.size.x << " " << packedTexture.size.y << std::endl;
+            packedTexture.pixels = pixelsVector;
+    
+            m_newEntitiesTextures[projectile] = packedTexture;
+        }
     }));
 
 
