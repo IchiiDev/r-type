@@ -51,4 +51,6 @@ class Player {
 
         float m_healthRegen = 0.05F;
         float m_manaRegen = 0.5F;
+
+        float m_shootCooldown = 0.0F;
 };

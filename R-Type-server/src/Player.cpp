@@ -44,7 +44,7 @@ void Player::fly(Rte::Vec2<float> direction) {
 
 Rte::Entity Player::shoot(float angle) {
     //Shoot projectile
-    if (m_mana < 20)
+    if (m_mana < 20 || m_shootCooldown > 0)
         return 0;
     m_mana -= 20;
     Rte::Vec2<float> playerPos = m_ecs->getComponent<Rte::BasicComponents::Transform>(m_player).position;
@@ -56,7 +56,7 @@ Rte::Entity Player::shoot(float angle) {
     m_ecs->addComponent<Rte::BasicComponents::Transform>(projectile, Rte::BasicComponents::Transform{
         .position = {static_cast<float>(cos(angle) * 100) + playerPos.x, static_cast<float>(sin(angle) * 100) + playerPos.y},
         .scale = {8, 8},
-        .rotation = -angle * 180 / std::numbers::pi_v<float>
+        .rotation = angle * 180 / std::numbers::pi_v<float>
     });
     m_ecs->addComponent<Rte::Physics::Components::Physics>(projectile, Rte::Physics::Components::Physics{.shapeBody = m_physicsModule->createShapeBody(
         {32, 0},
@@ -74,6 +74,7 @@ Rte::Entity Player::shoot(float angle) {
         static_cast<float>(cos(angle) * force),
         static_cast<float>(sin(-angle) * force)
     });
+    m_shootCooldown = 0.5;
     return projectile;
 }
 
@@ -90,6 +91,8 @@ void Player::update() {
     m_health += m_healthRegen;
     if (m_health > m_maxHealth)
         m_health = m_maxHealth;
+    if (m_shootCooldown > 0)
+        m_shootCooldown -= 0.01;
 }
 
 float Player::getHealth() const {
