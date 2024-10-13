@@ -45,7 +45,7 @@ void Player::fly(Rte::Vec2<float> direction) {
 Rte::Entity Player::shoot(float angle) {
     //Shoot projectile
     if (m_mana < 20)
-        return {};
+        return 0;
     m_mana -= 20;
     Rte::Vec2<float> playerPos = m_ecs->getComponent<Rte::BasicComponents::Transform>(m_player).position;
     const std::shared_ptr<Rte::Graphic::Texture> projectileTexture = m_graphicModule->createTexture();

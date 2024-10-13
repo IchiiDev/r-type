@@ -5,6 +5,7 @@
 #include "Rte/Ecs/Ecs.hpp"
 #include "Rte/Ecs/Types.hpp"
 #include "Rte/Graphic/Components.hpp"
+#include "Rte/Graphic/GraphicModule.hpp"
 #include "Rte/Graphic/Texture.hpp"
 #include "Rte/ModuleManager.hpp"
 #include "Rte/Network/NetworkModuleTypes.hpp"
@@ -117,8 +118,11 @@ void ServerApp::run() {
         if (packedInput.shoot) {
             std::cout << "Player " << playerId << " is shooting" << std::endl;
             Rte::Entity projectile = m_players.at(playerId)->shoot(packedInput.shootingAngle);
+            if (projectile == 0)
+                return;
+
             m_ecs->addComponent(projectile, Rte::BasicComponents::UidComponents{m_currentUid++});
-            
+
             m_projectiles.push_back(std::make_unique<Rte::Entity>(projectile));
             m_entities->emplace_back(projectile);
 
@@ -126,12 +130,12 @@ void ServerApp::run() {
             const std::shared_ptr<Rte::Graphic::Texture>& texture = m_ecs->getComponent<Rte::Graphic::Components::Sprite>(projectile).texture;
             const Rte::u8 *pixels = texture->getPixels();
             std::vector<Rte::u8> pixelsVector(pixels, pixels + texture->getSize().x * texture->getSize().y * 4);
-    
+
             Rte::Network::PackedTexture packedTexture{};
             packedTexture.size = texture->getSize();
             std::cout << "Texture size: " << packedTexture.size.x << " " << packedTexture.size.y << std::endl;
             packedTexture.pixels = pixelsVector;
-    
+
             m_newEntitiesTextures[projectile] = packedTexture;
         }
     }));
@@ -146,14 +150,20 @@ void ServerApp::run() {
     }));
 
 
-    // Main loop
-    while (true) {
-        m_physicsModule->update();
+    // Exit event
+    m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Graphic::Events::QUIT, [&](const Rte::Event& /* UNUSED */) {
+        m_running = false;
+    }));
 
+
+    // Main loop
+    while (m_running) {
+        m_physicsModule->update();
+        m_graphicModule->update();
+
+        m_networkModuleServer->update();
         m_networkModuleServer->updateTexture(m_newEntitiesTextures);
         m_networkModuleServer->updateEntity(m_entities);
-        m_networkModuleServer->update();
         m_networkModuleServer->sendUpdate();
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 }

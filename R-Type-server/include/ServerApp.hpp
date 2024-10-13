@@ -29,6 +29,8 @@ class ServerApp {
         Rte::ModuleManager moduleManager;
         std::shared_ptr<Rte::Ecs> m_ecs;
 
+        bool m_running = true;
+
         std::shared_ptr<Rte::Physics::PhysicsModule> m_physicsModule;
         std::shared_ptr<Rte::Network::NetworkModule> m_networkModule;
         std::shared_ptr<Rte::Graphic::GraphicModule> m_graphicModule;
