@@ -13,7 +13,9 @@
 
 #include <array>
 #include <iostream>
+#include <iterator>
 #include <memory>
+#include <sys/socket.h>
 
 using namespace Rte;
 
@@ -24,6 +26,24 @@ void Rte::Network::NetworkClientModuleAsio::init(const std::shared_ptr<Ecs>& ecs
 void Rte::Network::NetworkClientModuleAsio::connect(const std::string& host, const unsigned int& port) {
     m_client = std::make_unique<CustomClient>();
 	m_client->connect(host, port);
+
+    connectUdp(host, port, 10);
+}
+
+void Rte::Network::NetworkClientModuleAsio::connectUdp(const std::string& host, const unsigned int& port, const unsigned int maxTry) {
+    bnl::net::message<CustomMsgTypes> msgSyn;
+    msgSyn.header.id = CustomMsgTypes::SYN;
+    m_client->send(msgSyn);
+
+    while (!m_synAck) {
+        update();
+    }
+
+    bnl::net::message<CustomMsgTypes> msgAck;
+    msgAck.header.id = CustomMsgTypes::ACK;
+    m_client->send(msgAck);
+
+    std::cout << "udp connection ok on client" << std::endl;
 }
 
 void Rte::Network::NetworkClientModuleAsio::updateInputs(PackedInput input) {
@@ -92,6 +112,9 @@ void Rte::Network::NetworkClientModuleAsio::update() {
                 Event event(Rte::Network::Events::ENTITY_DELETED);
                 event.setParameter<BasicComponents::UidComponents>(Rte::Network::Events::Params::ENTITY_ID, id);
                 m_ecs->sendEvent(event);
+            } case Rte::Network::CustomMsgTypes::SYN_ACK: {
+                m_synAck = true;
+                break;
             }
             break;
         }

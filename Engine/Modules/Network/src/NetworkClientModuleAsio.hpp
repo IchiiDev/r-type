@@ -26,6 +26,7 @@ namespace Rte::Network {
 
         public:
             void connect(const std::string& host, const unsigned int& port) override;
+            void connectUdp(const std::string& host, const unsigned int& port, unsigned int maxTry) override;
             void updateInputs(PackedInput input) override;
             void sendUpdate() override;
 
@@ -34,6 +35,7 @@ namespace Rte::Network {
 
         private:
             std::unique_ptr<CustomClient> m_client = nullptr;
+            bool m_synAck = false;
 
         private:
             std::shared_ptr<Ecs> m_ecs;

@@ -81,6 +81,17 @@ namespace bnl {
                     });
                 }
 
+                void safeSend(const message<T>& msg) {
+                    asio::post(m_asioContext,
+                    [this, msg]() {
+                        bool messageBeingWritten =!m_sendQueue.empty();
+
+                        m_sendQueue.pushBack(msg);
+
+                        if (!messageBeingWritten) writeSafeHeader();
+                    });
+                }
+
             public:
                 [[nodiscard]] uint32_t getId() const { return m_id; }
 
@@ -139,7 +150,7 @@ namespace bnl {
 
                 void writeBody() {
                     asio::async_write(m_socket, asio::buffer(m_sendQueue.front().body.data(), m_sendQueue.front().body.size()),
-                        [this](std::error_code ec, std::size_t length) {
+                        [this](std::error_code ec, std::size_t len) {
                             if (!ec) {
                                 m_sendQueue.popFront();
 
@@ -151,6 +162,43 @@ namespace bnl {
                             }
                         });
                 }
+
+                void writeSafeHeader() {
+                    asio::async_write(m_socket, asio::buffer(&m_sendQueue.front().header, sizeof(message_header<T>)),
+                        [this](std::error_code ec, std::size_t len) {
+                            if (!ec) {
+                                if (m_sendQueue.front().body.size() > 0) {
+                                    writeSafeBody();
+                                } else {
+                                    m_sendQueue.popFront();
+
+                                    if (!m_sendQueue.empty()) {
+                                        writeSafeHeader();
+                                    }
+                                }
+                            } else {
+                                std::cerr << "[Connection]: Write header error: " << ec.message() << std::endl;
+                                m_socket.close();
+                            }
+                        }
+                    );
+                }
+
+                void writeSafeBody() {
+                    asio::async_write(m_socket, asio::buffer(m_sendQueue.front().body.data(), m_sendQueue.front().body.size()),
+                        [this](std::error_code ec, std::size_t length) {
+                            if (!ec) {
+                                m_sendQueue.popFront();
+
+                                if (!m_sendQueue.empty())
+                                    writeSafeHeader();
+                            } else {
+                                std::cout << "[" << m_id << "] Write safe body failed.\n";
+                                m_socket.close();
+                            }
+                        });
+                }
+
 
                 void addToIncomingMessageQueue() {
                     if (m_ownerType == owner::server)

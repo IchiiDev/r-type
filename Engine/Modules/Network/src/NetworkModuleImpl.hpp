@@ -27,11 +27,15 @@
 
 namespace Rte::Network {
     enum class CustomMsgTypes : uint32_t {
+        SYN,
+        SYN_ACK,
+        ACK,
+
 	    EntityUpdated, // BasicComponents::UidComponents id <------> BasicComponets::Transform transform
         EntityCreated, // BasicComponents::UidComponents id <------> BasicComponets::Transform transform <------> std::vector<u8> pixels <------> Vec2<u16> size
         EntityDeleted, // BasicComponents::UidComponents id
-        Input // Packed Input
 
+        Input, // Packed Input
     };
 
     class CustomClient : public bnl::net::IClient<CustomMsgTypes> {
@@ -133,7 +137,17 @@ namespace Rte::Network {
                         m_ecs->sendEvent(event);
 
                         break;
-                    } break;
+                    } case CustomMsgTypes::SYN: {
+                        bnl::net::message<CustomMsgTypes> msgAck;
+                        msgAck.header.id = CustomMsgTypes::SYN_ACK;
+
+                        messageClient(client, msgAck);
+                        break;
+                    } case CustomMsgTypes::ACK: {
+                        std::cout << "server connected with udp" << std::endl;
+                        break;
+                    }
+                    break;
                 }
             }
         private:
