@@ -31,7 +31,8 @@ void Rte::Network::NetworkClientModuleAsio::updateInputs(PackedInput input) {
 }
 
 void Rte::Network::NetworkClientModuleAsio::sendUpdate() {
-    m_client->sendInputs(m_input);
+    if (m_client != nullptr)
+        m_client->sendInputs(m_input);
 }
 
 void Rte::Network::NetworkClientModuleAsio::update() {
@@ -40,6 +41,7 @@ void Rte::Network::NetworkClientModuleAsio::update() {
     if (!m_client->isConnected()) {
         m_ecs->sendEvent(Events::DISCONNECTED);
         m_client = nullptr;
+        return;
     }
 
 
