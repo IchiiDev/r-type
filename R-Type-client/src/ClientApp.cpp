@@ -13,6 +13,7 @@
 #include "Rte/Network/NetworkModuleTypes.hpp"
 
 #include <algorithm>
+#include <cmath>
 #include <iostream>
 #include <memory>
 #include <thread>
@@ -41,6 +42,7 @@ ClientApp::ClientApp() {
             m_running = false;
         }
     ));
+
 }
 
 void ClientApp::run() {
@@ -118,16 +120,16 @@ void ClientApp::run() {
             m_networkModuleClient->update();
     });
 
-
+    float shootAngle = 0;
     // Main loop
     while(m_running) {
         // Get inputs from player
         m_networkModuleClient->updateInputs(Rte::Network::PackedInput{
-            .fly = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Space),
+            .moveUp = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Z),
+            .moveDown = m_graphicModule->isKeyPressed(Rte::Graphic::Key::S),
             .moveLeft = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Q),
             .moveRight = m_graphicModule->isKeyPressed(Rte::Graphic::Key::D),
-            .shoot = false,
-            .shootingAngle = 90
+            .shoot = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Space)
         });
 
         m_entitiesMutex.lock(); {

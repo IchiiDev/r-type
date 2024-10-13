@@ -5,6 +5,7 @@
 #include "Rte/Ecs/Ecs.hpp"
 #include "Rte/Ecs/Types.hpp"
 #include "Rte/Graphic/Components.hpp"
+#include "Rte/Graphic/GraphicModule.hpp"
 #include "Rte/Graphic/Texture.hpp"
 #include "Rte/ModuleManager.hpp"
 #include "Rte/Network/NetworkModuleTypes.hpp"
@@ -19,6 +20,7 @@
 #include <mutex>
 #include <thread>
 #include <vector>
+#include <numbers>
 
 ServerApp::ServerApp() {
     m_ecs = std::make_shared<Rte::Ecs>();
@@ -31,7 +33,7 @@ ServerApp::ServerApp() {
     m_graphicModule = Rte::interfaceCast<Rte::Graphic::GraphicModule>(moduleManager.loadModule("RteGraphic"));
     m_graphicModule->init(m_ecs);
     m_graphicModule->setWindowTitle("R-Type");
-    m_graphicModule->setWindowSize({1, 1});
+    m_graphicModule->setWindowSize({1920, 1080});
     m_graphicModule->setDaltonismMode(Rte::Graphic::DaltonismMode::NONE);
     m_graphicModule->loadFontFromFile("../assets/alagard.ttf");
     m_graphicModule->setLayerCount(10);
@@ -112,10 +114,33 @@ void ServerApp::run() {
             m_players.at(playerId)->move({-20, 0});
         if (packedInput.moveRight)
             m_players.at(playerId)->move({20, 0});
-        if (packedInput.fly)
+
+        if (packedInput.moveUp)
+            m_players.at(playerId)->move({0, 20});
+        if (packedInput.moveDown)
             m_players.at(playerId)->move({0, -20});
 
-        // TODO: handle shoot
+        if (packedInput.shoot) {
+            Rte::Entity projectile = m_players.at(playerId)->shoot(0);
+            if (projectile == 0)
+                return;
+
+            m_ecs->addComponent(projectile, Rte::BasicComponents::UidComponents{m_currentUid++});
+
+            m_projectiles.push_back(std::make_unique<Rte::Entity>(projectile));
+            m_entities->emplace_back(projectile);
+
+
+            const std::shared_ptr<Rte::Graphic::Texture>& texture = m_ecs->getComponent<Rte::Graphic::Components::Sprite>(projectile).texture;
+            const Rte::u8 *pixels = texture->getPixels();
+            std::vector<Rte::u8> pixelsVector(pixels, pixels + texture->getSize().x * texture->getSize().y * 4);
+
+            Rte::Network::PackedTexture packedTexture{};
+            packedTexture.size = texture->getSize();
+            packedTexture.pixels = pixelsVector;
+
+            m_newEntitiesTextures[projectile] = packedTexture;
+        }
     }));
 
 
@@ -128,14 +153,22 @@ void ServerApp::run() {
     }));
 
 
-    // Main loop
-    while (true) {
-        m_physicsModule->update();
+    // Exit event
+    m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Graphic::Events::QUIT, [&](const Rte::Event& /* UNUSED */) {
+        m_running = false;
+    }));
 
+
+    // Main loop
+    while (m_running) {
+        m_physicsModule->update();
+        m_graphicModule->update();
+
+        for (auto& [playerId, player] : m_players)
+            player->update();
+        m_networkModuleServer->update();
         m_networkModuleServer->updateTexture(m_newEntitiesTextures);
         m_networkModuleServer->updateEntity(m_entities);
-        m_networkModuleServer->update();
         m_networkModuleServer->sendUpdate();
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 }

@@ -5,6 +5,7 @@
 #include "Rte/Ecs/Types.hpp"
 #include "Rte/Graphic/GraphicModule.hpp"
 #include "Rte/Physics/PhysicsModule.hpp"
+#include <memory>
 #include <vector>
 
 class Player {
@@ -22,7 +23,7 @@ class Player {
         void move(Rte::Vec2<float> direction);
         void fly(Rte::Vec2<float> direction);
 
-        void shoot(Rte::Vec2<float> mousePos);
+        Rte::Entity shoot(float angle);
         void update();
         void takeDamage();
 
@@ -35,16 +36,10 @@ class Player {
 
 
     private:
-        void updateProjectiles();
-
         Rte::Entity m_player;
         std::shared_ptr<Rte::Ecs> m_ecs;
         std::shared_ptr<Rte::Graphic::GraphicModule> m_graphicModule;
         std::shared_ptr<Rte::Physics::PhysicsModule> m_physicsModule;
-
-        std::vector<Rte::Entity> m_projectiles;
-
-        std::vector<Rte::Vec2<float>> m_destroyedProjectiles;
 
         float m_health = 100.F;
         float m_mana = 100.F;
@@ -56,4 +51,6 @@ class Player {
 
         float m_healthRegen = 0.05F;
         float m_manaRegen = 0.5F;
+
+        float m_shootCooldown = 0.0F;
 };

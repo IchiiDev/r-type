@@ -4,6 +4,7 @@
 #include "SFML/Graphics/Image.hpp"
 #include "SFML/Graphics/Texture.hpp"
 
+#include <iostream>
 #include <stdexcept>
 #include <string>
 

@@ -8,6 +8,7 @@
 #pragma once
 
 #include "Rte/BasicComponents.hpp"
+#include "Rte/Common.hpp"
 #include "Rte/Ecs/Types.hpp"
 
 #include <cstdint>
@@ -28,11 +29,11 @@ namespace Rte::Network {
     };
 
     struct PackedInput {
-        bool fly = false;
+        bool moveUp = false;
+        bool moveDown = false;
         bool moveLeft = false;
         bool moveRight = false;
         bool shoot = false;
-        float shootingAngle = 0.0F;
     };
 
     struct PackedTexture {
