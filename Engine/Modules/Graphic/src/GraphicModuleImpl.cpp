@@ -11,6 +11,7 @@
 #include "Rte/Graphic/Texture.hpp"
 #include "Rte/ModuleManager.hpp"
 #include "SFML/Graphics/Text.hpp"
+#include "SFML/Window/WindowEnums.hpp"
 #include "TextureImpl.hpp"
 
 #include "SFML/Graphics/Rect.hpp"
@@ -34,7 +35,7 @@ Rte::IModule *createModule() {
 }
 
 void GraphicModuleImpl::init(const std::shared_ptr<Ecs>& ecs) {
-    m_window = sf::RenderWindow(sf::VideoMode({1920, 1080}), "Rte window");
+    m_window = sf::RenderWindow(sf::VideoMode({1920, 1080}), "Rte window", sf::Style::Close);
     m_window.setFramerateLimit(60);
     m_ecs = ecs;
 
