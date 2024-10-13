@@ -40,11 +40,11 @@ void ServerApp::updateEnemies() {
     for (auto& [enemyId, enemy] : m_enemies) {
         if (enemy->getHealth() <= 0) {
             destroyEnemy(enemy->getEntity());
-            continue;
+            return;
         }
         if (m_physicsModule->colliding(m_ecs->getComponent<Rte::Physics::Components::Physics>(enemy->getEntity()).shapeBody, m_ecs->getComponent<Rte::Physics::Components::Physics>(m_leftWall).shapeBody)) {
             destroyEnemy(enemy->getEntity());
-            continue;
+            return;
         }
         enemy->update();
         enemy->move({-5, 0});
