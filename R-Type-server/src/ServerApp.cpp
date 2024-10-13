@@ -162,8 +162,6 @@ void ServerApp::run() {
         m_physicsModule->update();
         m_graphicModule->update();
 
-        for (auto& [playerId, player] : m_players)
-            player->update();
         updateScene();
         m_networkModuleServer->update();
         m_networkModuleServer->updateTexture(m_newEntitiesTextures);

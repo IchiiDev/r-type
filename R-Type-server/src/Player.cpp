@@ -9,14 +9,29 @@
 #include "Rte/Physics/PhysicsModule.hpp"
 #include "Rte/Physics/ShapeBody.hpp"
 
+#include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <memory>
 #include <numbers>
 
+
+
 Player::Player(const std::shared_ptr<Rte::Ecs>& ecs, const std::shared_ptr<Rte::Graphic::GraphicModule>& graphicModule, const std::shared_ptr<Rte::Physics::PhysicsModule>& physicsModule, uint32_t uid) : m_player(ecs->createEntity()), m_ecs(ecs), m_graphicModule(graphicModule), m_physicsModule(physicsModule) {
-    const std::shared_ptr<Rte::Graphic::Texture> playerTexture = m_graphicModule->createTexture();
+    std::shared_ptr<Rte::Graphic::Texture> playerTexture = m_graphicModule->createTexture();
     playerTexture->loadFromFile("../assets/player.png");
 
+    int randR = rand() % 255;
+    int randG = rand() % 255;
+    int randB = rand() % 255;
+    std::vector<Rte::u8> randColorText(static_cast<size_t>(playerTexture->getSize().x * playerTexture->getSize().y * 4));
+    for (size_t i = 0; i < randColorText.size(); i += 4) {
+        randColorText[i] = std::clamp(playerTexture->getPixels()[i] + randR, 0, 255);
+        randColorText[i + 1] = std::clamp(playerTexture->getPixels()[i + 1] + randG, 0, 255);
+        randColorText[i + 2] = std::clamp(playerTexture->getPixels()[i + 2] + randB, 0, 255);
+        randColorText[i + 3] = playerTexture->getPixels()[i + 3];
+    }
+    playerTexture->loadFromMemory(randColorText.data(), playerTexture->getSize());
     constexpr Rte::Vec2<float> playerScale = {3, 3};
     const Rte::Vec2<float> playerPosition = {600, 400};
 

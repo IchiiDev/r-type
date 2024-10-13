@@ -33,6 +33,10 @@ void ServerApp::updateScene() {
     for (size_t i = 0; i < m_projectiles.size(); i++) {
         if (m_physicsModule->colliding(m_ecs->getComponent<Rte::Physics::Components::Physics>(*m_projectiles[i]).shapeBody, m_ecs->getComponent<Rte::Physics::Components::Physics>(m_rightWall).shapeBody)) {
             destroyProjectile(*m_projectiles[i]);
+            continue;
         }
     }
+
+    for (auto& [playerId, player] : m_players)
+        player->update();
 }
