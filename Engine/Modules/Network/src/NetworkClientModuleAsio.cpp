@@ -15,7 +15,6 @@
 #include <iostream>
 #include <iterator>
 #include <memory>
-#include <sys/socket.h>
 
 using namespace Rte;
 
