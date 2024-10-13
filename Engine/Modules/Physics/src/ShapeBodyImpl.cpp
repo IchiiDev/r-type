@@ -79,7 +79,7 @@ void ShapeBodyImpl::move(const Vec2<float>& direction) {
 
     if (direction.y < 0) {
         if (currentVelocity.y > direction.y) {
-            currentVelocity.y += 1;
+            currentVelocity.y -= 1;
         }
     } else if (direction.y > 0) {
         if (currentVelocity.y < direction.y) {

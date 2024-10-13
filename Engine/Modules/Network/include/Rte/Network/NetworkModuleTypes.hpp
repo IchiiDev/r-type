@@ -29,11 +29,11 @@ namespace Rte::Network {
     };
 
     struct PackedInput {
-        bool fly = false;
+        bool moveUp = false;
+        bool moveDown = false;
         bool moveLeft = false;
         bool moveRight = false;
         bool shoot = false;
-        Vec2<u16> mousePos{};
     };
 
     struct PackedTexture {

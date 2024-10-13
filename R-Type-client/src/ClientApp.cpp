@@ -125,11 +125,11 @@ void ClientApp::run() {
     while(m_running) {
         // Get inputs from player
         m_networkModuleClient->updateInputs(Rte::Network::PackedInput{
-            .fly = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Space),
+            .moveUp = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Z),
+            .moveDown = m_graphicModule->isKeyPressed(Rte::Graphic::Key::S),
             .moveLeft = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Q),
             .moveRight = m_graphicModule->isKeyPressed(Rte::Graphic::Key::D),
-            .shoot = m_graphicModule->isMouseButtonPressed(Rte::Graphic::MouseButton::Left),
-            .mousePos = m_graphicModule->getMousePosition()
+            .shoot = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Space)
         });
 
         m_entitiesMutex.lock(); {

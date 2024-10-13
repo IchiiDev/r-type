@@ -20,6 +20,7 @@
 #include <mutex>
 #include <thread>
 #include <vector>
+#include <numbers>
 
 ServerApp::ServerApp() {
     m_ecs = std::make_shared<Rte::Ecs>();
@@ -113,15 +114,14 @@ void ServerApp::run() {
             m_players.at(playerId)->move({-20, 0});
         if (packedInput.moveRight)
             m_players.at(playerId)->move({20, 0});
-        if (packedInput.fly)
-            m_players.at(playerId)->move({0, -20});
-        if (packedInput.shoot) {
-            const float shootAngle = -std::atan2(
-                static_cast<float>(m_players.at(playerId)->getPos().x) - (static_cast<float>(packedInput.mousePos.x) - m_graphicModule->getWindowSize().x / 2.F),
-                static_cast<float>(m_players.at(playerId)->getPos().y) - (static_cast<float>(packedInput.mousePos.y) - m_graphicModule->getWindowSize().y / 2.F)
-            ) - std::numbers::pi_v<float> / 2;
 
-            Rte::Entity projectile = m_players.at(playerId)->shoot(shootAngle);
+        if (packedInput.moveUp)
+            m_players.at(playerId)->move({0, 20});
+        if (packedInput.moveDown)
+            m_players.at(playerId)->move({0, -20});
+
+        if (packedInput.shoot) {
+            Rte::Entity projectile = m_players.at(playerId)->shoot(0);
             if (projectile == 0)
                 return;
 
