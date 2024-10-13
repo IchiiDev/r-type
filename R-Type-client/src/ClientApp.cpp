@@ -124,18 +124,12 @@ void ClientApp::run() {
     // Main loop
     while(m_running) {
         // Get inputs from player
-        if (m_graphicModule->isMouseButtonPressed(Rte::Graphic::MouseButton::Left))
-            shootAngle = std::atan2(
-                static_cast<float>(m_graphicModule->getMousePosition().x) - static_cast<float>(m_graphicModule->getWindowSize().x) / 2.F,
-                static_cast<float>(m_graphicModule->getMousePosition().y) - static_cast<float>(m_graphicModule->getWindowSize().y) / 2.F
-            );
-
         m_networkModuleClient->updateInputs(Rte::Network::PackedInput{
             .fly = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Space),
             .moveLeft = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Q),
             .moveRight = m_graphicModule->isKeyPressed(Rte::Graphic::Key::D),
             .shoot = m_graphicModule->isMouseButtonPressed(Rte::Graphic::MouseButton::Left),
-            .shootingAngle = shootAngle
+            .mousePos = m_graphicModule->getMousePosition()
         });
 
         m_entitiesMutex.lock(); {

@@ -8,6 +8,7 @@
 #pragma once
 
 #include "Rte/BasicComponents.hpp"
+#include "Rte/Common.hpp"
 #include "Rte/Ecs/Types.hpp"
 
 #include <cstdint>
@@ -32,7 +33,7 @@ namespace Rte::Network {
         bool moveLeft = false;
         bool moveRight = false;
         bool shoot = false;
-        float shootingAngle = 0.0F;
+        Vec2<u16> mousePos{};
     };
 
     struct PackedTexture {

@@ -117,7 +117,13 @@ void ServerApp::run() {
             m_players.at(playerId)->move({0, -20});
         if (packedInput.shoot) {
             std::cout << "Player " << playerId << " is shooting" << std::endl;
-            Rte::Entity projectile = m_players.at(playerId)->shoot(packedInput.shootingAngle);
+
+            const float shootAngle = std::atan2(
+                static_cast<float>(m_players.at(playerId)->getPos().x) - static_cast<float>(packedInput.mousePos.x),
+                static_cast<float>(m_players.at(playerId)->getPos().y) - static_cast<float>(packedInput.mousePos.y)
+            );
+
+            Rte::Entity projectile = m_players.at(playerId)->shoot(shootAngle);
             if (projectile == 0)
                 return;
 
