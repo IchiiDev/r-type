@@ -1,5 +1,7 @@
 #include "ClientApp.hpp"
 
+#include "Rte/Audio/Sound.hpp"
+#include "Rte/Audio/SoundBuffer.hpp"
 #include "Rte/BasicComponents.hpp"
 #include "Rte/Common.hpp"
 #include "Rte/Ecs/Ecs.hpp"
@@ -7,142 +9,174 @@
 #include "Rte/Ecs/Types.hpp"
 #include "Rte/Graphic/Components.hpp"
 #include "Rte/Graphic/GraphicModule.hpp"
+#include "Rte/Graphic/Texture.hpp"
 #include "Rte/ModuleManager.hpp"
+#include "Rte/Network/NetworkModule.hpp"
+#include "Rte/Network/NetworkModuleTypes.hpp"
 
-#include <chrono>
+#include <algorithm>
 #include <cmath>
+#include <iostream>
 #include <memory>
-#include <numbers>
-#include <vector>
+#include <thread>
 
 ClientApp::ClientApp() {
     m_ecs = std::make_shared<Rte::Ecs>();
-
 
     // Load the graphic module
     m_graphicModule = Rte::interfaceCast<Rte::Graphic::GraphicModule>(moduleManager.loadModule("RteGraphic"));
     m_graphicModule->init(m_ecs);
     m_graphicModule->setWindowTitle("R-Type");
-    m_graphicModule->setWindowSize({1280, 720});
+    m_graphicModule->setWindowSize({1920, 1080});
     m_graphicModule->setDaltonismMode(Rte::Graphic::DaltonismMode::NONE);
+    m_graphicModule->loadFontFromFile("../assets/alagard.ttf");
+    m_graphicModule->setLayerCount(10);
 
+    // Load the audio module
+    m_audioModule = Rte::interfaceCast<Rte::Audio::AudioModule>(moduleManager.loadModule("RteAudio"));
+    m_audioModule->init(m_ecs);
 
-    // Creation of a 1*1 red texture
-    m_redTexture = m_graphicModule->createTexture();
-    m_redTexture->loadFromMemory(std::vector<Rte::u8>{255, 0, 0, 255}.data(), {1, 1});
+    // Load the network module
+    const std::shared_ptr<Rte::Network::NetworkModule> networkModule = Rte::interfaceCast<Rte::Network::NetworkModule>(moduleManager.loadModule("RteNetwork"));
+    m_networkModuleClient = networkModule->getClient();
+    m_networkModuleClient->init(m_ecs);
+    m_networkModuleClient->connect("127.0.0.1", 123456);
 
-
-    // Callback to close window
+    // Event callback to close window
     m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Graphic::Events::QUIT,
         [&](const Rte::Event& /* UNUSED */) {
             m_running = false;
         }
     ));
 
-
-    // Callback to align the player with the size of the window
-    m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Graphic::Events::RESIZED,
-        [&](Rte::Event& event) {
-            // Get parameters from the event
-            const Rte::Vec2<Rte::u16> newSize = event.getParameter<Rte::Vec2<Rte::u16>>(Rte::Graphic::Events::Params::NEW_WINDOW_SIZE);
-
-            // Update the sprite position
-            // Rte::BasicComponents::Transform& playerTransform = m_ecs->getComponent<Rte::BasicComponents::Transform>(m_playerEntity);
-            // playerTransform.position.y = static_cast<float>(newSize.y) - playerTransform.scale.y;
-        }
-    ));
-
-
-    // Entities creation
-    m_playerEntity = m_ecs->createEntity();     // NOLINT(cppcoreguidelines-prefer-member-initializer)
-    m_sightLineEntity = m_ecs->createEntity();  // NOLINT(cppcoreguidelines-prefer-member-initializer)
 }
 
 void ClientApp::run() {
-    // Player configuration
-    constexpr Rte::Vec2<float>  playerScale = {100, 100};
-    const Rte::Vec2<Rte::u16>   windowSize = m_graphicModule->getWindowSize();
-    const Rte::Vec2<float>      playerPosition = {0, static_cast<float>(m_graphicModule->getWindowSize().y) - playerScale.y};
-
-    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(m_playerEntity, Rte::Graphic::Components::Sprite(m_redTexture));
-    m_ecs->addComponent<Rte::BasicComponents::Transform>(m_playerEntity, Rte::BasicComponents::Transform{
-        .position = playerPosition,
-        .scale = playerScale,
-        .rotation = 0
-    });
+    // Disconnect event
+    m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Network::Events::DISCONNECTED, [&](const Rte::Event& /* UNUSED */) {
+        m_running = false;
+    }));
 
 
-    // Sight line configuration
-    constexpr Rte::Vec2<float> sightLineScale = {2, 500.0};
+    // Entity created event
+    m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Network::Events::ENTITY_CREATED, [&](Rte::Event& event) {
+        m_entitiesMutex.lock(); {
+            const Rte::Network::PackedNewEntity& packedNewEntity = event.getParameter<Rte::Network::PackedNewEntity>(Rte::Network::Events::Params::PACKED_NEW_ENTITY);
+            if (std::find_if(m_entities.begin(), m_entities.end(), [&](const Rte::Entity& entity) {
+                return m_ecs->getComponent<Rte::BasicComponents::UidComponents>(entity).uid == packedNewEntity.id;
+            }) != m_entities.end()) {
+                m_entitiesMutex.unlock();
+                return;
+            }
 
-    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(m_sightLineEntity, Rte::Graphic::Components::Sprite(m_redTexture));
-    m_ecs->addComponent<Rte::BasicComponents::Transform>(m_sightLineEntity, Rte::BasicComponents::Transform{
-        .position = {0, 0},
-        .scale = sightLineScale,
-        .rotation = 0
-    });
+            std::shared_ptr<Rte::Graphic::Texture> newEntityTexture = m_graphicModule->createTexture();
+            newEntityTexture->loadFromMemory(packedNewEntity.pixels.data(), packedNewEntity.size);
 
+            const Rte::Entity newEntity = m_ecs->createEntity();
+            m_entities.emplace_back(newEntity);
+            m_ecs->addComponent<Rte::BasicComponents::Transform>(newEntity, packedNewEntity.transform);
+            m_ecs->addComponent<Rte::Graphic::Components::Sprite>(newEntity, {newEntityTexture, 0});
+            m_ecs->addComponent<Rte::BasicComponents::UidComponents>(newEntity, {packedNewEntity.id});
 
-    // Variables for jetpack jump
-    bool isJumping = false;
-    float verticalVelocity = 0.0;
-    const float gravity = 980.0;
-    const float jumpForce = 500.0;
-
-
-    // Main loop
-    while (m_running) {
-        const std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
-
-
-        // Update player position
-        Rte::BasicComponents::Transform& playerTransform = m_ecs->getComponent<Rte::BasicComponents::Transform>(m_playerEntity);
-        if (m_graphicModule->isKeyPressed(Rte::Graphic::Key::D))
-            playerTransform.position.x += 500 * m_deltaTime;
-        if (m_graphicModule->isKeyPressed(Rte::Graphic::Key::Q))
-            playerTransform.position.x -= 500 * m_deltaTime;
-
-
-        // Jetpack jump
-        if (m_graphicModule->isKeyPressed(Rte::Graphic::Key::Space) && !isJumping) {
-            isJumping = true;
-            verticalVelocity = -jumpForce;
+            m_entities.emplace_back(newEntity);
         }
+        m_entitiesMutex.unlock();
+    }));
 
-        if (isJumping) {
-            verticalVelocity += gravity * m_deltaTime;
-            playerTransform.position.y += verticalVelocity * m_deltaTime;
+    // Create sky
+    Rte::Entity sky = m_ecs->createEntity();
+    const std::shared_ptr<Rte::Graphic::Texture> skytexture = m_graphicModule->createTexture();
+    skytexture->loadFromFile("../assets/sky.png");
+    m_ecs->addComponent<Rte::BasicComponents::Transform>(sky, Rte::BasicComponents::Transform{
+        .position = {0, 0},
+        .scale = {10, 10},
+        .rotation = 0
+    });
+    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(sky, {skytexture, 0});
 
-            // Check if player has landed
-            if (playerTransform.position.y >= static_cast<float>(windowSize.y) - playerTransform.scale.y) {
-                playerTransform.position.y = static_cast<float>(windowSize.y) - playerTransform.scale.y;
-                isJumping = false;
-                verticalVelocity = 0.0;
+    Rte::Entity sky1 = m_ecs->createEntity();
+    m_ecs->addComponent<Rte::BasicComponents::Transform>(sky1, Rte::BasicComponents::Transform{
+        .position = {1920, 0},
+        .scale = {10, 10},
+        .rotation = 0
+    });
+    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(sky1, {skytexture, 0});
+    
+    // Load audio module
+    const std::shared_ptr<Rte::Audio::AudioModule> audioModule = Rte::interfaceCast<Rte::Audio::AudioModule>(moduleManager.loadModule("RteAudio"));
+    audioModule->init(m_ecs);
+    audioModule->update();
+
+    const std::shared_ptr<Rte::Audio::SoundBuffer> soundBuffer = audioModule->createSoundBuffer("../assets/zubzab.mp3");
+    const std::shared_ptr<Rte::Audio::Sound> sound = audioModule->createSound(soundBuffer);
+    sound->play();
+
+    // Entity destroyed event
+    m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Network::Events::ENTITY_DELETED, [&](Rte::Event& event) {
+        const Rte::BasicComponents::UidComponents destroyedEntityUid = event.getParameter<Rte::BasicComponents::UidComponents>(Rte::Network::Events::Params::ENTITY_ID);
+
+        m_entitiesMutex.lock(); {
+            // Search for the entity with the given uid and destroy it
+            for (const Rte::Entity& entity : m_entities) {
+                if (m_ecs->getComponent<Rte::BasicComponents::UidComponents>(entity).uid == destroyedEntityUid.uid) {
+                    m_ecs->destroyEntity(entity);
+                    m_entities.erase(std::remove(m_entities.begin(), m_entities.end(), entity), m_entities.end());
+                    break;
+                }
             }
         }
+        m_entitiesMutex.unlock();
+    }));
 
 
-        {   // Sight line update
+    // Entity updated event
+    m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Network::Events::ENTITY_UPDATED, [&](Rte::Event& event) {
+        const Rte::Network::PackedUpdateEntity& packedEntityUpdate = event.getParameter<Rte::Network::PackedUpdateEntity>(Rte::Network::Events::Params::PACKED_UPDATE_ENTITY);
 
-            // Position update
-            Rte::BasicComponents::Transform& sightLineTransform = m_ecs->getComponent<Rte::BasicComponents::Transform>(m_sightLineEntity);
-            const Rte::Vec2<Rte::u16> mousePosition = m_graphicModule->getMousePosition();
-            sightLineTransform.position = { playerTransform.position.x + playerTransform.scale.x / 2, playerTransform.position.y + playerTransform.scale.y / 2 };
+        // Search for the entity with the given uid and update it
+        for (const Rte::Entity& entity : m_entities) {
+            if (m_ecs->getComponent<Rte::BasicComponents::UidComponents>(entity).uid == packedEntityUpdate.id) {
+                Rte::BasicComponents::Transform& transform = m_ecs->getComponent<Rte::BasicComponents::Transform>(entity);
+                transform.position = packedEntityUpdate.transform.position;
+                transform.rotation = packedEntityUpdate.transform.rotation;
+                transform.scale = packedEntityUpdate.transform.scale;
 
-
-            // Rotation update
-            const float deltaX = static_cast<float>(mousePosition.x) - (playerTransform.position.x + playerTransform.scale.x / 2);
-            const float deltaY = static_cast<float>(mousePosition.y) - (playerTransform.position.y + playerTransform.scale.y / 2);
-            sightLineTransform.rotation = static_cast<float>(std::atan2(deltaY, deltaX) * 180.0 / std::numbers::pi_v<float> - 90.0);
+                break;
+            }
         }
+    }));
 
 
-        // Module updates
-        m_graphicModule->update();
+    // Network thread
+    std::thread networkThread([&] {
+        while (m_running)
+            m_networkModuleClient->update();
+    });
 
+    float shootAngle = 0;
+    // Main loop
+    while(m_running) {
+        // Get inputs from player
+        m_networkModuleClient->updateInputs(Rte::Network::PackedInput{
+            .moveUp = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Up),
+            .moveDown = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Down),
+            .moveLeft = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Left),
+            .moveRight = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Right),
+            .shoot = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Space)
+        });
 
-        // Update delta time (as milliseconds)
-        const std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
-        m_deltaTime = std::chrono::duration<float>(end - start).count();
+        m_entitiesMutex.lock(); {
+            m_graphicModule->update();
+            m_networkModuleClient->sendUpdate();
+        }
+        m_ecs->getComponent<Rte::BasicComponents::Transform>(sky).position.x -= 5;
+        if (m_ecs->getComponent<Rte::BasicComponents::Transform>(sky).position.x <= -1920)
+            m_ecs->getComponent<Rte::BasicComponents::Transform>(sky).position.x = 1920;
+        m_ecs->getComponent<Rte::BasicComponents::Transform>(sky1).position.x -= 5;
+        if (m_ecs->getComponent<Rte::BasicComponents::Transform>(sky1).position.x <= -1920)
+            m_ecs->getComponent<Rte::BasicComponents::Transform>(sky1).position.x = 1920;
+        m_entitiesMutex.unlock();
     }
+
+    networkThread.join();
 }

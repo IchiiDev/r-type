@@ -1,3 +1,4 @@
+#include "ButtonSystem.hpp"
 #include "GraphicModuleImpl.hpp"
 #include "RenderSystem.hpp"
 #include "Rte/BasicComponents.hpp"
@@ -9,6 +10,10 @@
 #include "Rte/Graphic/GraphicModule.hpp"
 #include "Rte/Graphic/Texture.hpp"
 #include "Rte/ModuleManager.hpp"
+#include "SFML/Graphics/Text.hpp"
+#include "SFML/Window/WindowEnums.hpp"
+#include "TextureImpl.hpp"
+
 #include "SFML/Graphics/Rect.hpp"
 #include "SFML/Graphics/Shader.hpp"
 #include "SFML/Graphics/View.hpp"
@@ -17,7 +22,6 @@
 #include "SFML/Window/Keyboard.hpp"
 #include "SFML/Window/Mouse.hpp"
 #include "SFML/Window/VideoMode.hpp"
-#include "TextureImpl.hpp"
 
 #include <memory>
 #include <optional>
@@ -31,8 +35,8 @@ Rte::IModule *createModule() {
 }
 
 void GraphicModuleImpl::init(const std::shared_ptr<Ecs>& ecs) {
-    m_window = sf::RenderWindow(sf::VideoMode({800, 600}), "Rte window");
-    m_window.setFramerateLimit(144);
+    m_window = sf::RenderWindow(sf::VideoMode({1920, 1080}), "Rte window", sf::Style::Close);
+    m_window.setFramerateLimit(60);
     m_ecs = ecs;
 
 
@@ -99,18 +103,39 @@ void GraphicModuleImpl::init(const std::shared_ptr<Ecs>& ecs) {
 
     // Register components
     ecs->registerComponent<Components::Sprite>();
+    ecs->registerComponent<Components::Button>();
+    ecs->registerComponent<Components::Text>();
 
 
     // Render system registration
     m_renderSystem = ecs->registerSystem<RenderSystem>();
     m_renderSystem->init(ecs);
 
+    Signature renderSystemSignature;
+    renderSystemSignature.set(ecs->getComponentType<Components::Sprite>());
+    renderSystemSignature.set(ecs->getComponentType<BasicComponents::Transform>());
+    ecs->setSystemSignature<RenderSystem>(renderSystemSignature);
 
-    // Render system signature
-    Signature signature;
-    signature.set(ecs->getComponentType<Components::Sprite>());
-    signature.set(ecs->getComponentType<BasicComponents::Transform>());
-    ecs->setSystemSignature<RenderSystem>(signature);
+
+    // Button system registration
+    m_buttonSystem = ecs->registerSystem<ButtonSystem>();
+    m_buttonSystem->init(ecs);
+
+    Signature buttonSystemSignature;
+    buttonSystemSignature.set(ecs->getComponentType<Components::Button>());
+    buttonSystemSignature.set(ecs->getComponentType<Components::Sprite>());
+    buttonSystemSignature.set(ecs->getComponentType<BasicComponents::Transform>());
+    ecs->setSystemSignature<ButtonSystem>(buttonSystemSignature);
+
+
+    // Text system registration
+    m_textSystem = ecs->registerSystem<TextSystem>();
+    m_textSystem->init(ecs, m_font);
+
+    Signature textSystemSignature;
+    textSystemSignature.set(ecs->getComponentType<Components::Text>());
+    textSystemSignature.set(ecs->getComponentType<BasicComponents::Transform>());
+    ecs->setSystemSignature<TextSystem>(textSystemSignature);
 }
 
 void GraphicModuleImpl::update() {
@@ -146,34 +171,40 @@ void GraphicModuleImpl::update() {
 
         // Check for key pressed
         if (const sf::Event::KeyPressed *keyPressed = event->getIf<sf::Event::KeyPressed>()) {
-            Event event(Events::KEY_PRESSED);
-            event.setParameter<Key>(Events::Params::KEY_PRESSED, sfmlKeyToRteKey.at(keyPressed->code));
-            m_ecs->sendEvent(event);
+            if (m_window.hasFocus()) {
+                Event event(Events::KEY_PRESSED);
+                event.setParameter<Key>(Events::Params::KEY_PRESSED, sfmlKeyToRteKey.at(keyPressed->code));
+                m_ecs->sendEvent(event);
+            }
         }
 
 
         // Check for mouse button pressed
         if (const sf::Event::MouseButtonPressed *mouseButtonPressed = event->getIf<sf::Event::MouseButtonPressed>()) {
-            Event event(Events::MOUSE_BUTTON_PRESSED);
-            event.setParameter<MouseButton>(Events::Params::MOUSE_BUTTON_PRESSED, sfmlMouseButtonToRteMouseButton.at(mouseButtonPressed->button));
-            event.setParameter<Vec2<u16>>(Events::Params::MOUSE_BUTTON_PRESSED_POSITION, Vec2<u16>(mouseButtonPressed->position.x, mouseButtonPressed->position.y));
-            m_ecs->sendEvent(event);
+            if (m_window.hasFocus()) {
+                Event event(Events::MOUSE_BUTTON_PRESSED);
+                event.setParameter<MouseButton>(Events::Params::MOUSE_BUTTON_PRESSED, sfmlMouseButtonToRteMouseButton.at(mouseButtonPressed->button));
+                event.setParameter<Vec2<u16>>(Events::Params::MOUSE_BUTTON_PRESSED_POSITION, Vec2<u16>(mouseButtonPressed->position.x, mouseButtonPressed->position.y));
+                m_ecs->sendEvent(event);
+            }
         }
     }
 
 
     // Clear & display
     m_window.clear();
-    m_renderSystem->update(m_window, m_shader);
+    m_renderSystem->update(m_window, m_shader, m_layerCount);
+    m_buttonSystem->update(m_window);
+    m_textSystem->update(m_window);
     m_window.display();
 }
 
 bool GraphicModuleImpl::isKeyPressed(Key key) const {
-    return sf::Keyboard::isKeyPressed(rteKeyToSfmlKey.at(key));
+    return m_window.hasFocus() && sf::Keyboard::isKeyPressed(rteKeyToSfmlKey.at(key));
 }
 
 bool GraphicModuleImpl::isMouseButtonPressed(MouseButton button) const {
-    return sf::Mouse::isButtonPressed(rteMouseButtonToSfmlMouseButton.at(button));
+    return m_window.hasFocus() && sf::Mouse::isButtonPressed(rteMouseButtonToSfmlMouseButton.at(button));
 }
 
 Rte::Vec2<Rte::u16> GraphicModuleImpl::getMousePosition() const {
@@ -185,8 +216,8 @@ void GraphicModuleImpl::setDaltonismMode(DaltonismMode mode) {
     m_shader.setUniform("mode", static_cast<int>(mode));
 }
 
-std::shared_ptr<Texture> GraphicModuleImpl::createTexture() const { // NOLINT(readability-convert-member-functions-to-static)
-    return std::make_shared<TextureImpl>();
+std::unique_ptr<Texture> GraphicModuleImpl::createTexture() const { // NOLINT(readability-convert-member-functions-to-static)
+    return std::make_unique<TextureImpl>();
 }
 
 void GraphicModuleImpl::setWindowTitle(const std::string& title) {
@@ -200,4 +231,18 @@ void GraphicModuleImpl::setWindowSize(const Vec2<u16>& size) {
 Rte::Vec2<Rte::u16> GraphicModuleImpl::getWindowSize() const {
     const sf::Vector2<u32> size = m_window.getSize();
     return {static_cast<u16>(size.x), static_cast<u16>(size.y)};
+}
+
+void GraphicModuleImpl::loadFontFromMemory(const void *data, Rte::u32 size) {
+    if (!m_font.openFromMemory(data, size))
+        throw std::runtime_error("Failed to load font from memory.");
+}
+
+void GraphicModuleImpl::loadFontFromFile(const char *path) {
+    if (!m_font.openFromFile(path))
+        throw std::runtime_error("Failed to load font from file.");
+}
+
+void GraphicModuleImpl::setLayerCount(int count) {
+    m_layerCount = count;
 }

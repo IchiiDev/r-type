@@ -1,93 +1,155 @@
 #include "ServerApp.hpp"
 
-#include "Rte/BasicComponents.hpp"
+#include "Player.hpp"
 #include "Rte/Common.hpp"
 #include "Rte/Ecs/Ecs.hpp"
-#include "Rte/Ecs/Event.hpp"
 #include "Rte/Ecs/Types.hpp"
 #include "Rte/Graphic/Components.hpp"
 #include "Rte/Graphic/GraphicModule.hpp"
-#include "Rte/Graphic/Texture.hpp"
 #include "Rte/ModuleManager.hpp"
+#include "Rte/Network/NetworkModuleTypes.hpp"
+#include "Rte/Physics/Components.hpp"
+#include "Rte/Physics/PhysicsModule.hpp"
 
+#include <chrono>
+#include <cmath>
+#include <cstdint>
 #include <iostream>
 #include <memory>
 #include <vector>
 
-ServerApp::ServerApp() {
+ServerApp::ServerApp() : m_rightWall(0), m_leftWall(0), m_topWall(0), m_bottomWall(0) {
     m_ecs = std::make_shared<Rte::Ecs>();
+
+    // Load the physics module
+    m_physicsModule = Rte::interfaceCast<Rte::Physics::PhysicsModule>(moduleManager.loadModule("RtePhysics"));
+    m_physicsModule->init(m_ecs);
+
+    // Load the graphic module
+    m_graphicModule = Rte::interfaceCast<Rte::Graphic::GraphicModule>(moduleManager.loadModule("RteGraphic"));
+    m_graphicModule->init(m_ecs);
+    m_graphicModule->setWindowTitle("R-Type");
+    m_graphicModule->setWindowSize({1920, 1080});
+    m_graphicModule->setDaltonismMode(Rte::Graphic::DaltonismMode::NONE);
+    m_graphicModule->loadFontFromFile("../assets/alagard.ttf");
+    m_graphicModule->setLayerCount(10);
+
+    // Load the network module
+    m_networkModule = Rte::interfaceCast<Rte::Network::NetworkModule>(moduleManager.loadModule("RteNetwork"));
+    m_networkModuleServer = m_networkModule->getServer();
+    m_networkModuleServer->init(m_ecs);
+    m_networkModuleServer->start(123456);
+
+    // Allocs
+    m_entities = std::make_shared<std::vector<Rte::Entity>>();
+
+    // Time init
+    m_EnemyClock = std::chrono::high_resolution_clock::now();
+    m_ObstacleClock = std::chrono::high_resolution_clock::now();
+    m_startTime = std::chrono::high_resolution_clock::now();
 }
 
 void ServerApp::run() {
-    // Load the graphic module
-    const std::shared_ptr<Rte::Graphic::GraphicModule> graphicModule = Rte::interfaceCast<Rte::Graphic::GraphicModule>(moduleManager.loadModule("RteGraphic"));
-    graphicModule->init(m_ecs);
-    graphicModule->setWindowTitle("R-Type");
-    graphicModule->setWindowSize({1280, 720});
-    graphicModule->setDaltonismMode(Rte::Graphic::DaltonismMode::NONE);
 
+    // Sandbox creation
+    constexpr Rte::Vec2<float> sandBoxScale = {8, 8};
+    constexpr Rte::Vec2<Rte::u16> sandBoxSize = {240, 135};
+    constexpr Rte::Vec2<float> sandBoxPosition = {0, 0};
 
-    // Creation of a 1*1 red texture
-    const std::shared_ptr<Rte::Graphic::Texture> texture = graphicModule->createTexture();
-    texture->loadFromMemory(std::vector<Rte::u8>{255, 0, 0, 255}.data(), {1, 1});
+    const Rte::Entity sandBoxEntity = m_ecs->createEntity();
+    m_ecs->addComponent<Rte::BasicComponents::Transform>(sandBoxEntity, Rte::BasicComponents::Transform{sandBoxPosition, sandBoxScale, 0});
+    m_ecs->addComponent<Rte::Physics::Components::Physics>(sandBoxEntity, Rte::Physics::Components::Physics{.sandBox = m_physicsModule->createSandBox(sandBoxSize)});
 
+    // Init scene
+    initScene();
 
-    // Creation of a drawable entity
-    constexpr Rte::Vec2<float> entityScale = {100, 100};
-    const Rte::Vec2<Rte::u16> windowSize = graphicModule->getWindowSize();
-    const Rte::Entity entity = m_ecs->createEntity();
+    // Player creation event
+    m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Network::Events::PLAYER_CREATED, [&](Rte::Event& event) {
+        // New player creation
+        const uint32_t playerId = event.getParameter<uint32_t>(Rte::Network::Events::Params::PLAYER_ID);
+        std::cout << "Creating player " << playerId << std::endl;
+        m_players.insert({playerId, std::make_unique<Player>(m_ecs, m_graphicModule, m_physicsModule, m_currentUid++)});
 
-    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(entity, Rte::Graphic::Components::Sprite(texture));
-    m_ecs->addComponent<Rte::BasicComponents::Transform>(entity, Rte::BasicComponents::Transform{
-        .position = {
-            (static_cast<float>(windowSize.x) / 2) - (entityScale.x / 2),
-            (static_cast<float>(windowSize.y) / 2) - (entityScale.y / 2)
-        },
-        .scale = entityScale,
-        .rotation = 0
-    });
+        // Add to entity list
+        const Rte::Entity newPlayerEntity = m_players[playerId]->getEntity();
+        m_entities->emplace_back(newPlayerEntity);
 
+        // Load texture and add to new entities textures
+        auto texture = m_ecs->getComponent<Rte::Graphic::Components::Sprite>(newPlayerEntity).texture;
+        std::vector<Rte::u8> pixelsVector(texture->getPixels(), texture->getPixels() + static_cast<ptrdiff_t>(texture->getSize().x * texture->getSize().y) * 4);
 
-    // Callback to close the window
-    bool running = true;
-    m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Graphic::Events::QUIT,
-        [&](const Rte::Event& /* UNUSED */) {
-            running = false;
-        }
-    ));
+        Rte::Network::PackedTexture packedTexture{};
+        packedTexture.size = texture->getSize();
+        packedTexture.pixels = pixelsVector;
 
-
-    // Callback to print the key pressed
-    m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Graphic::Events::KEY_PRESSED, [&](Rte::Event& event) {
-        const Rte::Graphic::Key key = event.getParameter<Rte::Graphic::Key>(Rte::Graphic::Events::Params::KEY_PRESSED);
-        std::cout << "Key pressed: " << static_cast<int>(key) << "\n";
+        m_newEntitiesTextures[newPlayerEntity] = packedTexture;
     }));
 
 
-    // Callback to print mouse button pressed
-    m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Graphic::Events::MOUSE_BUTTON_PRESSED, [&](Rte::Event& event) {
-        const Rte::Graphic::MouseButton button = event.getParameter<Rte::Graphic::MouseButton>(Rte::Graphic::Events::Params::MOUSE_BUTTON_PRESSED);
-        const Rte::Vec2<Rte::u16> position = event.getParameter<Rte::Vec2<Rte::u16>>(Rte::Graphic::Events::Params::MOUSE_BUTTON_PRESSED_POSITION);
-        std::cout << "Mouse button pressed: " << static_cast<int>(button) << " at position (" << position.x << ", " << position.y << ")\n";
+    // Player destroyed event
+    m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Network::Events::PLAYER_DELETED, [&](Rte::Event& event) {
+        const uint32_t playerId = event.getParameter<uint32_t>(Rte::Network::Events::Params::PLAYER_ID);
+        const Rte::Entity playerEntity = m_players.at(playerId)->getEntity();
+
+        const Rte::BasicComponents::UidComponents uid = m_ecs->getComponent<Rte::BasicComponents::UidComponents>(playerEntity);
+
+        m_entities->erase(std::remove(m_entities->begin(), m_entities->end(), playerEntity), m_entities->end());
+        m_ecs->destroyEntity(playerEntity);
+        m_players.erase(playerId);
+
+        for (auto& [playerId, player] : m_players)
+            m_networkModuleServer->deletePlayer(uid, playerId);
+        m_networkModuleServer->updateEntity(m_entities);
     }));
 
 
-    // Callback to move the sprite and make it at the center of the window
-    m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Graphic::Events::RESIZED,
-        [&](Rte::Event& event) {
-            // Get parameters from the event
-            const Rte::Vec2<Rte::u16> newSize = event.getParameter<Rte::Vec2<Rte::u16>>(Rte::Graphic::Events::Params::NEW_WINDOW_SIZE);
+    // Input event
+    m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Network::Events::INPUT, [&](Rte::Event& event) {
+        const Rte::Network::PackedInput& packedInput = event.getParameter<Rte::Network::PackedInput>(Rte::Network::Events::Params::INPUT);
+        uint32_t playerId = event.getParameter<uint32_t>(Rte::Network::Events::Params::PLAYER_ID);
 
-            // Update the sprite position
-            Rte::BasicComponents::Transform& transform = m_ecs->getComponent<Rte::BasicComponents::Transform>(entity);
-            transform.position.x = (static_cast<float>(newSize.x) / 2) - (entityScale.x / 2);
-            transform.position.y = (static_cast<float>(newSize.y) / 2) - (entityScale.y / 2);
+        if (packedInput.moveLeft)
+            m_players.at(playerId)->move({-20, 0});
+        if (packedInput.moveRight)
+            m_players.at(playerId)->move({20, 0});
+
+        if (packedInput.moveUp)
+            m_players.at(playerId)->move({0, 20});
+        if (packedInput.moveDown)
+            m_players.at(playerId)->move({0, -20});
+
+        if (packedInput.shoot) {
+            Rte::Entity projectile = m_players.at(playerId)->shoot(0);
+            if (projectile != 0)
+                createProjectile(projectile);
         }
-    ));
+    }));
+
+
+    // Player disconnected
+    m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Network::Events::DISCONNECTED, [&](const Rte::Event& /* UNUSED */) {
+        for (auto entity : *m_entities)
+            m_ecs->destroyEntity(entity);
+        m_entities->clear();
+        m_players.clear();
+    }));
+
+
+    // Exit event
+    m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Graphic::Events::QUIT, [&](const Rte::Event& /* UNUSED */) {
+        m_running = false;
+    }));
 
 
     // Main loop
-    while (running) {
-        graphicModule->update();
+    while (m_running) {
+        m_physicsModule->update();
+        m_graphicModule->update();
+
+        updateScene();
+        m_networkModuleServer->update();
+        m_networkModuleServer->updateTexture(m_newEntitiesTextures);
+        m_networkModuleServer->updateEntity(m_entities);
+        m_networkModuleServer->sendUpdate();
     }
 }

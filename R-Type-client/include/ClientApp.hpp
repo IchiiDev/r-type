@@ -1,12 +1,16 @@
 #pragma once
 
+#include "Button.hpp"
 #include "Rte/Ecs/Ecs.hpp"
 #include "Rte/Ecs/Types.hpp"
 #include "Rte/Graphic/GraphicModule.hpp"
-#include "Rte/Graphic/Texture.hpp"
+#include "Rte/Audio/AudioModule.hpp"
 #include "Rte/ModuleManager.hpp"
+#include "Rte/Network/NetworkModuleClient.hpp"
 
 #include <memory>
+#include <mutex>
+#include <vector>
 
 class ClientApp {
     public:
@@ -20,15 +24,38 @@ class ClientApp {
 
         void run();
 
+
+    private:
+        void menuLoop();
+
+
     private:
         bool m_running = true;
-        float m_deltaTime = 0.0;
 
         Rte::ModuleManager moduleManager;
         std::shared_ptr<Rte::Ecs> m_ecs;
-        std::shared_ptr<Rte::Graphic::GraphicModule> m_graphicModule;
-        std::shared_ptr<Rte::Graphic::Texture> m_redTexture;
 
-        Rte::Entity m_playerEntity{};
-        Rte::Entity m_sightLineEntity{};
+        std::shared_ptr<Rte::Graphic::GraphicModule> m_graphicModule;
+        std::shared_ptr<Rte::Audio::AudioModule> m_audioModule;
+        std::shared_ptr<Rte::Network::NetworkModuleClient> m_networkModuleClient;
+
+
+        //////////////////
+        // Menu Related //
+        //////////////////
+        std::vector<std::unique_ptr<Button>> m_menuButtons;
+        std::shared_ptr<Rte::Graphic::Texture> m_transparentTexture;
+        bool m_switchedOptionsState = false;
+        bool m_showOptions = false;
+        void createMenuButtons();
+        void createOptionsButtons();
+
+        int m_soundVolume = 5;
+
+
+        //////////////////
+        // Game Related //
+        //////////////////
+        std::mutex m_entitiesMutex;
+        std::vector<Rte::Entity> m_entities;
 };

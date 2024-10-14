@@ -4,3 +4,9 @@
 [submodule "external/asio"]
 	path = external/asio
 	url = https://github.com/chriskohlhoff/asio.git
+[submodule "external/box2d"]
+	path = external/box2d
+	url = https://github.com/erincatto/box2d.git
+[submodule "external/poly2tri"]
+	path = external/poly2tri
+	url = https://github.com/jhasse/poly2tri.git

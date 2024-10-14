@@ -1,15 +1,18 @@
 #pragma once
 
+#include "ButtonSystem.hpp"
 #include "RenderSystem.hpp"
 #include "Rte/Common.hpp"
 #include "Rte/Ecs/Ecs.hpp"
 #include "Rte/Graphic/GraphicModule.hpp"
 #include "Rte/Graphic/Texture.hpp"
 
+#include "SFML/Graphics/Font.hpp"
 #include "SFML/Graphics/RenderWindow.hpp"
 #include "SFML/Graphics/Shader.hpp"
 #include "SFML/Window/Keyboard.hpp"
 #include "SFML/Window/Mouse.hpp"
+#include "TextSystem.hpp"
 
 #include <memory>
 #include <string>
@@ -270,10 +273,14 @@ namespace Rte::Graphic {
             void setWindowTitle(const std::string& title) override;
             void setWindowSize(const Vec2<u16>& size) override;
             void setDaltonismMode(DaltonismMode mode) override;
+            void setLayerCount(int count) override;
 
             [[nodiscard]] Vec2<u16> getWindowSize() const override;
 
-            [[nodiscard]] std::shared_ptr<Texture> createTexture() const override;
+            [[nodiscard]] std::unique_ptr<Texture> createTexture() const override;
+
+            void loadFontFromMemory(const void *data, u32 size) override;
+            void loadFontFromFile(const char *path) override;
 
 
             // Input methods
@@ -287,8 +294,12 @@ namespace Rte::Graphic {
 
             sf::RenderWindow m_window;
             sf::Shader m_shader;
+            sf::Font m_font;
+            int m_layerCount = 1;
 
             std::shared_ptr<RenderSystem> m_renderSystem;
+            std::shared_ptr<ButtonSystem> m_buttonSystem;
+            std::shared_ptr<TextSystem> m_textSystem;
     };
 
 }   // namespace Rte::Graphic

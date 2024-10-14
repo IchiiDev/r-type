@@ -4,6 +4,7 @@
 #include "SFML/Graphics/Image.hpp"
 #include "SFML/Graphics/Texture.hpp"
 
+#include <iostream>
 #include <stdexcept>
 #include <string>
 
@@ -13,6 +14,7 @@ void TextureImpl::loadFromFile(const std::string& filename) {
     if (!m_texture.loadFromFile(filename))
         throw std::runtime_error("Failed to load texture from file");
     m_image = m_texture.copyToImage();
+    m_image = m_texture.copyToImage();
 }
 
 void TextureImpl::loadFromMemory(const u8* data, const Vec2<u16>& size) {
@@ -20,6 +22,7 @@ void TextureImpl::loadFromMemory(const u8* data, const Vec2<u16>& size) {
         throw std::runtime_error("Failed to create texture");
 
     m_texture.update(data);
+    m_image = m_texture.copyToImage();
     m_image = m_texture.copyToImage();
 }
 
