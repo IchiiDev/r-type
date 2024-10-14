@@ -69,7 +69,7 @@ Rte::Entity Player::shoot(float angle) {
 
     m_ecs->addComponent<Rte::Graphic::Components::Sprite>(projectile, Rte::Graphic::Components::Sprite(projectileTexture));
     m_ecs->addComponent<Rte::BasicComponents::Transform>(projectile, Rte::BasicComponents::Transform{
-        .position = {static_cast<float>(cos(angle) * 100) + playerPos.x, static_cast<float>(sin(angle) * 100) + playerPos.y},
+        .position = {static_cast<float>(std::cos(angle) * 100) + playerPos.x, static_cast<float>(std::sin(angle) * 100) + playerPos.y},
         .scale = {8, 8},
         .rotation = angle * 180 / std::numbers::pi_v<float>
     });
@@ -77,8 +77,8 @@ Rte::Entity Player::shoot(float angle) {
         {32, 0},
         0.05,
         0.3,
-        {m_ecs->getComponent<Rte::BasicComponents::Transform>(projectile).position.x + m_graphicModule->getWindowSize().x / 2,
-            m_ecs->getComponent<Rte::BasicComponents::Transform>(projectile).position.y + m_graphicModule->getWindowSize().y / 2},
+        {m_ecs->getComponent<Rte::BasicComponents::Transform>(projectile).position.x + static_cast<float>(m_graphicModule->getWindowSize().x) / 2.0F,
+            m_ecs->getComponent<Rte::BasicComponents::Transform>(projectile).position.y + static_cast<float>(m_graphicModule->getWindowSize().y) / 2.0F},
         m_ecs->getComponent<Rte::BasicComponents::Transform>(projectile).rotation,
         false,
         false,
@@ -86,20 +86,20 @@ Rte::Entity Player::shoot(float angle) {
     )});
     float force = 0.2;
     m_physicsModule->applyForce(m_ecs->getComponent<Rte::Physics::Components::Physics>(projectile).shapeBody, {
-        static_cast<float>(cos(angle) * force),
-        static_cast<float>(sin(-angle) * force)
+        static_cast<float>(std::cos(angle) * force),
+        static_cast<float>(std::sin(-angle) * force)
     });
     m_shootCooldown = 0.5;
     return projectile;
 }
 
 void Player::heal(float amount) {
-    m_health += 10;
+    m_health += amount;
     if (m_health > m_maxHealth)
         m_health = m_maxHealth;
 }
 void Player::takeDamage(float amount) {
-    m_health -= 10;
+    m_health -= amount;
     if (m_health < 0)
         m_health = 0;
 }
@@ -108,7 +108,6 @@ void Player::update() {
     m_mana += m_manaRegen;
     if (m_mana > m_maxMana)
         m_mana = m_maxMana;
-    m_health += m_healthRegen;
     if (m_health > m_maxHealth)
         m_health = m_maxHealth;
     if (m_shootCooldown > 0)

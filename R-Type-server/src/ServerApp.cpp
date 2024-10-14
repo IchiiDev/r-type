@@ -6,7 +6,6 @@
 #include "Rte/Ecs/Types.hpp"
 #include "Rte/Graphic/Components.hpp"
 #include "Rte/Graphic/GraphicModule.hpp"
-#include "Rte/Graphic/Texture.hpp"
 #include "Rte/ModuleManager.hpp"
 #include "Rte/Network/NetworkModuleTypes.hpp"
 #include "Rte/Physics/Components.hpp"
@@ -19,7 +18,7 @@
 #include <memory>
 #include <vector>
 
-ServerApp::ServerApp() {
+ServerApp::ServerApp() : m_rightWall(0), m_leftWall(0), m_topWall(0), m_bottomWall(0) {
     m_ecs = std::make_shared<Rte::Ecs>();
 
     // Load the physics module
@@ -76,9 +75,8 @@ void ServerApp::run() {
         m_entities->emplace_back(newPlayerEntity);
 
         // Load texture and add to new entities textures
-        const std::shared_ptr<Rte::Graphic::Texture>& texture = m_ecs->getComponent<Rte::Graphic::Components::Sprite>(newPlayerEntity).texture;
-        const Rte::u8 *pixels = texture->getPixels();
-        std::vector<Rte::u8> pixelsVector(pixels, pixels + texture->getSize().x * texture->getSize().y * 4);
+        auto texture = m_ecs->getComponent<Rte::Graphic::Components::Sprite>(newPlayerEntity).texture;
+        std::vector<Rte::u8> pixelsVector(texture->getPixels(), texture->getPixels() + static_cast<ptrdiff_t>(texture->getSize().x * texture->getSize().y) * 4);
 
         Rte::Network::PackedTexture packedTexture{};
         packedTexture.size = texture->getSize();

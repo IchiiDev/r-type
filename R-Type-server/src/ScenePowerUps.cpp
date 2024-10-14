@@ -20,7 +20,7 @@ void ServerApp::createPowerup(Rte::Vec2<float> pos) {
     m_ecs->addComponent<Rte::BasicComponents::UidComponents>(powerup, Rte::BasicComponents::UidComponents{m_currentUid++});
     m_ecs->addComponent<Rte::Graphic::Components::Sprite>(powerup, Rte::Graphic::Components::Sprite{powerupTexture});
     m_ecs->addComponent<Rte::BasicComponents::Transform>(powerup, Rte::BasicComponents::Transform{
-        .position = {pos.x + m_graphicModule->getWindowSize().x / 2, pos.y + m_graphicModule->getWindowSize().y / 2},
+        .position = {pos.x + static_cast<float>(m_graphicModule->getWindowSize().x) / 2, pos.y + static_cast<float>(m_graphicModule->getWindowSize().y) / 2},
         .scale = {3, 3},
         .rotation = 0
     });
@@ -37,9 +37,9 @@ void ServerApp::createPowerup(Rte::Vec2<float> pos) {
     m_entities->emplace_back(powerup);
 
     // Load texture and add to new entities textures
-    const std::shared_ptr<Rte::Graphic::Texture>& texture = m_ecs->getComponent<Rte::Graphic::Components::Sprite>(powerup).texture;
-    const Rte::u8* pixels = texture->getPixels();
-    std::vector<Rte::u8> pixelsVector(pixels, pixels + texture->getSize().x * texture->getSize().y * 4);
+    auto texture = m_ecs->getComponent<Rte::Graphic::Components::Sprite>(powerup).texture;
+    std::vector<Rte::u8> pixelsVector(texture->getPixels(), texture->getPixels() + static_cast<ptrdiff_t>(texture->getSize().x * texture->getSize().y) * 4);
+    
     Rte::Network::PackedTexture packedTexture{};
     packedTexture.size = texture->getSize();
     packedTexture.pixels = pixelsVector;
@@ -62,14 +62,14 @@ void ServerApp::destroyPowerup(const Rte::Entity& powerup) {
     const Rte::BasicComponents::UidComponents uid = m_ecs->getComponent<Rte::BasicComponents::UidComponents>(powerup);
     for (size_t j = 0; j < m_entities->size(); j++) {
         if (m_ecs->getComponent<Rte::BasicComponents::UidComponents>((*m_entities)[j]).uid == uid.uid) {
-            m_entities->erase(m_entities->begin() + j);
+            m_entities->erase(std::next(m_entities->begin(), static_cast<std::ptrdiff_t>(j)));
             break;
         }
     }
     m_ecs->destroyEntity(powerup);
     for (size_t i = 0; i < m_powerups.size(); i++)
         if (*m_powerups[i] == powerup)
-            m_powerups.erase(m_powerups.begin() + i);
+            m_powerups.erase(std::next(m_powerups.begin(), static_cast<std::ptrdiff_t>(i)));
     m_networkModuleServer->deleteEntity(uid);
     m_networkModuleServer->updateEntity(m_entities);
 }

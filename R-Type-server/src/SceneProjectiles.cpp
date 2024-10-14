@@ -3,7 +3,6 @@
 #include "Rte/Common.hpp"
 #include "Rte/Ecs/Types.hpp"
 #include "Rte/Graphic/Components.hpp"
-#include "Rte/Graphic/Texture.hpp"
 #include "Rte/Network/NetworkModuleTypes.hpp"
 #include "Rte/Physics/Components.hpp"
 #include <cstdlib>
@@ -20,9 +19,9 @@ void ServerApp::createProjectile(Rte::Entity projectile) {
     m_entities->emplace_back(projectile);
 
     // Load texture and add to new entities textures
-    const std::shared_ptr<Rte::Graphic::Texture>& texture = m_ecs->getComponent<Rte::Graphic::Components::Sprite>(projectile).texture;
-    const Rte::u8* pixels = texture->getPixels();
-    std::vector<Rte::u8> pixelsVector(pixels, pixels + texture->getSize().x * texture->getSize().y * 4);
+    auto texture = m_ecs->getComponent<Rte::Graphic::Components::Sprite>(projectile).texture;
+    std::vector<Rte::u8> pixelsVector(texture->getPixels(), texture->getPixels() + static_cast<ptrdiff_t>(texture->getSize().x * texture->getSize().y) * 4);
+    
     Rte::Network::PackedTexture packedTexture{};
     packedTexture.size = texture->getSize();
     packedTexture.pixels = pixelsVector;
@@ -74,14 +73,14 @@ void ServerApp::destroyProjectile(const Rte::Entity& projectile) {
     const Rte::BasicComponents::UidComponents uid = m_ecs->getComponent<Rte::BasicComponents::UidComponents>(projectile);
     for (size_t j = 0; j < m_entities->size(); j++) {
         if (m_ecs->getComponent<Rte::BasicComponents::UidComponents>((*m_entities)[j]).uid == uid.uid) {
-            m_entities->erase(m_entities->begin() + j);
+            m_entities->erase(m_entities->begin() + static_cast<std::vector<Rte::Entity>::difference_type>(j));
             break;
         }
     }
     m_ecs->destroyEntity(projectile);
     for (size_t i = 0; i < m_projectiles.size(); i++)
         if (*m_projectiles[i] == projectile)
-            m_projectiles.erase(m_projectiles.begin() + i);
+            m_projectiles.erase(m_projectiles.begin() + static_cast<std::vector<std::unique_ptr<Rte::Entity>>::difference_type>(i));
     m_networkModuleServer->deleteEntity(uid);
     m_networkModuleServer->updateEntity(m_entities);
 }

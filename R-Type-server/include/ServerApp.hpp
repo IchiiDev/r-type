@@ -27,6 +27,8 @@ class ServerApp {
 
         void run();
 
+    private:
+
         // Scene
         void initScene();
         void updateScene();
@@ -54,7 +56,6 @@ class ServerApp {
         void createObstacle(Rte::Vec2<float> pos);
         void destroyObstacle(const Rte::Entity& obstacle);
 
-    private:
         Rte::ModuleManager moduleManager;
         std::shared_ptr<Rte::Ecs> m_ecs;
 

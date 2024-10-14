@@ -1,6 +1,5 @@
 #include "ServerApp.hpp"
 
-#include "Rte/Ecs/Types.hpp"
 #include "Rte/Physics/Components.hpp"
 
 void ServerApp::initScene() {

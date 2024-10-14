@@ -1,4 +1,3 @@
-#include "Enemy.hpp"
 #include "ServerApp.hpp"
 
 #include "Rte/Common.hpp"
@@ -38,9 +37,9 @@ void ServerApp::createObstacle(Rte::Vec2<float> pos) {
     m_entities->emplace_back(obstacle);
 
     // Load texture and add to new entities textures
-    const std::shared_ptr<Rte::Graphic::Texture>& texture = m_ecs->getComponent<Rte::Graphic::Components::Sprite>(obstacle).texture;
-    const Rte::u8* pixels = texture->getPixels();
-    std::vector<Rte::u8> pixelsVector(pixels, pixels + texture->getSize().x * texture->getSize().y * 4);
+    auto texture = m_ecs->getComponent<Rte::Graphic::Components::Sprite>(obstacle).texture;
+    std::vector<Rte::u8> pixelsVector(texture->getPixels(), texture->getPixels() + static_cast<ptrdiff_t>(texture->getSize().x * texture->getSize().y) * 4);
+
     Rte::Network::PackedTexture packedTexture{};
     packedTexture.size = texture->getSize();
     packedTexture.pixels = pixelsVector;
@@ -68,14 +67,14 @@ void ServerApp::destroyObstacle(const Rte::Entity& obstacle) {
     const Rte::BasicComponents::UidComponents uid = m_ecs->getComponent<Rte::BasicComponents::UidComponents>(obstacle);
     for (size_t j = 0; j < m_entities->size(); j++) {
         if (m_ecs->getComponent<Rte::BasicComponents::UidComponents>((*m_entities)[j]).uid == uid.uid) {
-            m_entities->erase(m_entities->begin() + j);
+            m_entities->erase(std::next(m_entities->begin(), static_cast<std::ptrdiff_t>(j)));
             break;
         }
     }
     m_ecs->destroyEntity(obstacle);
     for (size_t i = 0; i < m_obstacles.size(); i++)
         if (*m_obstacles[i] == obstacle)
-            m_obstacles.erase(m_obstacles.begin() + i);
+            m_obstacles.erase(std::next(m_obstacles.begin(), static_cast<std::ptrdiff_t>(i)));
     m_networkModuleServer->deleteEntity(uid);
     m_networkModuleServer->updateEntity(m_entities);
 }

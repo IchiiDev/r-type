@@ -69,7 +69,7 @@ Rte::Entity Enemy::shoot(float angle) {
 
     m_ecs->addComponent<Rte::Graphic::Components::Sprite>(projectile, Rte::Graphic::Components::Sprite(projectileTexture));
     m_ecs->addComponent<Rte::BasicComponents::Transform>(projectile, Rte::BasicComponents::Transform{
-        .position = {static_cast<float>(cos(angle) * 100) + enemyPos.x, static_cast<float>(sin(angle) * 100) + enemyPos.y},
+        .position = {static_cast<float>(std::cos(angle) * 100) + enemyPos.x, static_cast<float>(std::sin(angle) * 100) + enemyPos.y},
         .scale = {8, 8},
         .rotation = angle * 180 / std::numbers::pi_v<float>
     });
@@ -77,8 +77,8 @@ Rte::Entity Enemy::shoot(float angle) {
         {32, 0},
         0.05,
         0.3,
-        {m_ecs->getComponent<Rte::BasicComponents::Transform>(projectile).position.x + m_graphicModule->getWindowSize().x / 2,
-            m_ecs->getComponent<Rte::BasicComponents::Transform>(projectile).position.y + m_graphicModule->getWindowSize().y / 2},
+        {m_ecs->getComponent<Rte::BasicComponents::Transform>(projectile).position.x + static_cast<float>(m_graphicModule->getWindowSize().x) / 2.F,
+            m_ecs->getComponent<Rte::BasicComponents::Transform>(projectile).position.y + static_cast<float>(m_graphicModule->getWindowSize().y) / 2.F},
         m_ecs->getComponent<Rte::BasicComponents::Transform>(projectile).rotation,
         false,
         false,
@@ -86,8 +86,8 @@ Rte::Entity Enemy::shoot(float angle) {
     )});
     float force = 0.05;
     m_physicsModule->applyForce(m_ecs->getComponent<Rte::Physics::Components::Physics>(projectile).shapeBody, {
-        static_cast<float>(cos(angle) * force),
-        static_cast<float>(sin(-angle) * force)
+        static_cast<float>(std::cos(angle) * force),
+        static_cast<float>(std::sin(-angle) * force)
     });
     m_shootCooldown = 0.5;
     return projectile;

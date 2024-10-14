@@ -7,7 +7,6 @@
 #include "Rte/Network/NetworkModuleTypes.hpp"
 #include "Rte/Physics/Components.hpp"
 
-#include <chrono>
 #include <cmath>
 #include <memory>
 #include <vector>
@@ -21,9 +20,9 @@ void ServerApp::createEnemy(Rte::Vec2<float> pos) {
     m_entities->emplace_back(enemy->getEntity());
     
     // Load texture and add to new entities textures
-    const std::shared_ptr<Rte::Graphic::Texture>& texture = m_ecs->getComponent<Rte::Graphic::Components::Sprite>(enemy->getEntity()).texture;
-    const Rte::u8* pixels = texture->getPixels();
-    std::vector<Rte::u8> pixelsVector(pixels, pixels + texture->getSize().x * texture->getSize().y * 4);
+    auto texture = m_ecs->getComponent<Rte::Graphic::Components::Sprite>(enemy->getEntity()).texture;
+    std::vector<Rte::u8> pixelsVector(texture->getPixels(), texture->getPixels() + static_cast<ptrdiff_t>(texture->getSize().x * texture->getSize().y) * 4);
+    
     Rte::Network::PackedTexture packedTexture{};
     packedTexture.size = texture->getSize();
     packedTexture.pixels = pixelsVector;
@@ -55,7 +54,7 @@ void ServerApp::destroyEnemy(const Rte::Entity& enemy) {
     const Rte::BasicComponents::UidComponents uid = m_ecs->getComponent<Rte::BasicComponents::UidComponents>(enemy);
     for (size_t j = 0; j < m_entities->size(); j++) {
         if (m_ecs->getComponent<Rte::BasicComponents::UidComponents>((*m_entities)[j]).uid == uid.uid) {
-            m_entities->erase(m_entities->begin() + j);
+            m_entities->erase(std::next(m_entities->begin(), static_cast<std::vector<Rte::Entity>::difference_type>(j)));
             break;
         }
     }

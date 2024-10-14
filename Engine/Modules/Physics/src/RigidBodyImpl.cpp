@@ -565,6 +565,7 @@ RigidBodyImpl::RigidBodyImpl(const std::shared_ptr<RigidBodyImpl>& rigidBody, co
 
 RigidBodyImpl::~RigidBodyImpl() {
     b2DestroyBody(m_bodyId);
+    //Destroy the shapes.
 }
 
 b2BodyId RigidBodyImpl::getBodyId() const {

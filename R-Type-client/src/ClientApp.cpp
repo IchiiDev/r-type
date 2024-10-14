@@ -77,6 +77,23 @@ void ClientApp::run() {
         m_entitiesMutex.unlock();
     }));
 
+    Rte::Entity sky = m_ecs->createEntity();
+    const std::shared_ptr<Rte::Graphic::Texture> skytexture = m_graphicModule->createTexture();
+    skytexture->loadFromFile("../assets/sky.png");
+    m_ecs->addComponent<Rte::BasicComponents::Transform>(sky, Rte::BasicComponents::Transform{
+        .position = {0, 0},
+        .scale = {10, 10},
+        .rotation = 0
+    });
+    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(sky, {skytexture, 0});
+
+    Rte::Entity sky1 = m_ecs->createEntity();
+    m_ecs->addComponent<Rte::BasicComponents::Transform>(sky1, Rte::BasicComponents::Transform{
+        .position = {1920, 0},
+        .scale = {10, 10},
+        .rotation = 0
+    });
+    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(sky1, {skytexture, 0});
 
     // Entity destroyed event
     m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Network::Events::ENTITY_DELETED, [&](Rte::Event& event) {
@@ -136,6 +153,12 @@ void ClientApp::run() {
             m_graphicModule->update();
             m_networkModuleClient->sendUpdate();
         }
+        m_ecs->getComponent<Rte::BasicComponents::Transform>(sky).position.x -= 5;
+        if (m_ecs->getComponent<Rte::BasicComponents::Transform>(sky).position.x <= -1920)
+            m_ecs->getComponent<Rte::BasicComponents::Transform>(sky).position.x = 1920;
+        m_ecs->getComponent<Rte::BasicComponents::Transform>(sky1).position.x -= 5;
+        if (m_ecs->getComponent<Rte::BasicComponents::Transform>(sky1).position.x <= -1920)
+            m_ecs->getComponent<Rte::BasicComponents::Transform>(sky1).position.x = 1920;
         m_entitiesMutex.unlock();
     }
 
