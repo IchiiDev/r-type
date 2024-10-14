@@ -10,7 +10,7 @@
 void ServerApp::updatePlayers() {
     for (auto& [playerId, player] : m_players) {
         if (player->getHealth() <= 0) {
-            
+            m_networkModuleServer->deletePlayer(m_ecs->getComponent<Rte::BasicComponents::UidComponents>(player->getEntity()), playerId);
             return;
         }
         player->update();
