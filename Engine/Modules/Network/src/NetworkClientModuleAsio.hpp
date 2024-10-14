@@ -30,7 +30,7 @@ namespace Rte::Network {
     class NetworkClientModuleAsio : public NetworkModuleClient {
         public:
             NetworkClientModuleAsio() = default;
-            ~NetworkClientModuleAsio() = default;
+            ~NetworkClientModuleAsio();
 
         public:
             void init(const std::shared_ptr<Ecs>& ecs) override;
@@ -55,5 +55,8 @@ namespace Rte::Network {
 
             char *m_buffer;
             int m_clientId = 0;
+            std::thread m_receiveThread;
+
+            bool m_running = true;
     };
 } // namespace Rte::Network

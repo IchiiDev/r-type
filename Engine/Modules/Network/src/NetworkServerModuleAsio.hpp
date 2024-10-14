@@ -59,7 +59,7 @@ namespace Rte::Network {
 
             std::vector<Entity> m_alreadySentEntity;
             std::map<Entity, PackedTexture> m_textures;
-            std::shared_ptr<std::vector<Entity>> m_entities = nullptr;
+            std::shared_ptr<std::vector<Entity>> m_entities;
 
             int m_port = 4242;
             int m_sockfd;

@@ -42,14 +42,19 @@ namespace Rte::Network {
     };
 
     namespace Events {
-        const EventType DISCONNECTED = "Events::DISCONNECTED"_hash;
+        // To client
         const EventType ENTITY_CREATED = "Events::ENTITY_CREATED"_hash;
         const EventType ENTITY_UPDATED = "Events::ENTITY_UPDATED"_hash;
         const EventType ENTITY_DELETED = "Events::ENTITY_DELETED"_hash;
+
+        // To server
         const EventType PLAYER_CREATED = "Events::PLAYER_CREATED"_hash;
         const EventType PLAYER_DELETED = "Events::PLAYER_DELETED"_hash;
-        const EventType INPUT = "Events::INPUT"_hash;
         const EventType MICRO_EVENT = "Events::MICRO_EVENT"_hash;
+        const EventType INPUT = "Events::INPUT"_hash;
+
+        // Both
+        const EventType DISCONNECTED = "Events::DISCONNECTED"_hash;
     } // namespace Events
 
     namespace Events::Params {
