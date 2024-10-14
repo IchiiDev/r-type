@@ -87,7 +87,12 @@ void ServerApp::run() {
 
         const Rte::BasicComponents::UidComponents uid = m_ecs->getComponent<Rte::BasicComponents::UidComponents>(playerEntity);
 
-        m_entities->erase(std::remove(m_entities->begin(), m_entities->end(), playerEntity), m_entities->end());
+        for (auto it = m_entities->begin(); it != m_entities->end(); ++it) {
+            if (*it == playerEntity) {
+                m_entities->erase(it);
+                break;
+            }
+        }
         m_ecs->destroyEntity(playerEntity);
         m_players.erase(playerId);
 

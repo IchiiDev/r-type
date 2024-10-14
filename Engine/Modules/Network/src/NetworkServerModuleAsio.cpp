@@ -10,7 +10,10 @@
 #include "Rte/Ecs/Types.hpp"
 #include "Rte/Network/NetworkModuleTypes.hpp"
 #include "machin.hpp"
+
 #include <cstdint>
+#include <cstring>
+#include <fcntl.h>
 #include <iostream>
 #include <map>
 #include <memory>
@@ -51,28 +54,30 @@ void Rte::Network::NetworkServerModuleAsio::init(const std::shared_ptr<Ecs>& ecs
         exit(1);
     }
 
-    // Start
+    int flags = fcntl(m_sockfd, F_GETFL, 0);
+    fcntl(m_sockfd, F_SETFL, flags | O_NONBLOCK);
+
     m_clientLen = sizeof(m_clientAddr);
 
-    fd_set readfds;
-    struct timeval tv;
-    int retval;
-
     m_thread = std::thread([&]() {
+        fd_set readfds;
+
         while (true) {
             FD_ZERO(&readfds);
             FD_SET(m_sockfd, &readfds);
 
-            // Never timeout
-            tv.tv_sec = 10000000;
-            tv.tv_usec = 0;
+            struct timeval tv {
+                .tv_sec = 100,
+                .tv_usec = 0
+            };
 
-            retval = select(m_sockfd + 1, &readfds, NULL, NULL, &tv);
+            int retval = select(m_sockfd + 1, &readfds, nullptr, nullptr, &tv);
 
             if (retval == -1) {
                 std::cerr << "Error in select." << std::endl;
                 continue;
-            } if (retval == 0) {
+            }
+            if (retval == 0) {
                 std::cout << "Timeout occurred! No data received." << std::endl;
                 continue;
             }
