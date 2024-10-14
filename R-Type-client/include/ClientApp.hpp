@@ -4,6 +4,7 @@
 #include "Rte/Ecs/Ecs.hpp"
 #include "Rte/Ecs/Types.hpp"
 #include "Rte/Graphic/GraphicModule.hpp"
+#include "Rte/Audio/AudioModule.hpp"
 #include "Rte/ModuleManager.hpp"
 #include "Rte/Network/NetworkModuleClient.hpp"
 
@@ -35,6 +36,7 @@ class ClientApp {
         std::shared_ptr<Rte::Ecs> m_ecs;
 
         std::shared_ptr<Rte::Graphic::GraphicModule> m_graphicModule;
+        std::shared_ptr<Rte::Audio::AudioModule> m_audioModule;
         std::shared_ptr<Rte::Network::NetworkModuleClient> m_networkModuleClient;
 
 

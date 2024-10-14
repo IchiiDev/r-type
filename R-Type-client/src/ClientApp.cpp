@@ -1,5 +1,7 @@
 #include "ClientApp.hpp"
 
+#include "Rte/Audio/Sound.hpp"
+#include "Rte/Audio/SoundBuffer.hpp"
 #include "Rte/BasicComponents.hpp"
 #include "Rte/Common.hpp"
 #include "Rte/Ecs/Ecs.hpp"
@@ -29,6 +31,10 @@ ClientApp::ClientApp() {
     m_graphicModule->setDaltonismMode(Rte::Graphic::DaltonismMode::NONE);
     m_graphicModule->loadFontFromFile("../assets/alagard.ttf");
     m_graphicModule->setLayerCount(10);
+
+    // Load the audio module
+    m_audioModule = Rte::interfaceCast<Rte::Audio::AudioModule>(moduleManager.loadModule("RteAudio"));
+    m_audioModule->init(m_ecs);
 
     // Load the network module
     const std::shared_ptr<Rte::Network::NetworkModule> networkModule = Rte::interfaceCast<Rte::Network::NetworkModule>(moduleManager.loadModule("RteNetwork"));
@@ -77,6 +83,7 @@ void ClientApp::run() {
         m_entitiesMutex.unlock();
     }));
 
+    // Create sky
     Rte::Entity sky = m_ecs->createEntity();
     const std::shared_ptr<Rte::Graphic::Texture> skytexture = m_graphicModule->createTexture();
     skytexture->loadFromFile("../assets/sky.png");
@@ -94,6 +101,15 @@ void ClientApp::run() {
         .rotation = 0
     });
     m_ecs->addComponent<Rte::Graphic::Components::Sprite>(sky1, {skytexture, 0});
+    
+    // Load audio module
+    const std::shared_ptr<Rte::Audio::AudioModule> audioModule = Rte::interfaceCast<Rte::Audio::AudioModule>(moduleManager.loadModule("RteAudio"));
+    audioModule->init(m_ecs);
+    audioModule->update();
+
+    const std::shared_ptr<Rte::Audio::SoundBuffer> soundBuffer = audioModule->createSoundBuffer("../assets/zubzab.mp3");
+    const std::shared_ptr<Rte::Audio::Sound> sound = audioModule->createSound(soundBuffer);
+    sound->play();
 
     // Entity destroyed event
     m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Network::Events::ENTITY_DELETED, [&](Rte::Event& event) {
@@ -142,10 +158,10 @@ void ClientApp::run() {
     while(m_running) {
         // Get inputs from player
         m_networkModuleClient->updateInputs(Rte::Network::PackedInput{
-            .moveUp = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Z),
-            .moveDown = m_graphicModule->isKeyPressed(Rte::Graphic::Key::S),
-            .moveLeft = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Q),
-            .moveRight = m_graphicModule->isKeyPressed(Rte::Graphic::Key::D),
+            .moveUp = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Up),
+            .moveDown = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Down),
+            .moveLeft = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Left),
+            .moveRight = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Right),
             .shoot = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Space)
         });
 
