@@ -17,10 +17,7 @@
 #include <cstdint>
 #include <iostream>
 #include <memory>
-#include <mutex>
-#include <thread>
 #include <vector>
-#include <numbers>
 
 ServerApp::ServerApp() {
     m_ecs = std::make_shared<Rte::Ecs>();
@@ -48,7 +45,8 @@ ServerApp::ServerApp() {
     m_entities = std::make_shared<std::vector<Rte::Entity>>();
 
     // Time init
-    m_clock = std::chrono::high_resolution_clock::now();
+    m_EnemyClock = std::chrono::high_resolution_clock::now();
+    m_ObstacleClock = std::chrono::high_resolution_clock::now();
     m_startTime = std::chrono::high_resolution_clock::now();
 }
 

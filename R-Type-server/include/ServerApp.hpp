@@ -49,6 +49,11 @@ class ServerApp {
         void createPowerup(Rte::Vec2<float> pos);
         void destroyPowerup(const Rte::Entity& powerup);
 
+        // Powerups
+        void updateObstacles();
+        void createObstacle(Rte::Vec2<float> pos);
+        void destroyObstacle(const Rte::Entity& obstacle);
+
     private:
         Rte::ModuleManager moduleManager;
         std::shared_ptr<Rte::Ecs> m_ecs;
@@ -72,7 +77,8 @@ class ServerApp {
         Rte::Entity m_bottomWall;
         std::map<Rte::Entity, Rte::Network::PackedTexture> m_newEntitiesTextures;
 
-        std::chrono::time_point<std::chrono::high_resolution_clock> m_clock;
+        std::chrono::time_point<std::chrono::high_resolution_clock> m_EnemyClock;
+        std::chrono::time_point<std::chrono::high_resolution_clock> m_ObstacleClock;
         std::chrono::time_point<std::chrono::high_resolution_clock> m_startTime;
 
         uint32_t m_currentUid = 0;

@@ -31,9 +31,6 @@ void ServerApp::createEnemy(Rte::Vec2<float> pos) {
     
     // Add enemy to the enemies list
     m_enemies.insert({enemy->getEntity(), std::move(enemy)});
-
-    // Reset clock
-    m_clock = std::chrono::high_resolution_clock::now();
 }
 
 void ServerApp::updateEnemies() {
