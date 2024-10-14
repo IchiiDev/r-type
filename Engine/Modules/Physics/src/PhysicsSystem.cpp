@@ -15,6 +15,7 @@
 #include "box2d/math_functions.h"
 
 #include <cassert>
+#include <chrono>
 #include <cmath>
 #include <memory>
 #include <numbers>
@@ -31,7 +32,14 @@ void PhysicsSystem::init(const std::shared_ptr<Rte::Ecs>& ecs, b2WorldId worldId
 
 void PhysicsSystem::update() {  // NOLINT (readability-function-cognitive-complexity)
     assert(m_ecs != nullptr && "Cannot update physics system: Not initialized.");
-    b2World_Step(m_worldId, m_timeStep, m_subStepCount);
+    
+    static std::chrono::high_resolution_clock::time_point lastTime = std::chrono::high_resolution_clock::now();
+    const std::chrono::high_resolution_clock::time_point currentTime = std::chrono::high_resolution_clock::now();
+    const float deltaTime = std::chrono::duration<float>(currentTime - lastTime).count();
+    
+    lastTime = currentTime;
+
+    b2World_Step(m_worldId, deltaTime, m_subStepCount);
 
     std::shared_ptr<SandBoxImpl> sandBox;
     for (const Entity entity : m_entities)
