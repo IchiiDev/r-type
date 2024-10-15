@@ -1,31 +1,16 @@
 -std=c++20
 
-# Core
--I./Engine/Core/include
--I./Engine/Core/src
-
-# Graphic module
--I./Engine/Modules/Graphic/include
--I./Engine/Modules/Graphic/src
-
-# Network module
--I./Engine/Modules/Network/include
--I./Engine/Modules/Network/src
-
-# Physics module
--I./Engine/Modules/Physics/include
--I./Engine/Modules/Physics/src
-
-# Audio module
--I./Engine/Modules/Audio/include
--I./Engine/Modules/Audio/src
-
-# R-Type
--I./R-Type-client/include
--I./R-Type-server/include
+# Engine
+    # Libs
+        # Core
+            -I./Engine/Libs/Core/src
+            -I./Engine/Libs/Core/include
+        # Graphic
+            -I./Engine/Libs/Graphic/src
+            -I./Engine/Libs/Graphic/include
 
 # External dependencies
--I./external/SFML/include
--I./external/asio/asio/include
--I./external/box2d/include
--I./external/poly2tri
+    -I./external/box2d/include
+    -I./external/poly2tri
+    -I./external/raylib/src
+    -I./external/entt/single_include

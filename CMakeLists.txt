@@ -1,17 +1,11 @@
 cmake_minimum_required(VERSION 3.16)
-project(Build-All CXX)
+project(RteBuildAll CXX)
 
-# Include directories of modules
-include_directories(${CMAKE_SOURCE_DIR}/Engine/Modules/Graphic/include)
-include_directories(${CMAKE_SOURCE_DIR}/Engine/Modules/Network/include)
-include_directories(${CMAKE_SOURCE_DIR}/Engine/Modules/Physics/include)
-include_directories(${CMAKE_SOURCE_DIR}/Engine/Modules/Audio/include)
+# Engine
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/Engine)
 
-# Game engine
-add_subdirectory(Engine)
+# Editor
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/Editor)
 
-# Game client
-add_subdirectory(R-Type-client)
-
-# Game server
-add_subdirectory(R-Type-server)
+# Apps
+# ...
