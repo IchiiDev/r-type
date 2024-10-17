@@ -9,6 +9,7 @@
 #include "Rte/Network/NetworkModule.hpp"
 #include "Rte/Network/NetworkModuleServer.hpp"
 #include "Rte/Physics/PhysicsModule.hpp"
+#include "Rte/Physics/Tool.hpp"
 
 #include <cstdint>
 #include <map>
@@ -59,7 +60,7 @@ class ServerApp {
         void updateBreakables();
         void fractureBreakable(const Rte::Vec2<Rte::u16>& position);
         void destroyBreakable(const Rte::Entity& breakable);
-
+        
         Rte::ModuleManager moduleManager;
         std::shared_ptr<Rte::Ecs> m_ecs;
 
@@ -73,6 +74,7 @@ class ServerApp {
         std::map<uint32_t, std::unique_ptr<Player>> m_players;
         std::shared_ptr<std::vector<Rte::Entity>> m_entities;
         std::vector<std::unique_ptr<Rte::Entity>> m_projectiles;
+        std::map<std::string, std::pair<Rte::Vec2<Rte::u16>, std::vector<int>>> m_destructionMaps;
         std::vector<std::unique_ptr<Rte::Entity>> m_powerups;
         std::vector<std::unique_ptr<Rte::Entity>> m_breakables;
         std::map<uint32_t, std::unique_ptr<Enemy>> m_enemies;
@@ -81,6 +83,8 @@ class ServerApp {
         Rte::Entity m_topWall;
         Rte::Entity m_bottomWall;
         std::map<Rte::Entity, Rte::Network::PackedTexture> m_newEntitiesTextures;
+
+        std::map<std::string, std::vector<Rte::Physics::PixelCringe>> projectilesMaps;
 
         std::chrono::time_point<std::chrono::high_resolution_clock> m_EnemyClock;
         std::chrono::time_point<std::chrono::high_resolution_clock> m_ObstacleClock;

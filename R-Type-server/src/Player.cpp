@@ -61,7 +61,7 @@ Rte::Entity Player::shoot(float angle) {
     //Shoot projectile
     if (m_mana < 20 || m_shootCooldown > 0)
         return 0;
-    m_mana -= 20;
+    //m_mana -= 20;
     Rte::Vec2<float> playerPos = m_ecs->getComponent<Rte::BasicComponents::Transform>(m_player).position;
     const std::shared_ptr<Rte::Graphic::Texture> projectileTexture = m_graphicModule->createTexture();
     projectileTexture->loadFromFile("../assets/projectile.png");
@@ -111,7 +111,7 @@ void Player::update() {
     if (m_health > m_maxHealth)
         m_health = m_maxHealth;
     if (m_shootCooldown > 0)
-        m_shootCooldown -= 0.01;
+        m_shootCooldown -= 0.1;
 }
 
 float Player::getHealth() const {

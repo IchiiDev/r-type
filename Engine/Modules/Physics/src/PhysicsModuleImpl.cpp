@@ -64,7 +64,7 @@ void PhysicsModuleImpl::update() {
     m_physicsSystem->update();
 }
 
-std::vector<Rte::u8> PhysicsModuleImpl::fractureRigidBody(const std::shared_ptr<RigidBody>& rigidBody, Vec2<u16> pixelPos, bool &hasChanged) {
+std::vector<Rte::u8> PhysicsModuleImpl::fractureRigidBody(const std::shared_ptr<RigidBody>& rigidBody, Vec2<u16> pixelPos, std::vector<int> destructionMap, Rte::Vec2<Rte::u16> destructionMapSize, bool &hasChanged) {
     const std::shared_ptr<RigidBodyImpl> rigidBodyImpl = interfaceCast<RigidBodyImpl>(rigidBody);
 
 
@@ -83,18 +83,21 @@ std::vector<Rte::u8> PhysicsModuleImpl::fractureRigidBody(const std::shared_ptr<
 
     // IDK
     std::vector<std::vector<PixelCringe>> rotatedPixels = rigidBodyImpl->getRotatedPixels();
-    for (std::vector<PixelCringe>& rotatedPixelArray : rotatedPixels) {
-        for (PixelCringe& rotatedPixel : rotatedPixelArray) {
-            if (rotatedPixel.pos.x + bodyPos.x - 3 <= static_cast<float>(pixelPos.x) && rotatedPixel.pos.x + bodyPos.x + 3 >= static_cast<float>(pixelPos.x)
-            && rotatedPixel.pos.y + bodyPos.y - 3 <= static_cast<float>(pixelPos.y) && rotatedPixel.pos.y + bodyPos.y + 3 >= static_cast<float>(pixelPos.y)) {
-                if (rotatedPixel.a == 255) {
+    
+    for (int i = 0; i < destructionMapSize.y; i++) {
+        for (int j = 0; j < destructionMapSize.x; j++) {
+            if (destructionMap.at(i * destructionMapSize.x + j) == 1) {
+                Rte::Vec2<int> point = {
+                    i + destructionMapSize.y / 2 + pixelPos.y - static_cast<int>(bodyPos.y),
+                    j + destructionMapSize.x / 2 + pixelPos.x - static_cast<int>(bodyPos.x)
+                };
+                if (point.x >= 0 && point.x < rotatedPixels.size() && point.y >= 0 && point.y < rotatedPixels.at(0).size()) {
+                    rotatedPixels.at(point.x).at(point.y).a = 0;
                     hasChanged = true;
-                    rotatedPixel.a = 0;
                 }
             }
         }
     }
-
 
     // Create the new fractured pixels array
     std::vector<u8> newPixels(rotatedPixels.size() * rotatedPixels.at(0).size() * 4);

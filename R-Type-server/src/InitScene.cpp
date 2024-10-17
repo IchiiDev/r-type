@@ -1,8 +1,17 @@
+#include "Rte/Graphic/Texture.hpp"
 #include "ServerApp.hpp"
+#include "Utils/BinaryMap.hpp"
 
 #include "Rte/Physics/Components.hpp"
 
 void ServerApp::initScene() {
+    // Init destruction map
+
+    const std::shared_ptr<Rte::Graphic::Texture> round1 = m_graphicModule->createTexture();
+    round1->loadFromFile("../assets/round1.png");
+    
+    m_destructionMaps["round1"].first = round1->getSize();
+    m_destructionMaps["round1"].second = convertToBinary(round1->getPixels(), round1->getSize());
     // Invisible walls
 
     // Left wall
@@ -62,5 +71,5 @@ void ServerApp::initScene() {
     )});
 
     // Breakables
-    createBreakable({0, 1080 / 2 - 128}, "mushroom");
+    createBreakable({0, 1080 / 2 - 200}, "mushroom");
 }

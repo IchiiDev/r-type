@@ -1,3 +1,4 @@
+#include "Rte/Physics/Tool.hpp"
 #include "ServerApp.hpp"
 
 #include "Rte/Common.hpp"
@@ -7,6 +8,7 @@
 #include "Rte/Physics/Components.hpp"
 #include <cstdlib>
 #include <memory>
+#include <vector>
 
 void ServerApp::createProjectile(Rte::Entity projectile) {
     // Add projectile to the entities list
