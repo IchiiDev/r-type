@@ -29,7 +29,7 @@ namespace Rte::Physics {
             [[nodiscard]] Vec2<float> getPosition() const;
             [[nodiscard]] bool isDynamic() const;
             [[nodiscard]] std::vector<std::vector<PixelCringe>> getRotatedPixels() const;
-
+            [[nodiscard]] std::vector<b2ShapeId> getShapesIds() const;
         private:
             bool m_isDynamic;
             b2BodyId m_bodyId{};
@@ -37,6 +37,7 @@ namespace Rte::Physics {
             Rte::Vec2<u16> m_size;
             b2WorldId m_worldId;
             std::vector<MaterialType> m_materials;
+            std::vector<b2ShapeId> m_shapes;
     };
 
 }   // namespace Rte::Physics

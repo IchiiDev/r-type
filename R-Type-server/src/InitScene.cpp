@@ -60,4 +60,7 @@ void ServerApp::initScene() {
         true,
         Rte::Physics::ShapeType::RECTANGLE
     )});
+
+    // Breakables
+    createBreakable({0, 0}, "mushroom");
 }

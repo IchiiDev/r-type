@@ -3,6 +3,7 @@
 #include "Enemy.hpp"
 #include "Player.hpp"
 #include "Rte/Ecs/Ecs.hpp"
+#include "Rte/Ecs/Types.hpp"
 #include "Rte/Graphic/GraphicModule.hpp"
 #include "Rte/ModuleManager.hpp"
 #include "Rte/Network/NetworkModule.hpp"
@@ -38,8 +39,8 @@ class ServerApp {
 
         // Enemies
         void createEnemy(Rte::Vec2<float> pos);
-        void destroyEnemy(const Rte::Entity& enemy);
         void updateEnemies();
+        void destroyEnemy(const Rte::Entity& enemy);
         
         // Projectiles
         void createProjectile(Rte::Entity projectile);
@@ -47,14 +48,17 @@ class ServerApp {
         void destroyProjectile(const Rte::Entity& projectile);
 
         // Powerups
-        void updatePowerups();
         void createPowerup(Rte::Vec2<float> pos);
+        void updatePowerups();
         void destroyPowerup(const Rte::Entity& powerup);
-
-        // Powerups
-        void updateObstacles();
-        void createObstacle(Rte::Vec2<float> pos);
-        void destroyObstacle(const Rte::Entity& obstacle);
+        
+        // Breakables
+        void createBreakable(Rte::Vec2<float> pos, std::string spritePath);
+        void createBreakable(Rte::Vec2<float> pos, std::vector<Rte::u8> texture, std::vector<Rte::u8> material, Rte::Vec2<Rte::u16> size);
+        void createBreakable(Rte::Entity breakable, std::vector<Rte::u8> texture, std::vector<Rte::u8> material, Rte::Vec2<Rte::u16> size);
+        void updateBreakables();
+        void fractureBreakable(const Rte::Vec2<Rte::u16>& position);
+        void destroyBreakable(const Rte::Entity& breakable);
 
         Rte::ModuleManager moduleManager;
         std::shared_ptr<Rte::Ecs> m_ecs;
@@ -70,7 +74,7 @@ class ServerApp {
         std::shared_ptr<std::vector<Rte::Entity>> m_entities;
         std::vector<std::unique_ptr<Rte::Entity>> m_projectiles;
         std::vector<std::unique_ptr<Rte::Entity>> m_powerups;
-        std::vector<std::unique_ptr<Rte::Entity>> m_obstacles;
+        std::vector<std::unique_ptr<Rte::Entity>> m_breakables;
         std::map<uint32_t, std::unique_ptr<Enemy>> m_enemies;
         Rte::Entity m_rightWall;
         Rte::Entity m_leftWall;

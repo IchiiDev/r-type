@@ -47,6 +47,7 @@ namespace Rte::Physics {
 
             [[nodiscard]] bool colliding(const std::shared_ptr<ShapeBody> &shapeBody) const override;
             [[nodiscard]] bool colliding(const std::shared_ptr<ShapeBody> &shapeBody1, const std::shared_ptr<ShapeBody> &shapeBody2) const override;
+            [[nodiscard]] bool colliding(const std::shared_ptr<ShapeBody> &shapeBody, const std::shared_ptr<RigidBody> &rigidBody) const override;
 
         private:
             std::shared_ptr<Ecs> m_ecs;

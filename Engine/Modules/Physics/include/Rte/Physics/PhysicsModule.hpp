@@ -34,6 +34,7 @@ namespace Rte::Physics {
 
             [[nodiscard]] virtual std::shared_ptr<RigidBody> createRigidBody(const u8* pixels, const Vec2<u16>& size, const Vec2<float>& pos, float rotation) = 0;
             [[nodiscard]] virtual std::shared_ptr<RigidBody> createRigidBody(const std::shared_ptr<RigidBody>& rigidBody, const u8* pixels, const Rte::Vec2<u16>& size) = 0;
+
             [[nodiscard]] virtual std::shared_ptr<ShapeBody> createShapeBody(const Vec2<u16>& size, float density, float friction, const Vec2<float>& pos, float rotation, bool fixedRotation, bool isStatic, ShapeType shapeType) = 0;
             [[nodiscard]] virtual std::shared_ptr<SandBox> createSandBox(const Vec2<u16>& size) = 0;
 
@@ -47,6 +48,7 @@ namespace Rte::Physics {
 
             [[nodiscard]] virtual bool colliding(const std::shared_ptr<ShapeBody> &shapeBody) const = 0;
             [[nodiscard]] virtual bool colliding(const std::shared_ptr<ShapeBody> &shapeBody1, const std::shared_ptr<ShapeBody> &shapeBody2) const = 0;
+            [[nodiscard]] virtual bool colliding(const std::shared_ptr<ShapeBody> &shapeBody, const std::shared_ptr<RigidBody> &rigidBody) const = 0;
     };
 
 }   // namespace Rte::Physics
