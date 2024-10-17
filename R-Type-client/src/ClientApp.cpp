@@ -153,7 +153,6 @@ void ClientApp::run() {
             m_networkModuleClient->update();
     });
 
-    float shootAngle = 0;
     // Main loop
     while(m_running) {
         // Get inputs from player
@@ -162,7 +161,8 @@ void ClientApp::run() {
             .moveDown = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Down),
             .moveLeft = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Left),
             .moveRight = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Right),
-            .shoot = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Space)
+            .shoot = m_graphicModule->isMouseButtonPressed(Rte::Graphic::MouseButton::Left),
+            .shootDirection = {static_cast<float>(m_graphicModule->getMousePosition().x), static_cast<float>(m_graphicModule->getMousePosition().y)}
         });
 
         m_entitiesMutex.lock(); {

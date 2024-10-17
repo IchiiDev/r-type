@@ -119,7 +119,13 @@ void ServerApp::run() {
             m_players.at(playerId)->move({0, -20});
 
         if (packedInput.shoot) {
-            Rte::Entity projectile = m_players.at(playerId)->shoot(0);
+            std::cout << packedInput.shootDirection.x << " " << packedInput.shootDirection.y << std::endl;
+            std::cout << m_players.at(playerId)->getPos().x + 1920 / 2 << " " << m_players.at(playerId)->getPos().y + 1080 / 2 << std::endl;
+            const float shootAngle = -std::atan2(
+                static_cast<float>(m_players.at(playerId)->getPos().x) - (static_cast<float>(packedInput.shootDirection.x) - m_graphicModule->getWindowSize().x / 2.F),
+                static_cast<float>(m_players.at(playerId)->getPos().y) - (static_cast<float>(packedInput.shootDirection.y) - m_graphicModule->getWindowSize().y / 2.F)
+            ) - std::numbers::pi_v<float> / 2;
+            Rte::Entity projectile = m_players.at(playerId)->shoot(shootAngle);
             if (projectile != 0)
                 createProjectile(projectile);
         }

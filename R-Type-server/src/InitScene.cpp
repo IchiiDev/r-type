@@ -62,5 +62,5 @@ void ServerApp::initScene() {
     )});
 
     // Breakables
-    createBreakable({0, 0}, "mushroom");
+    createBreakable({0, 1080 / 2 - 128}, "mushroom");
 }

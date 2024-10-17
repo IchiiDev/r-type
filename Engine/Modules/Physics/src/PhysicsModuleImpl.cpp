@@ -35,8 +35,7 @@ Rte::IModule *createModule() {
 
 PhysicsModuleImpl::PhysicsModuleImpl() : m_timeStep(1.0F / 60.0F), m_subStepCount(4) {
     b2WorldDef worldDef = b2DefaultWorldDef();
-    // worldDef.gravity = b2Vec2{0.0F, -9.81F};
-    worldDef.gravity = b2Vec2{0.0F, 0.F};   // TODO: put back the gravity
+    worldDef.gravity = b2Vec2{0.0F, -9.81F};
     m_worldId = b2CreateWorld(&worldDef);
 }
 

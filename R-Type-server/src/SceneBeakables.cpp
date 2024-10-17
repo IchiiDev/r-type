@@ -211,7 +211,7 @@ void ServerApp::createBreakable(Rte::Entity breakable, std::vector<Rte::u8> text
     m_ecs->addComponent<Rte::BasicComponents::UidComponents>(newBreakables, Rte::BasicComponents::UidComponents{m_currentUid++});
     m_ecs->addComponent<Rte::Graphic::Components::Sprite>(newBreakables, Rte::Graphic::Components::Sprite{breakableTexture});
     m_ecs->addComponent<Rte::BasicComponents::Transform>(newBreakables, Rte::BasicComponents::Transform{
-        .position = {pos.x + static_cast<float>(m_graphicModule->getWindowSize().x) / 2, pos.y + static_cast<float>(m_graphicModule->getWindowSize().y) / 2},
+        .position = pos,
         .scale = {8, 8},
         .rotation = 0
     });
