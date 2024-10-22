@@ -2,7 +2,7 @@
 
 A game engine that roars!
 
-*For Documentation, check out [CONTRIBUTING.md](/IchiiDev/r-type/blob/main/CONTRIBUTING.md) and [the repository's wiki](/IchiiDev/r-type/wiki)*
+*For Documentation, check out [CONTRIBUTING.md](CONTRIBUTING.md) and [the repository's wiki](https://github.com/IchiiDev/r-type/wiki)*
 
 ## Build
 
@@ -41,7 +41,7 @@ This project features a R-Type clone made from scratch in C++ using our game eng
 - [Poly2Tri](https://github.com/jhasse/poly2tri)
 
 ## License
-[MIT License](/IchiiDev/r-type/blob/main/LICENSE)
+[MIT License](LICENSE)
 
 ## Supported Platforms
 - Windows
