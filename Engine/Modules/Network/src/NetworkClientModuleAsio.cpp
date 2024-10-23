@@ -7,13 +7,13 @@
 
 
 #include "Rte/Ecs/Event.hpp"
-#include "Rte/Network/NetworkModuleTypes.hpp"
 #include "NetworkClientModuleAsio.hpp"
 #include "NetworkModuleImpl.hpp"
+#include "Rte/Network/NetworkModuleTypes.hpp"
 
 #include <array>
-#include <iostream>
 #include <memory>
+#include <vector>
 
 using namespace Rte;
 
@@ -94,8 +94,7 @@ void Rte::Network::NetworkClientModuleAsio::update() {
                 m_ecs->sendEvent(event);
 
                 break;
-            } break;
-            case CustomMsgTypes::TestString: {
+            } /* case CustomMsgTypes::TestString: {
                 std::string str;
                 str.resize(12);
 
@@ -103,7 +102,18 @@ void Rte::Network::NetworkClientModuleAsio::update() {
 
                 std::cout << "Received string: " << str << std::endl;
                 break;
-            } break;
+            } case CustomMsgTypes::TestVector: {
+                std::vector<uint32_t> received;
+                received.resize(3);
+
+                msg >> received;
+
+                std::cout << "Received vector: ";
+                for (const auto& val : received) {
+                    std::cout << val << ", ";
+                }
+            } */ // Exemple of receiving vectors and strings
+            break;
         }
     }
 }

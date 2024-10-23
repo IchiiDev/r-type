@@ -61,6 +61,29 @@ namespace bnl {
                 return msg;
             }
 
+            template <typename VectorType>
+            friend message<T>& operator << (message<T>& msg, const std::vector<VectorType> &data) {
+
+                size_t s = msg.body.size();
+                msg.body.resize(s + (data.size() * sizeof(VectorType)));
+                std::memcpy(msg.body.data() + s, data.data(), (data.size() * sizeof(VectorType)));
+
+                msg.header.size = msg.size();
+
+                return msg;
+            }
+
+            template <typename VectorType>
+            friend message<T>& operator >> (message<T>& msg, std::vector<VectorType> &data) {
+                size_t s = msg.body.size() - (data.size() * sizeof(VectorType));
+                std::memcpy(data.data(), msg.body.data() + s, (data.size() * sizeof(VectorType)));
+                msg.body.resize(s);
+
+                msg.header.size = msg.size();
+
+                return msg;
+            }
+
             template <typename DataType>
             friend message<T>& operator << (message<T>& msg, const DataType &data) {
                 // template only supports standard layout

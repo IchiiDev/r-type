@@ -25,8 +25,6 @@ namespace Rte::Network {
         EntityCreated, // BasicComponents::UidComponents id <------> BasicComponets::Transform transform <------> std::vector<u8> pixels <------> Vec2<u16> size
         EntityDeleted, // BasicComponents::UidComponents id
         Input, // Packed Input
-
-        TestString
     };
 
     class CustomClient : public bnl::net::IClient<CustomMsgTypes> {
@@ -76,6 +74,7 @@ namespace Rte::Network {
                 messageAllClient(msg);
             }
 
+            /*
             void sendString() {
                 bnl::net::message<CustomMsgTypes> msg;
                 msg.header.id = CustomMsgTypes::TestString;
@@ -86,6 +85,20 @@ namespace Rte::Network {
 
                 messageAllClient(msg);
             }
+
+            void sendVector() {
+                bnl::net::message<CustomMsgTypes> msg;
+                msg.header.id = CustomMsgTypes::TestVector;
+
+                std::vector<uint32_t> testVec;
+                testVec.push_back(69);
+                testVec.push_back(420);
+                testVec.push_back(1101);
+
+                msg << testVec;
+
+                messageAllClient(msg);
+            } Exemple of sending vectors and strings */
 
             void sendDeletePlayer(BasicComponents::UidComponents uidComponent, uint32_t playerId) {
                 bnl::net::message<CustomMsgTypes> msg;
