@@ -1,0 +1,7 @@
+upd socket / easy / asio::ip::udp::socket / asio::ip::tcp::socket
+udp resolver / easy / asio::ip::udp::resolver / asio::ip::tcp::resolver
+udp endpoint / ? / None / asio::ip::tcp::endpoint
+udp acceptator / hard / None / asio::ip::tcp::acceptor
+
+async_read / should work like tcp but with udp
+asio::async_write / should work like tcp but with udp
