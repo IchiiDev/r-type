@@ -12,17 +12,11 @@
 #include "Rte/Common.hpp"
 #include "Rte/Ecs/Ecs.hpp"
 #include "Rte/Ecs/Event.hpp"
-#include "Rte/Ecs/Types.hpp"
-#include "Rte/Network/NetworkModuleServer.hpp"
-#include "Rte/Network/NetworkModule.hpp"
 #include "Rte/Network/NetworkModuleTypes.hpp"
 
 #include <cstdint>
-#include <iostream>
 #include <memory>
-#include <optional>
 #include <sys/types.h>
-#include <utility>
 #include <vector>
 
 namespace Rte::Network {
@@ -30,8 +24,9 @@ namespace Rte::Network {
 	    EntityUpdated, // BasicComponents::UidComponents id <------> BasicComponets::Transform transform
         EntityCreated, // BasicComponents::UidComponents id <------> BasicComponets::Transform transform <------> std::vector<u8> pixels <------> Vec2<u16> size
         EntityDeleted, // BasicComponents::UidComponents id
-        Input // Packed Input
+        Input, // Packed Input
 
+        TestString
     };
 
     class CustomClient : public bnl::net::IClient<CustomMsgTypes> {
@@ -77,6 +72,17 @@ namespace Rte::Network {
                 msg.header.id = CustomMsgTypes::EntityDeleted;
 
                 msg << uidComponent;
+
+                messageAllClient(msg);
+            }
+
+            void sendString() {
+                bnl::net::message<CustomMsgTypes> msg;
+                msg.header.id = CustomMsgTypes::TestString;
+
+                std::string testString = "Hello World!";
+
+                msg << testString;
 
                 messageAllClient(msg);
             }
@@ -133,8 +139,12 @@ namespace Rte::Network {
                         m_ecs->sendEvent(event);
 
                         break;
-                    } break;
-                }
+                    }
+                    case CustomMsgTypes::EntityUpdated:
+                    case CustomMsgTypes::EntityCreated:
+                    case CustomMsgTypes::EntityDeleted:
+                      break;
+                    }
             }
         private:
             std::shared_ptr<Ecs> m_ecs;

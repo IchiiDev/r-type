@@ -92,8 +92,18 @@ void Rte::Network::NetworkClientModuleAsio::update() {
                 Event event(Rte::Network::Events::ENTITY_DELETED);
                 event.setParameter<BasicComponents::UidComponents>(Rte::Network::Events::Params::ENTITY_ID, id);
                 m_ecs->sendEvent(event);
-            }
-            break;
+
+                break;
+            } break;
+            case CustomMsgTypes::TestString: {
+                std::string str;
+                str.resize(12);
+
+                msg >> str;
+
+                std::cout << "Received string: " << str << std::endl;
+                break;
+            } break;
         }
     }
 }

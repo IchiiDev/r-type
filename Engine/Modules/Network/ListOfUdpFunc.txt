@@ -5,3 +5,8 @@ udp acceptator / hard / None / asio::ip::tcp::acceptor
 
 async_read / should work like tcp but with udp
 asio::async_write / should work like tcp but with udp
+
+si tej d'asio:
+- asio::io_context
+- asio::buffer
+- asio::post

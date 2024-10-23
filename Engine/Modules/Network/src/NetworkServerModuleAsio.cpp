@@ -13,10 +13,8 @@
 #include "Rte/Network/NetworkModuleTypes.hpp"
 #include <algorithm>
 #include <cstdint>
-#include <iostream>
 #include <map>
 #include <memory>
-#include <thread>
 #include <vector>
 
 using namespace Rte;
@@ -50,9 +48,6 @@ void Rte::Network::NetworkServerModuleAsio::deletePlayer(BasicComponents::UidCom
     m_server->sendDeletePlayer(id, playerId);
 }
 
-// JB me send mtn que les entity qui ont gechan
-// JB me dit mtn qq les entity sont deleted
-
 void Rte::Network::NetworkServerModuleAsio::update() {
     m_server->update();
 }
@@ -61,15 +56,15 @@ void Rte::Network::NetworkServerModuleAsio::sendUpdate() {
     if (m_server == nullptr) return;
     if (m_entities == nullptr) return;
 
-    for (int i = 0; i < m_entities->size(); i++) {
-        const BasicComponents::UidComponents uidComponent = m_ecs->getComponent<BasicComponents::UidComponents>(m_entities->at(i));
-        const BasicComponents::Transform& transformComponent = m_ecs->getComponent<BasicComponents::Transform>(m_entities->at(i));
-        auto it = std::find(m_alreadySentEntity.begin(), m_alreadySentEntity.end(), m_entities->at(i));
+    for (unsigned int i : *m_entities) {
+        const BasicComponents::UidComponents uidComponent = m_ecs->getComponent<BasicComponents::UidComponents>(i);
+        const BasicComponents::Transform& transformComponent = m_ecs->getComponent<BasicComponents::Transform>(i);
+        auto it = std::find(m_alreadySentEntity.begin(), m_alreadySentEntity.end(), i);
 
         if (it == m_alreadySentEntity.end()) {
-            m_alreadySentEntity.push_back(m_entities->at(i));
+            m_alreadySentEntity.push_back(i);
 
-            m_server->sendNewEntity(transformComponent, m_textures[m_entities->at(i)].pixels, m_textures[m_entities->at(i)].size, uidComponent);
+            m_server->sendNewEntity(transformComponent, m_textures[i].pixels, m_textures[i].size, uidComponent);
         } else {
             m_server->sendUpdatedEntity(transformComponent, uidComponent);
         }
