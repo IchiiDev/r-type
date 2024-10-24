@@ -13,6 +13,7 @@
 
 #include <chrono>
 #include <cmath>
+#include <numbers>
 #include <cstdint>
 #include <iostream>
 #include <memory>
@@ -110,7 +111,7 @@ void ServerApp::run() {
 
         if (packedInput.moveUp)
             m_players.at(playerId)->fly({0, 3});
-        
+
         if (packedInput.moveLeft)
             m_players.at(playerId)->move({-10, 0});
         else if (packedInput.moveRight)
