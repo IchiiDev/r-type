@@ -108,19 +108,18 @@ void ServerApp::run() {
         const Rte::Network::PackedInput& packedInput = event.getParameter<Rte::Network::PackedInput>(Rte::Network::Events::Params::INPUT);
         uint32_t playerId = event.getParameter<uint32_t>(Rte::Network::Events::Params::PLAYER_ID);
 
-        if (packedInput.moveLeft)
-            m_players.at(playerId)->move({-20, 0});
-        if (packedInput.moveRight)
-            m_players.at(playerId)->move({20, 0});
-
         if (packedInput.moveUp)
-            m_players.at(playerId)->move({0, 20});
-        if (packedInput.moveDown)
-            m_players.at(playerId)->move({0, -20});
+            m_players.at(playerId)->fly({0, 3});
+        
+        if (packedInput.moveLeft)
+            m_players.at(playerId)->move({-10, 0});
+        else if (packedInput.moveRight)
+            m_players.at(playerId)->move({10, 0});
+        else {
+            m_players.at(playerId)->move({0, 0});
+        }
 
         if (packedInput.shoot) {
-            std::cout << packedInput.shootDirection.x << " " << packedInput.shootDirection.y << std::endl;
-            std::cout << m_players.at(playerId)->getPos().x + 1920 / 2 << " " << m_players.at(playerId)->getPos().y + 1080 / 2 << std::endl;
             const float shootAngle = -std::atan2(
                 static_cast<float>(m_players.at(playerId)->getPos().x) - (static_cast<float>(packedInput.shootDirection.x) - m_graphicModule->getWindowSize().x / 2.F),
                 static_cast<float>(m_players.at(playerId)->getPos().y) - (static_cast<float>(packedInput.shootDirection.y) - m_graphicModule->getWindowSize().y / 2.F)

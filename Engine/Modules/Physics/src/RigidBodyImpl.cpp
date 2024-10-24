@@ -550,6 +550,8 @@ RigidBodyImpl::RigidBodyImpl(const std::shared_ptr<RigidBodyImpl>& rigidBody, co
         };
 
         const b2Hull hull = b2ComputeHull(vertices.data(), 3);
+        if (!b2ValidateHull(&hull))
+            continue;
         const b2Polygon triangle = b2MakePolygon(&hull, 0);
 
         // Create a shape definition

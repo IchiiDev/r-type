@@ -73,6 +73,7 @@ void ServerApp::updateProjectiles() {
 
 void ServerApp::destroyProjectile(const Rte::Entity& projectile) {
     const Rte::BasicComponents::UidComponents uid = m_ecs->getComponent<Rte::BasicComponents::UidComponents>(projectile);
+    m_ecs->getComponent<Rte::Physics::Components::Physics>(projectile).shapeBody.reset();
     for (size_t j = 0; j < m_entities->size(); j++) {
         if (m_ecs->getComponent<Rte::BasicComponents::UidComponents>((*m_entities)[j]).uid == uid.uid) {
             m_entities->erase(m_entities->begin() + static_cast<std::vector<Rte::Entity>::difference_type>(j));

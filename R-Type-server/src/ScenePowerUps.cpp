@@ -60,6 +60,7 @@ void ServerApp::updatePowerups() {
 
 void ServerApp::destroyPowerup(const Rte::Entity& powerup) {
     const Rte::BasicComponents::UidComponents uid = m_ecs->getComponent<Rte::BasicComponents::UidComponents>(powerup);
+    m_ecs->getComponent<Rte::Physics::Components::Physics>(powerup).shapeBody.reset();
     for (size_t j = 0; j < m_entities->size(); j++) {
         if (m_ecs->getComponent<Rte::BasicComponents::UidComponents>((*m_entities)[j]).uid == uid.uid) {
             m_entities->erase(std::next(m_entities->begin(), static_cast<std::ptrdiff_t>(j)));

@@ -1,5 +1,7 @@
 #include "PhysicsModuleImpl.hpp"
 #include "PhysicsSystem.hpp"
+#include "Rte/Physics/Sensor.hpp"
+#include "SensorImpl.hpp"
 #include "ShapeBodyImpl.hpp"
 #include "RigidBodyImpl.hpp"
 #include "Rte/BasicComponents.hpp"
@@ -35,7 +37,7 @@ Rte::IModule *createModule() {
 
 PhysicsModuleImpl::PhysicsModuleImpl() : m_timeStep(1.0F / 60.0F), m_subStepCount(4) {
     b2WorldDef worldDef = b2DefaultWorldDef();
-    worldDef.gravity = b2Vec2{0.0F, -9.81F};
+    worldDef.gravity = b2Vec2{0.0F, -20.F};
     m_worldId = b2CreateWorld(&worldDef);
 }
 
@@ -124,9 +126,23 @@ std::shared_ptr<RigidBody> PhysicsModuleImpl::createRigidBody(const std::shared_
 std::shared_ptr<ShapeBody> PhysicsModuleImpl::createShapeBody(const Rte::Vec2<Rte::u16>& size, float density, float friction, const Rte::Vec2<float>& pos, float rotation, bool fixedRotation, bool isStatic, ShapeType shapeType) {
     return std::make_shared<ShapeBodyImpl>(size, density, friction, m_worldId, pos, rotation, fixedRotation, isStatic, shapeType);
 }
+/*
+[[nodiscard]] std::shared_ptr<Sensor> PhysicsModuleImpl::createSensor(const Rte::Vec2<Rte::u16>& size, const Rte::Vec2<float>& pos, float rotation, ShapeType shapeType) {
+    return std::make_shared<SensorImpl>(size, m_worldId, pos, rotation, shapeType);
+} 
+*/
+
+
+void PhysicsModuleImpl::setFriction(const std::shared_ptr<ShapeBody>& ShapeBody, float friction) {
+    interfaceCast<ShapeBodyImpl>(ShapeBody)->setFriction(friction);
+}
 
 void PhysicsModuleImpl::applyForce(const std::shared_ptr<ShapeBody>& ShapeBody, const Vec2<float>& force) {
     interfaceCast<ShapeBodyImpl>(ShapeBody)->applyForce(force);
+}
+
+Rte::Vec2<float> PhysicsModuleImpl::getVelocity(const std::shared_ptr<ShapeBody>& ShapeBody) const {
+    return interfaceCast<ShapeBodyImpl>(ShapeBody)->getVelocity();
 }
 
 void PhysicsModuleImpl::move(const std::shared_ptr<ShapeBody>& ShapeBody, const Vec2<float>& direction) {

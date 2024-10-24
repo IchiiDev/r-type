@@ -10,6 +10,7 @@
 #include "box2d/types.h"
 
 #include <cstdlib>
+#include <iostream>
 #include <numbers>
 
 using namespace Rte::Physics;
@@ -57,6 +58,7 @@ ShapeBodyImpl::ShapeBodyImpl(const Rte::Vec2<u16>& size, float density, float fr
 }
 
 ShapeBodyImpl::~ShapeBodyImpl() {
+    std::cout << "Destroying shape body" << std::endl;
     b2DestroyShape(m_shapeId);
     b2DestroyBody(m_bodyId);
 }
@@ -70,27 +72,39 @@ void ShapeBodyImpl::move(const Vec2<float>& direction) {
 
     if (direction.x < 0) {
         if (currentVelocity.x > direction.x) {
-            currentVelocity.x -= 1;
+            currentVelocity.x = direction.x;
         }
     } else if (direction.x > 0) {
         if (currentVelocity.x < direction.x) {
-            currentVelocity.x += 1;
+            currentVelocity.x = direction.x;
         }
     }
 
     if (direction.y < 0) {
         if (currentVelocity.y > direction.y) {
-            currentVelocity.y -= 1;
+            currentVelocity.y = direction.y;
         }
     } else if (direction.y > 0) {
         if (currentVelocity.y < direction.y) {
-            currentVelocity.y += 1;
+            currentVelocity.y = direction.y;
         }
+    }
+
+    if (direction.x == 0) {
+        currentVelocity.x = 0;
     }
 
     b2Body_SetLinearVelocity(m_bodyId, currentVelocity);
 }
 
+Rte::Vec2<float> ShapeBodyImpl::getVelocity() const {
+    b2Vec2 velocity = b2Body_GetLinearVelocity(m_bodyId);
+    return {velocity.x, velocity.y};
+}
+
+void ShapeBodyImpl::setFriction(float friction) {
+    b2Shape_SetFriction(m_shapeId, friction);
+}
 b2BodyId ShapeBodyImpl::getBodyId() const {
     return m_bodyId;
 }

@@ -62,7 +62,7 @@ void ServerApp::initScene() {
     m_ecs->addComponent<Rte::Physics::Components::Physics>(m_bottomWall, Rte::Physics::Components::Physics{.shapeBody = m_physicsModule->createShapeBody(
         {2000, 100},
         1,
-        0,
+        0.01,
         {0, 1180},
         0,
         true,
