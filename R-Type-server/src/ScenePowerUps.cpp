@@ -3,7 +3,6 @@
 #include "Rte/Common.hpp"
 #include "Rte/Ecs/Types.hpp"
 #include "Rte/Graphic/Components.hpp"
-#include "Rte/Graphic/Texture.hpp"
 #include "Rte/Network/NetworkModuleTypes.hpp"
 #include "Rte/Physics/Components.hpp"
 #include <cstdlib>
@@ -13,12 +12,13 @@ void ServerApp::createPowerup(Rte::Vec2<float> pos) {
     // Add powerup to the entities list
     Rte::Entity powerup = m_ecs->createEntity();
     // Load texture
-    const std::shared_ptr<Rte::Graphic::Texture> powerupTexture = m_graphicModule->createTexture();
-    powerupTexture->loadFromFile("../assets/powerup.png");
-    
+    uint32_t powerupTexture = m_graphicModule->createTexture();
+    if (!m_graphicModule->loadTextureFromFile(powerupTexture, "../assets/powerup.png"))
+        throw std::runtime_error("Failed to load texture: \"../assets/powerup.png\"");
+
     // Add powerup components
     m_ecs->addComponent<Rte::BasicComponents::UidComponents>(powerup, Rte::BasicComponents::UidComponents{m_currentUid++});
-    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(powerup, Rte::Graphic::Components::Sprite{powerupTexture});
+    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(powerup, Rte::Graphic::Components::Sprite{.textureId = powerupTexture, .offset = {0, 0}, .layer = 0});
     m_ecs->addComponent<Rte::BasicComponents::Transform>(powerup, Rte::BasicComponents::Transform{
         .position = {pos.x + static_cast<float>(m_graphicModule->getWindowSize().x) / 2, pos.y + static_cast<float>(m_graphicModule->getWindowSize().y) / 2},
         .scale = {3, 3},
@@ -37,11 +37,11 @@ void ServerApp::createPowerup(Rte::Vec2<float> pos) {
     m_entities->emplace_back(powerup);
 
     // Load texture and add to new entities textures
-    auto texture = m_ecs->getComponent<Rte::Graphic::Components::Sprite>(powerup).texture;
-    std::vector<Rte::u8> pixelsVector(texture->getPixels(), texture->getPixels() + static_cast<ptrdiff_t>(texture->getSize().x * texture->getSize().y) * 4);
-    
+    uint32_t texture = m_ecs->getComponent<Rte::Graphic::Components::Sprite>(powerup).textureId;
+    std::vector<Rte::u8> pixelsVector(m_graphicModule->getTexturePixels(texture), m_graphicModule->getTexturePixels(texture) + static_cast<ptrdiff_t>(m_graphicModule->getTextureSize(texture).x * m_graphicModule->getTextureSize(texture).y) * 4);
+
     Rte::Network::PackedTexture packedTexture{};
-    packedTexture.size = texture->getSize();
+    packedTexture.size = m_graphicModule->getTextureSize(texture);
     packedTexture.pixels = pixelsVector;
     m_newEntitiesTextures[powerup] = packedTexture;
 }

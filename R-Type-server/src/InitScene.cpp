@@ -1,4 +1,3 @@
-#include "Rte/Graphic/Texture.hpp"
 #include "ServerApp.hpp"
 #include "Utils/BinaryMap.hpp"
 
@@ -7,11 +6,12 @@
 void ServerApp::initScene() {
     // Init destruction map
 
-    const std::shared_ptr<Rte::Graphic::Texture> round1 = m_graphicModule->createTexture();
-    round1->loadFromFile("../assets/round1.png");
-    
-    m_destructionMaps["round1"].first = round1->getSize();
-    m_destructionMaps["round1"].second = convertToBinary(round1->getPixels(), round1->getSize());
+    uint32_t round1 = m_graphicModule->createTexture();
+    if (!m_graphicModule->loadTextureFromFile(round1, "../assets/round1.png"))
+        throw std::runtime_error("Failed to load texture: \"../assets/round1.png\"");
+
+    m_destructionMaps["round1"].first = m_graphicModule->getTextureSize(round1);
+    m_destructionMaps["round1"].second = convertToBinary(m_graphicModule->getTexturePixels(round1), m_graphicModule->getTextureSize(round1));
     // Invisible walls
 
     // Left wall
@@ -27,7 +27,7 @@ void ServerApp::initScene() {
         true,
         Rte::Physics::ShapeType::RECTANGLE
     )});
-    
+
     // Right wall
     m_rightWall = m_ecs->createEntity();
     m_ecs->addComponent<Rte::BasicComponents::Transform>(m_rightWall, Rte::BasicComponents::Transform{{1910, 0}, {1, 100}, 0});

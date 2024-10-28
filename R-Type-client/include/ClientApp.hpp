@@ -1,10 +1,10 @@
 #pragma once
 
 #include "Button.hpp"
+#include "Rte/Audio/AudioModule.hpp"
 #include "Rte/Ecs/Ecs.hpp"
 #include "Rte/Ecs/Types.hpp"
 #include "Rte/Graphic/GraphicModule.hpp"
-#include "Rte/Audio/AudioModule.hpp"
 #include "Rte/ModuleManager.hpp"
 #include "Rte/Network/NetworkModuleClient.hpp"
 
@@ -44,7 +44,7 @@ class ClientApp {
         // Menu Related //
         //////////////////
         std::vector<std::unique_ptr<Button>> m_menuButtons;
-        std::shared_ptr<Rte::Graphic::Texture> m_transparentTexture;
+        uint32_t m_transparentTexture{};
         bool m_switchedOptionsState = false;
         bool m_showOptions = false;
         void createMenuButtons();

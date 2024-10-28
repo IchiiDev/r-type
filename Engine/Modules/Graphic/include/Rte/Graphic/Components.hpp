@@ -1,14 +1,15 @@
 #pragma once
 
+#include "Rte/Common.hpp"
 #include "Rte/Graphic/GraphicModule.hpp"
-#include "Rte/Graphic/Texture.hpp"
 
-#include <memory>
+#include <cstdint>
 
 namespace Rte::Graphic::Components {
 
     struct Sprite {
-        std::shared_ptr<Texture> texture;
+        uint32_t textureId{};
+        Rte::Vec2<uint32_t> offset{};
         int layer = 0;  // Must be < 7
     };
 
@@ -17,8 +18,9 @@ namespace Rte::Graphic::Components {
     };
 
     struct Text {
+        Rte::Vec2<uint32_t> offset{};
         std::string text;
-        int size;
+        int size{};
     };
 
 }   // namespace Rte::Graphic::Components

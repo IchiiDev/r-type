@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cstdlib>
+#include <iostream>
 
 void ServerApp::updateScene() {
     updateProjectiles();

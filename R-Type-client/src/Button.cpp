@@ -5,13 +5,12 @@
 #include "Rte/Ecs/Ecs.hpp"
 #include "Rte/Graphic/Components.hpp"
 #include "Rte/Graphic/GraphicModule.hpp"
-#include "Rte/Graphic/Texture.hpp"
 
 #include <functional>
 #include <memory>
 #include <utility>
 
-Button::Button(const std::shared_ptr<Rte::Ecs>& ecs, const std::shared_ptr<Rte::Graphic::GraphicModule>& graphicModule, const std::shared_ptr<Rte::Graphic::Texture>& texture, bool enlargeOnHover, const Rte::Vec2<float>& position, const Rte::Vec2<float>& size, const std::string& text, int textSize, std::function<void()> onClick) {
+Button::Button(const std::shared_ptr<Rte::Ecs>& ecs, const std::shared_ptr<Rte::Graphic::GraphicModule>& graphicModule, uint32_t texture, bool enlargeOnHover, const Rte::Vec2<float>& position, const Rte::Vec2<float>& size, const std::string& text, int textSize, std::function<void()> onClick) {
     m_ecs = ecs;                            // NOLINT(cppcoreguidelines-prefer-member-initializer)
     m_graphicModule = graphicModule;        // NOLINT(cppcoreguidelines-prefer-member-initializer)
     m_onClick = std::move(onClick);         // NOLINT(cppcoreguidelines-prefer-member-initializer)
@@ -26,10 +25,10 @@ Button::Button(const std::shared_ptr<Rte::Ecs>& ecs, const std::shared_ptr<Rte::
         .y = static_cast<float>(size.y * (enlargeOnHover ? 0.03 : 0))
     };
 
-    ecs->addComponent<Rte::Graphic::Components::Sprite>(m_entity, Rte::Graphic::Components::Sprite(texture));
+    ecs->addComponent<Rte::Graphic::Components::Sprite>(m_entity, Rte::Graphic::Components::Sprite{.textureId = texture, .offset = {0, 0}, .layer = 0});
     ecs->addComponent<Rte::Graphic::Components::Button>(m_entity, Rte::Graphic::Components::Button{});
     ecs->addComponent<Rte::BasicComponents::Transform>(m_entity, Rte::BasicComponents::Transform{.position = position, .scale = size});
-    ecs->addComponent<Rte::Graphic::Components::Text>(m_entity, Rte::Graphic::Components::Text{text, textSize});
+    ecs->addComponent<Rte::Graphic::Components::Text>(m_entity, Rte::Graphic::Components::Text{.offset = {0, 0}, .text = text, .size = textSize});
 }
 
 Button::~Button() {

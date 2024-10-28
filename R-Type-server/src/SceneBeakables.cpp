@@ -6,10 +6,11 @@
 #include "Rte/Common.hpp"
 #include "Rte/Ecs/Types.hpp"
 #include "Rte/Graphic/Components.hpp"
-#include "Rte/Graphic/Texture.hpp"
 #include "Rte/Network/NetworkModuleTypes.hpp"
 #include "Rte/Physics/Components.hpp"
+#include <cstdint>
 #include <cstdlib>
+#include <iostream>
 #include <memory>
 #include <stack>
 
@@ -18,16 +19,21 @@ void ServerApp::fractureBreakable(const Rte::Vec2<Rte::u16>& position) {
         bool hasChanged = false;
         std::vector<Rte::u8> newMatPixels = m_physicsModule->fractureRigidBody(m_ecs->getComponent<Rte::Physics::Components::Physics>(*m_breakables.at(i)).rigidBody, position, m_destructionMaps["round1"].second, m_destructionMaps["round1"].first, hasChanged);
         if (hasChanged) {
-            const Rte::Vec2<Rte::u16> size = m_ecs->getComponent<Rte::Graphic::Components::Sprite>(*m_breakables.at(i)).texture->getSize();
+            const Rte::Vec2<Rte::u16> size = m_graphicModule->getTextureSize(m_ecs->getComponent<Rte::Graphic::Components::Sprite>(*m_breakables.at(i)).textureId);
             const std::vector<int> binaryImage = convertToBinary(newMatPixels.data(), size);
             const std::vector<std::vector<int>> components = connectedComponentLabeling(binaryImage, size);
             for (const auto & component : components) {
-                const std::shared_ptr<Rte::Graphic::Texture> newTexture = m_graphicModule->createTexture();
-                const std::shared_ptr<Rte::Graphic::Texture> newMaterial = m_graphicModule->createTexture();
-                const std::vector<Rte::u8> componentTexPixels = andImage(m_ecs->getComponent<Rte::Graphic::Components::Sprite>(*m_breakables.at(i)).texture->getPixels(), component, size);
+                uint32_t newTexture = m_graphicModule->createTexture();
+                uint32_t newMaterial = m_graphicModule->createTexture();
+
+                const std::vector<Rte::u8> componentTexPixels = andImage(m_graphicModule->getTexturePixels(m_ecs->getComponent<Rte::Graphic::Components::Sprite>(*m_breakables.at(i)).textureId), component, size);
                 const std::vector<Rte::u8> componentMatPixels = andImage(newMatPixels.data(), component, size);
-                newTexture->loadFromMemory(componentTexPixels.data(), size);
-                newMaterial->loadFromMemory(componentMatPixels.data(), size);
+
+                if (!m_graphicModule->loadTextureFromMemory(newTexture, componentTexPixels.data(), size))
+                    throw std::runtime_error("Failed to load texture from memory");
+                if (!m_graphicModule->loadTextureFromMemory(newMaterial, componentMatPixels.data(), size))
+                    throw std::runtime_error("Failed to load texture from memory");
+
                 createBreakable(*m_breakables.at(i), componentTexPixels, componentMatPixels, size);
             }
             destroyBreakable(*m_breakables.at(i));
@@ -39,14 +45,17 @@ void ServerApp::createBreakable(Rte::Vec2<float> pos, std::string spritePath) {
     // Add breakable to the entities list
     Rte::Entity breakable = m_ecs->createEntity();
     // Load texture
-    const std::shared_ptr<Rte::Graphic::Texture> breakableTexture = m_graphicModule->createTexture();
-    breakableTexture->loadFromFile("../assets/" + spritePath + "-tex.png");
-    const std::shared_ptr<Rte::Graphic::Texture> breakableMaterial = m_graphicModule->createTexture();
-    breakableMaterial->loadFromFile("../assets/" + spritePath + "-mat.png");
-    
+    uint32_t breakableTexture = m_graphicModule->createTexture();
+    if (!m_graphicModule->loadTextureFromFile(breakableTexture, std::string("../assets/" + spritePath + "-tex.png").c_str()))
+        throw std::runtime_error("Failed to load texture: \"../assets/" + spritePath + "-tex.png\"");
+
+    uint32_t breakableMaterial = m_graphicModule->createTexture();
+    if (!m_graphicModule->loadTextureFromFile(breakableMaterial, std::string("../assets/" + spritePath + "-mat.png").c_str()))
+        throw std::runtime_error("Failed to load texture: \"../assets/" + spritePath + "-mat.png\"");
+
     // Add breakable components
     m_ecs->addComponent<Rte::BasicComponents::UidComponents>(breakable, Rte::BasicComponents::UidComponents{m_currentUid++});
-    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(breakable, Rte::Graphic::Components::Sprite{breakableTexture});
+    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(breakable, Rte::Graphic::Components::Sprite{.textureId = breakableTexture, .offset = {0, 0}, .layer = 0});
     m_ecs->addComponent<Rte::BasicComponents::Transform>(breakable, Rte::BasicComponents::Transform{
         .position = {pos.x + static_cast<float>(m_graphicModule->getWindowSize().x) / 2, pos.y + static_cast<float>(m_graphicModule->getWindowSize().y) / 2},
         .scale = {8, 8},
@@ -54,8 +63,8 @@ void ServerApp::createBreakable(Rte::Vec2<float> pos, std::string spritePath) {
     });
 
     m_ecs->addComponent<Rte::Physics::Components::Physics>(breakable, Rte::Physics::Components::Physics{.rigidBody = m_physicsModule->createRigidBody(
-        breakableMaterial->getPixels(),
-        breakableMaterial->getSize(),
+        m_graphicModule->getTexturePixels(breakableMaterial),
+        m_graphicModule->getTextureSize(breakableMaterial),
         pos,
         0
     )});
@@ -67,11 +76,14 @@ void ServerApp::createBreakable(Rte::Vec2<float> pos, std::string spritePath) {
     m_entities->emplace_back(breakable);
 
     // Load texture and add to new entities textures
-    auto texture = m_ecs->getComponent<Rte::Graphic::Components::Sprite>(breakable).texture;
-    std::vector<Rte::u8> pixelsVector(texture->getPixels(), texture->getPixels() + static_cast<ptrdiff_t>(texture->getSize().x * texture->getSize().y) * 4);
-    
+    uint32_t texture = m_ecs->getComponent<Rte::Graphic::Components::Sprite>(breakable).textureId;
+    const uint8_t *texturePixels = m_graphicModule->getTexturePixels(texture);
+    const Rte::Vec2<uint16_t> textureSize = m_graphicModule->getTextureSize(texture);
+
+    std::vector<Rte::u8> pixelsVector(texturePixels, texturePixels + static_cast<ptrdiff_t>(textureSize.x * textureSize.y) * 4);
+
     Rte::Network::PackedTexture packedTexture{};
-    packedTexture.size = texture->getSize();
+    packedTexture.size = textureSize;
     packedTexture.pixels = pixelsVector;
     m_newEntitiesTextures[breakable] = packedTexture;
 }
@@ -80,14 +92,17 @@ void ServerApp::createBreakable(Rte::Vec2<float> pos, std::vector<Rte::u8> textu
     // Add breakable to the entities list
     Rte::Entity breakable = m_ecs->createEntity();
     // Load texture
-    const std::shared_ptr<Rte::Graphic::Texture> breakableTexture = m_graphicModule->createTexture();
-    breakableTexture->loadFromMemory(texture.data(), size);
-    const std::shared_ptr<Rte::Graphic::Texture> breakableMaterial = m_graphicModule->createTexture();
-    breakableMaterial->loadFromMemory(material.data(), size);
-    
+    uint32_t breakableTexture = m_graphicModule->createTexture();
+    if (!m_graphicModule->loadTextureFromMemory(breakableTexture, texture.data(), size))
+        throw std::runtime_error("Failed to load texture from memory");
+
+    uint32_t breakableMaterial = m_graphicModule->createTexture();
+    if (!m_graphicModule->loadTextureFromMemory(breakableMaterial, material.data(), size))
+        throw std::runtime_error("Failed to load texture from memory");
+
     // Add breakable components
     m_ecs->addComponent<Rte::BasicComponents::UidComponents>(breakable, Rte::BasicComponents::UidComponents{m_currentUid++});
-    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(breakable, Rte::Graphic::Components::Sprite{breakableTexture});
+    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(breakable, Rte::Graphic::Components::Sprite{.textureId = breakableTexture, .offset = {0, 0}, .layer = 0});
     m_ecs->addComponent<Rte::BasicComponents::Transform>(breakable, Rte::BasicComponents::Transform{
         .position = {pos.x + static_cast<float>(m_graphicModule->getWindowSize().x) / 2, pos.y + static_cast<float>(m_graphicModule->getWindowSize().y) / 2},
         .scale = {8, 8},
@@ -95,8 +110,8 @@ void ServerApp::createBreakable(Rte::Vec2<float> pos, std::vector<Rte::u8> textu
     });
 
     m_ecs->addComponent<Rte::Physics::Components::Physics>(breakable, Rte::Physics::Components::Physics{.rigidBody = m_physicsModule->createRigidBody(
-        breakableMaterial->getPixels(),
-        breakableMaterial->getSize(),
+        m_graphicModule->getTexturePixels(breakableMaterial),
+        m_graphicModule->getTextureSize(breakableMaterial),
         pos,
         0
     )});
@@ -108,10 +123,13 @@ void ServerApp::createBreakable(Rte::Vec2<float> pos, std::vector<Rte::u8> textu
     m_entities->emplace_back(breakable);
 
     // Load texture and add to new entities textures
-    std::vector<Rte::u8> pixelsVector(breakableTexture->getPixels(), breakableTexture->getPixels() + static_cast<ptrdiff_t>(breakableTexture->getSize().x * breakableTexture->getSize().y) * 4);
-    
+    const uint8_t *texturePixels = m_graphicModule->getTexturePixels(breakableTexture);
+    const Rte::Vec2<uint16_t> textureSize = m_graphicModule->getTextureSize(breakableTexture);
+
+    std::vector<Rte::u8> pixelsVector(texturePixels, texturePixels + static_cast<ptrdiff_t>(textureSize.x * textureSize.y) * 4);
+
     Rte::Network::PackedTexture packedTexture{};
-    packedTexture.size = breakableTexture->getSize();
+    packedTexture.size = textureSize;
     packedTexture.pixels = pixelsVector;
     m_newEntitiesTextures[breakable] = packedTexture;
 }
@@ -120,16 +138,19 @@ void ServerApp::createBreakable(Rte::Entity breakable, std::vector<Rte::u8> text
     // Add breakable to the entities list
     Rte::Entity newBreakables = m_ecs->createEntity();
     // Load texture
-    const std::shared_ptr<Rte::Graphic::Texture> breakableTexture = m_graphicModule->createTexture();
-    breakableTexture->loadFromMemory(texture.data(), size);
-    const std::shared_ptr<Rte::Graphic::Texture> breakableMaterial = m_graphicModule->createTexture();
-    breakableMaterial->loadFromMemory(material.data(), size);
-    
+    uint32_t breakableTexture = m_graphicModule->createTexture();
+    if (!m_graphicModule->loadTextureFromMemory(breakableTexture, texture.data(), size))
+        throw std::runtime_error("Failed to load texture from memory");
+
+    uint32_t breakableMaterial = m_graphicModule->createTexture();
+    if (!m_graphicModule->loadTextureFromMemory(breakableMaterial, material.data(), size))
+        throw std::runtime_error("Failed to load texture from memory");
+
     Rte::Vec2<float> pos = m_ecs->getComponent<Rte::BasicComponents::Transform>(breakable).position;
 
     // Add breakable components
     m_ecs->addComponent<Rte::BasicComponents::UidComponents>(newBreakables, Rte::BasicComponents::UidComponents{m_currentUid++});
-    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(newBreakables, Rte::Graphic::Components::Sprite{breakableTexture});
+    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(newBreakables, Rte::Graphic::Components::Sprite{.textureId = breakableTexture, .offset = {0, 0}, .layer = 0});
     m_ecs->addComponent<Rte::BasicComponents::Transform>(newBreakables, Rte::BasicComponents::Transform{
         .position = pos,
         .scale = {8, 8},
@@ -138,8 +159,8 @@ void ServerApp::createBreakable(Rte::Entity breakable, std::vector<Rte::u8> text
 
     m_ecs->addComponent<Rte::Physics::Components::Physics>(newBreakables, Rte::Physics::Components::Physics{.rigidBody = m_physicsModule->createRigidBody(
         m_ecs->getComponent<Rte::Physics::Components::Physics>(breakable).rigidBody,
-        breakableMaterial->getPixels(),
-        breakableMaterial->getSize()
+        m_graphicModule->getTexturePixels(breakableMaterial),
+        m_graphicModule->getTextureSize(breakableMaterial)
     )});
 
     // Add breakable to the breakables list
@@ -149,10 +170,13 @@ void ServerApp::createBreakable(Rte::Entity breakable, std::vector<Rte::u8> text
     m_entities->emplace_back(newBreakables);
 
     // Load texture and add to new entities textures
-    std::vector<Rte::u8> pixelsVector(breakableTexture->getPixels(), breakableTexture->getPixels() + static_cast<ptrdiff_t>(breakableTexture->getSize().x * breakableTexture->getSize().y) * 4);
-    
+    const uint8_t *texturePixels = m_graphicModule->getTexturePixels(breakableTexture);
+    const Rte::Vec2<uint16_t> textureSize = m_graphicModule->getTextureSize(breakableTexture);
+
+    std::vector<Rte::u8> pixelsVector(texturePixels, texturePixels + static_cast<ptrdiff_t>(textureSize.x * textureSize.y) * 4);
+
     Rte::Network::PackedTexture packedTexture{};
-    packedTexture.size = breakableTexture->getSize();
+    packedTexture.size = textureSize;
     packedTexture.pixels = pixelsVector;
     m_newEntitiesTextures[newBreakables] = packedTexture;
 }

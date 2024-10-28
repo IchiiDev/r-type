@@ -76,11 +76,14 @@ void ServerApp::run() {
         m_entities->emplace_back(newPlayerEntity);
 
         // Load texture and add to new entities textures
-        auto texture = m_ecs->getComponent<Rte::Graphic::Components::Sprite>(newPlayerEntity).texture;
-        std::vector<Rte::u8> pixelsVector(texture->getPixels(), texture->getPixels() + static_cast<ptrdiff_t>(texture->getSize().x * texture->getSize().y) * 4);
+        uint32_t texture = m_ecs->getComponent<Rte::Graphic::Components::Sprite>(newPlayerEntity).textureId;
+        const uint8_t* texturePixels = m_graphicModule->getTexturePixels(texture);
+        const Rte::Vec2<Rte::u16> textureSize = m_graphicModule->getTextureSize(texture);
+
+        std::vector<Rte::u8> pixelsVector(texturePixels, texturePixels + static_cast<ptrdiff_t>(textureSize.x * textureSize.y) * 4);
 
         Rte::Network::PackedTexture packedTexture{};
-        packedTexture.size = texture->getSize();
+        packedTexture.size = textureSize;
         packedTexture.pixels = pixelsVector;
 
         m_newEntitiesTextures[newPlayerEntity] = packedTexture;

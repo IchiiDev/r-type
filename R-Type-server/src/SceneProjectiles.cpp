@@ -13,7 +13,7 @@
 void ServerApp::createProjectile(Rte::Entity projectile) {
     // Add projectile to the entities list
     m_ecs->addComponent(projectile, Rte::BasicComponents::UidComponents{m_currentUid++});
-    
+
     // Add projectile to the projectiles list
     m_projectiles.push_back(std::make_unique<Rte::Entity>(projectile));
 
@@ -21,11 +21,11 @@ void ServerApp::createProjectile(Rte::Entity projectile) {
     m_entities->emplace_back(projectile);
 
     // Load texture and add to new entities textures
-    auto texture = m_ecs->getComponent<Rte::Graphic::Components::Sprite>(projectile).texture;
-    std::vector<Rte::u8> pixelsVector(texture->getPixels(), texture->getPixels() + static_cast<ptrdiff_t>(texture->getSize().x * texture->getSize().y) * 4);
-    
+    uint32_t texture = m_ecs->getComponent<Rte::Graphic::Components::Sprite>(projectile).textureId;
+    std::vector<Rte::u8> pixelsVector(m_graphicModule->getTexturePixels(texture), m_graphicModule->getTexturePixels(texture) + static_cast<ptrdiff_t>(m_graphicModule->getTextureSize(texture).x * m_graphicModule->getTextureSize(texture).y) * 4);
+
     Rte::Network::PackedTexture packedTexture{};
-    packedTexture.size = texture->getSize();
+    packedTexture.size = m_graphicModule->getTextureSize(texture);
     packedTexture.pixels = pixelsVector;
     m_newEntitiesTextures[projectile] = packedTexture;
 }

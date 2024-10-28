@@ -58,7 +58,6 @@ ShapeBodyImpl::ShapeBodyImpl(const Rte::Vec2<u16>& size, float density, float fr
 }
 
 ShapeBodyImpl::~ShapeBodyImpl() {
-    std::cout << "Destroying shape body" << std::endl;
     b2DestroyShape(m_shapeId);
     b2DestroyBody(m_bodyId);
 }
