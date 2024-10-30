@@ -30,7 +30,6 @@ namespace bnl {
             public:
                 IServer(const unsigned int port) 
                     : m_socket(m_asioContext, asio::ip::udp::endpoint(asio::ip::udp::v4(), port)) {
-                        std::cout << port << std::endl;
                     }
 
                 virtual ~IServer() {
@@ -65,7 +64,6 @@ namespace bnl {
                         m_remoteEndpoint,
                         [this](std::error_code ec, std::size_t length) {
                             if (int(m_tempHeader.id) != -1) {
-                                std::cout << int(m_tempHeader.id) << std::endl;
                                 waitForConnection();
                                 return;
                             }

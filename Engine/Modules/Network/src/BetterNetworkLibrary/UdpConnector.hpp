@@ -60,10 +60,8 @@ private:
                     std::string received_data(buffer, bytes_received);
                     if (received_data == "ACK") {
                         if (!connected_) {
-                            std::cout << "Connection established!" << std::endl;
                             connected_ = true;
                         } else {
-                            std::cout << "Packet acknowledged!" << std::endl;
                             sequence_number_++;
                         }
                     } else {

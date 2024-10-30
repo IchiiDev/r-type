@@ -26,7 +26,6 @@ void Rte::Network::NetworkClientModuleAsio::connect(const std::string& host, con
     msg.header.id = CustomMsgTypes(-1);
 
 
-    std::cout << "one: " << port << std::endl;
     m_client = std::make_unique<CustomClient>();
 	m_client->connect(host, port);
     m_client->send(msg);
@@ -58,7 +57,7 @@ void Rte::Network::NetworkClientModuleAsio::update() {
             case Rte::Network::CustomMsgTypes::EntityCreated: {
                 BasicComponents::UidComponents id{};
                 BasicComponents::Transform transform;
-                std::array<u8, 1000 * 1000> pixels; // TODO: REMOVE THIS !!!!!!??????
+                std::array<u8, 250 * 250> pixels; // TODO: REMOVE THIS !!!!!!??????
                 Vec2<u16> size{};
 
                 msg >> size >> pixels >> transform >> id;

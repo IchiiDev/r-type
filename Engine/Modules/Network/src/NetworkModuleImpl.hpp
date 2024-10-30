@@ -43,7 +43,6 @@ namespace Rte::Network {
     class CustomServer : public bnl::net::IServer<CustomMsgTypes> {
         public:
             CustomServer(uint16_t nPort, std::shared_ptr<Ecs>& ecs) : bnl::net::IServer<CustomMsgTypes>(nPort), m_ecs(ecs) {
-                std::cout << "two: " << nPort << std::endl;
             }
 
         public:
@@ -51,9 +50,12 @@ namespace Rte::Network {
                 bnl::net::message<CustomMsgTypes> msg;
                 msg.header.id = CustomMsgTypes::EntityCreated;
 
-                std::array<u8, 1000 * 1000> pixelArray; // TODO: REMOVE THIS !!!!!!??????
+                std::array<u8, 250 * 250> pixelArray; // TODO: REMOVE THIS !!!!!!??????
+                if (pixels.size() > 62500) {
+                    std::cout << "Yohan nerf le gros cul de ton asteroid sinon je le send pas !" << std::endl;
+                    return;
+                }
                 memcpy(pixelArray.data(), pixels.data(), pixels.size());
-
                 msg << uidComponent << transform << pixelArray << size;
 
                 messageAllClient(msg);
@@ -122,7 +124,6 @@ namespace Rte::Network {
 
         protected:
             bool onClientConnect(std::shared_ptr<bnl::net::Connection<CustomMsgTypes>> client) override {
-                std::cout << "connection received" << std::endl;
                 bool result = m_connectionsQueue.size() <= 8;
 
                 if (result) {

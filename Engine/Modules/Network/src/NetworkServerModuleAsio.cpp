@@ -30,7 +30,6 @@ void Rte::Network::NetworkServerModuleAsio::init(const std::shared_ptr<Ecs>& ecs
 }
 
 void Rte::Network::NetworkServerModuleAsio::start(const uint16_t port) {
-    std::cout << "one: " << port << std::endl;
     m_server = std::make_unique<CustomServer>(port, m_ecs);
 	m_server->start();
 }

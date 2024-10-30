@@ -34,7 +34,6 @@ namespace bnl {
             public:
                 Connection(owner parent, asio::io_context& ioContext, asio::ip::udp::endpoint endpoint, TSQueue<OwnedMessage<T>>& receiveQueue)
                     : m_asioContext(ioContext), m_socket(ioContext), m_receiveQueue(receiveQueue), m_ownerType(parent), m_remoteEndpoint(std::move(endpoint)) {
-                        std::cout << "HERE !" << std::endl;
                 }
 
                 virtual ~Connection() = default;
@@ -147,7 +146,7 @@ namespace bnl {
                                 if (!m_sendQueue.empty()) writeHeader();
                             } else {
                                 std::cout << "[" << m_id << "] Write body failed. " << ec.message() << std::endl;
-                                std::cout << "message size: " << m_sendQueue.front().body.size() << "> 65,507" << std::endl;
+                                std::cout << "message size: " << m_sendQueue.front().body.size() << " > 65,507" << std::endl;
 
                             }
                         }
