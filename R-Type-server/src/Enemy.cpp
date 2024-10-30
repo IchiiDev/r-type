@@ -4,7 +4,6 @@
 #include "Rte/Ecs/Types.hpp"
 #include "Rte/Graphic/Components.hpp"
 #include "Rte/Graphic/GraphicModule.hpp"
-#include "Rte/Graphic/Texture.hpp"
 #include "Rte/Physics/Components.hpp"
 #include "Rte/Physics/PhysicsModule.hpp"
 #include "Rte/Physics/ShapeBody.hpp"
@@ -14,29 +13,35 @@
 #include <cstddef>
 #include <memory>
 #include <numbers>
+#include <stdexcept>
 
 
 
 Enemy::Enemy(const std::shared_ptr<Rte::Ecs>& ecs, const std::shared_ptr<Rte::Graphic::GraphicModule>& graphicModule, const std::shared_ptr<Rte::Physics::PhysicsModule>& physicsModule, uint32_t uid, Rte::Vec2<float> pos) : m_enemy(ecs->createEntity()), m_ecs(ecs), m_graphicModule(graphicModule), m_physicsModule(physicsModule) {
-    std::shared_ptr<Rte::Graphic::Texture> enemyTexture = m_graphicModule->createTexture();
-    enemyTexture->loadFromFile("../assets/enemy.png");
+    uint32_t enemyTexture = m_graphicModule->createTexture();
+    if (!m_graphicModule->loadTextureFromFile(enemyTexture, "../assets/enemy.png"))
+        throw std::runtime_error("Failed to load texture: \"../assets/enemy.png\"");
 
     int randR = rand() % 255;
     int randG = rand() % 255;
     int randB = rand() % 255;
-    std::vector<Rte::u8> randColorText(static_cast<size_t>(enemyTexture->getSize().x * enemyTexture->getSize().y * 4));
+    const Rte::Vec2<Rte::u16> textureSize = m_graphicModule->getTextureSize(enemyTexture);
+    std::vector<Rte::u8> randColorText(static_cast<size_t>(textureSize.x * textureSize.y * 4));
     for (size_t i = 0; i < randColorText.size(); i += 4) {
-        randColorText[i] = std::clamp(enemyTexture->getPixels()[i] + randR, 0, 255);
-        randColorText[i + 1] = std::clamp(enemyTexture->getPixels()[i + 1] + randG, 0, 255);
-        randColorText[i + 2] = std::clamp(enemyTexture->getPixels()[i + 2] + randB, 0, 255);
-        randColorText[i + 3] = enemyTexture->getPixels()[i + 3];
+        randColorText[i] = std::clamp(graphicModule->getTexturePixels(enemyTexture)[i] + randR, 0, 255);
+        randColorText[i + 1] = std::clamp(graphicModule->getTexturePixels(enemyTexture)[i + 1] + randG, 0, 255);
+        randColorText[i + 2] = std::clamp(graphicModule->getTexturePixels(enemyTexture)[i + 2] + randB, 0, 255);
+        randColorText[i + 3] = graphicModule->getTexturePixels(enemyTexture)[i + 3];
     }
-    enemyTexture->loadFromMemory(randColorText.data(), enemyTexture->getSize());
+
+    if (!m_graphicModule->loadTextureFromMemory(enemyTexture, randColorText.data(), m_graphicModule->getTextureSize(enemyTexture)))
+        throw std::runtime_error("Failed to load texture from memory");
+
     constexpr Rte::Vec2<float> enemyScale = {3, 3};
-    
+
 
     m_ecs->addComponent<Rte::BasicComponents::UidComponents>(m_enemy, Rte::BasicComponents::UidComponents(uid));
-    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(m_enemy, Rte::Graphic::Components::Sprite(enemyTexture));
+    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(m_enemy, Rte::Graphic::Components::Sprite{.textureId = enemyTexture, .offset = {0, 0}, .layer = 0});
     m_ecs->addComponent<Rte::BasicComponents::Transform>(m_enemy, Rte::BasicComponents::Transform{pos, enemyScale, 0});
     m_ecs->addComponent<Rte::Physics::Components::Physics>(m_enemy, Rte::Physics::Components::Physics{.shapeBody = m_physicsModule->createShapeBody(
         {31 * 3, 47 * 3}, 1, 0,
@@ -63,11 +68,13 @@ Rte::Entity Enemy::shoot(float angle) {
         return 0;
     m_mana -= 20;
     Rte::Vec2<float> enemyPos = m_ecs->getComponent<Rte::BasicComponents::Transform>(m_enemy).position;
-    const std::shared_ptr<Rte::Graphic::Texture> projectileTexture = m_graphicModule->createTexture();
-    projectileTexture->loadFromFile("../assets/projectile.png");
+    uint32_t projectileTexture = m_graphicModule->createTexture();
+    if (!m_graphicModule->loadTextureFromFile(projectileTexture, "../assets/projectile.png"))
+        throw std::runtime_error("Failed to load texture: \"../assets/projectile.png\"");
+
     Rte::Entity projectile = m_ecs->createEntity();
 
-    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(projectile, Rte::Graphic::Components::Sprite(projectileTexture));
+    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(projectile, Rte::Graphic::Components::Sprite{.textureId = projectileTexture, .offset = {0, 0}, .layer = 0});
     m_ecs->addComponent<Rte::BasicComponents::Transform>(projectile, Rte::BasicComponents::Transform{
         .position = {static_cast<float>(std::cos(angle) * 100) + enemyPos.x, static_cast<float>(std::sin(angle) * 100) + enemyPos.y},
         .scale = {8, 8},

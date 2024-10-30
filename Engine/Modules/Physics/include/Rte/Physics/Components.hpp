@@ -11,6 +11,7 @@ namespace Rte::Physics::Components {
     struct Physics {
         std::shared_ptr<RigidBody> rigidBody;
         std::shared_ptr<ShapeBody> shapeBody;
+        std::shared_ptr<SandBox> sensor;
         std::shared_ptr<SandBox> sandBox;
     };
 

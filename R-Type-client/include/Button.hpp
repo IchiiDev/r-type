@@ -4,14 +4,13 @@
 #include "Rte/Ecs/Ecs.hpp"
 #include "Rte/Ecs/Types.hpp"
 #include "Rte/Graphic/GraphicModule.hpp"
-#include "Rte/Graphic/Texture.hpp"
 
 #include <functional>
 #include <memory>
 
 class Button {
     public:
-        Button(const std::shared_ptr<Rte::Ecs>& ecs, const std::shared_ptr<Rte::Graphic::GraphicModule>& graphicModule, const std::shared_ptr<Rte::Graphic::Texture>& texture, bool enlargeOnHover, const Rte::Vec2<float>& position, const Rte::Vec2<float>& size, const std::string& text, int textSize, std::function<void()> onClick);
+        Button(const std::shared_ptr<Rte::Ecs>& ecs, const std::shared_ptr<Rte::Graphic::GraphicModule>& graphicModule, uint32_t texture, bool enlargeOnHover, const Rte::Vec2<float>& position, const Rte::Vec2<float>& size, const std::string& text, int textSize, std::function<void()> onClick);
         ~Button();
 
         Button(const Button&) = delete;

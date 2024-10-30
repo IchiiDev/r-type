@@ -1,8 +1,17 @@
 #include "ServerApp.hpp"
+#include "Utils/BinaryMap.hpp"
 
 #include "Rte/Physics/Components.hpp"
 
 void ServerApp::initScene() {
+    // Init destruction map
+
+    uint32_t round1 = m_graphicModule->createTexture();
+    if (!m_graphicModule->loadTextureFromFile(round1, "../assets/round1.png"))
+        throw std::runtime_error("Failed to load texture: \"../assets/round1.png\"");
+
+    m_destructionMaps["round1"].first = m_graphicModule->getTextureSize(round1);
+    m_destructionMaps["round1"].second = convertToBinary(m_graphicModule->getTexturePixels(round1), m_graphicModule->getTextureSize(round1));
     // Invisible walls
 
     // Left wall
@@ -18,7 +27,7 @@ void ServerApp::initScene() {
         true,
         Rte::Physics::ShapeType::RECTANGLE
     )});
-    
+
     // Right wall
     m_rightWall = m_ecs->createEntity();
     m_ecs->addComponent<Rte::BasicComponents::Transform>(m_rightWall, Rte::BasicComponents::Transform{{1910, 0}, {1, 100}, 0});
@@ -53,11 +62,14 @@ void ServerApp::initScene() {
     m_ecs->addComponent<Rte::Physics::Components::Physics>(m_bottomWall, Rte::Physics::Components::Physics{.shapeBody = m_physicsModule->createShapeBody(
         {2000, 100},
         1,
-        0,
+        0.01,
         {0, 1180},
         0,
         true,
         true,
         Rte::Physics::ShapeType::RECTANGLE
     )});
+
+    // Breakables
+    createBreakable({0, 1080 / 2 - 200}, "mushroom");
 }

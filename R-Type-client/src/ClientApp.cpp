@@ -9,14 +9,11 @@
 #include "Rte/Ecs/Types.hpp"
 #include "Rte/Graphic/Components.hpp"
 #include "Rte/Graphic/GraphicModule.hpp"
-#include "Rte/Graphic/Texture.hpp"
 #include "Rte/ModuleManager.hpp"
 #include "Rte/Network/NetworkModule.hpp"
 #include "Rte/Network/NetworkModuleTypes.hpp"
 
 #include <algorithm>
-#include <cmath>
-#include <iostream>
 #include <memory>
 #include <thread>
 
@@ -69,13 +66,14 @@ void ClientApp::run() {
                 return;
             }
 
-            std::shared_ptr<Rte::Graphic::Texture> newEntityTexture = m_graphicModule->createTexture();
-            newEntityTexture->loadFromMemory(packedNewEntity.pixels.data(), packedNewEntity.size);
+            uint32_t newEntityTexture = m_graphicModule->createTexture();
+            if (!m_graphicModule->loadTextureFromMemory(newEntityTexture, packedNewEntity.pixels.data(), packedNewEntity.size))
+                throw std::runtime_error("Failed to load texture from memory");
 
             const Rte::Entity newEntity = m_ecs->createEntity();
             m_entities.emplace_back(newEntity);
             m_ecs->addComponent<Rte::BasicComponents::Transform>(newEntity, packedNewEntity.transform);
-            m_ecs->addComponent<Rte::Graphic::Components::Sprite>(newEntity, {newEntityTexture, 0});
+            m_ecs->addComponent<Rte::Graphic::Components::Sprite>(newEntity, {.textureId = newEntityTexture, .offset = {0, 0}, .layer = 0});
             m_ecs->addComponent<Rte::BasicComponents::UidComponents>(newEntity, {packedNewEntity.id});
 
             m_entities.emplace_back(newEntity);
@@ -85,14 +83,16 @@ void ClientApp::run() {
 
     // Create sky
     Rte::Entity sky = m_ecs->createEntity();
-    const std::shared_ptr<Rte::Graphic::Texture> skytexture = m_graphicModule->createTexture();
-    skytexture->loadFromFile("../assets/sky.png");
+    uint32_t skytexture = m_graphicModule->createTexture();
+    if (!m_graphicModule->loadTextureFromFile(skytexture, "../assets/sky.png"))
+        throw std::runtime_error("Failed to load texture: \"../assets/sky.png\"");
+
     m_ecs->addComponent<Rte::BasicComponents::Transform>(sky, Rte::BasicComponents::Transform{
         .position = {0, 0},
         .scale = {10, 10},
         .rotation = 0
     });
-    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(sky, {skytexture, 0});
+    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(sky, {.textureId = skytexture, .offset = {0, 0}, .layer = 0});
 
     Rte::Entity sky1 = m_ecs->createEntity();
     m_ecs->addComponent<Rte::BasicComponents::Transform>(sky1, Rte::BasicComponents::Transform{
@@ -100,8 +100,8 @@ void ClientApp::run() {
         .scale = {10, 10},
         .rotation = 0
     });
-    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(sky1, {skytexture, 0});
-    
+    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(sky1, {.textureId = skytexture, .offset = {0, 0}, .layer = 0});
+
     // Load audio module
     const std::shared_ptr<Rte::Audio::AudioModule> audioModule = Rte::interfaceCast<Rte::Audio::AudioModule>(moduleManager.loadModule("RteAudio"));
     audioModule->init(m_ecs);
@@ -153,7 +153,6 @@ void ClientApp::run() {
             m_networkModuleClient->update();
     });
 
-    float shootAngle = 0;
     // Main loop
     while(m_running) {
         // Get inputs from player
@@ -162,20 +161,21 @@ void ClientApp::run() {
             .moveDown = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Down),
             .moveLeft = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Left),
             .moveRight = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Right),
-            .shoot = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Space)
+            .shoot = m_graphicModule->isMouseButtonPressed(Rte::Graphic::MouseButton::Left),
+            .shootDirection = {static_cast<float>(m_graphicModule->getMousePosition().x), static_cast<float>(m_graphicModule->getMousePosition().y)}
         });
 
-        m_entitiesMutex.lock(); {
-            m_graphicModule->update();
-            m_networkModuleClient->sendUpdate();
-        }
         m_ecs->getComponent<Rte::BasicComponents::Transform>(sky).position.x -= 5;
         if (m_ecs->getComponent<Rte::BasicComponents::Transform>(sky).position.x <= -1920)
             m_ecs->getComponent<Rte::BasicComponents::Transform>(sky).position.x = 1920;
         m_ecs->getComponent<Rte::BasicComponents::Transform>(sky1).position.x -= 5;
         if (m_ecs->getComponent<Rte::BasicComponents::Transform>(sky1).position.x <= -1920)
             m_ecs->getComponent<Rte::BasicComponents::Transform>(sky1).position.x = 1920;
-        m_entitiesMutex.unlock();
+
+        m_entitiesMutex.lock(); {
+            m_graphicModule->update();
+            m_networkModuleClient->sendUpdate();
+        } m_entitiesMutex.unlock();
     }
 
     networkThread.join();

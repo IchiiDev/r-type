@@ -32,8 +32,8 @@ void TextSystem::update(sf::RenderWindow& window) {
         const sf::Angle angle = sf::degrees(transformComponent.rotation);
 
         m_text->setPosition({
-            transformComponent.position.x + static_cast<float>(windowSize.x) / 2.0F,
-            transformComponent.position.y + static_cast<float>(windowSize.y) / 2.0F
+            transformComponent.position.x + static_cast<float>(textComponent.offset.x) + static_cast<float>(windowSize.x) / 2.0F,
+            transformComponent.position.y + static_cast<float>(textComponent.offset.y) + static_cast<float>(windowSize.y) / 2.0F
         });
         m_text->setRotation(angle);
         m_text->setString(textComponent.text);

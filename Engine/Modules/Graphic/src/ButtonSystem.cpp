@@ -9,6 +9,7 @@
 
 #include "SFML/Graphics/RenderWindow.hpp"
 #include "SFML/Window/Mouse.hpp"
+#include "Types.hpp"
 
 #include <cassert>
 #include <memory>
@@ -19,7 +20,7 @@ void ButtonSystem::init(const std::shared_ptr<Rte::Ecs>& ecs) {
     m_ecs = ecs;
 }
 
-void ButtonSystem::update(sf::RenderWindow& window) {
+void ButtonSystem::update(sf::RenderWindow& window, const std::map<uint32_t, TextureHandle> &textures) {
     assert(m_ecs != nullptr && "Cannot update render system: Not initialized.");
 
     for (const Entity entity : m_entities) {
@@ -30,16 +31,21 @@ void ButtonSystem::update(sf::RenderWindow& window) {
 
 
         // Check if the button is hovered or clicked
-        const Vec2<u16> textureSize = spriteComponent.texture->getSize();
+        const TextureHandle& textureHandle = textures.at(spriteComponent.textureId);
+
+        const Vec2<u16> textureSize = {
+            static_cast<unsigned short>(textureHandle.texture.getSize().x),
+            static_cast<unsigned short>(textureHandle.texture.getSize().y)
+        };
         const sf::Vector2i mousePosition = sf::Mouse::getPosition(window);
         const sf::Vector2<u32> windowSize = window.getSize();
         const Vec2<u16> normalizedTransformPosition = {
-            static_cast<u16>(transformComponent.position.x + (windowSize.x / 2)),
-            static_cast<u16>(transformComponent.position.y + (windowSize.y / 2))
+            static_cast<u16>(transformComponent.position.x + (windowSize.x / 2.)),
+            static_cast<u16>(transformComponent.position.y + (windowSize.y / 2.))
         };
         const Vec2<u16> normalizedScale = {
-            static_cast<u16>(transformComponent.scale.x * textureSize.x),
-            static_cast<u16>(transformComponent.scale.y * textureSize.y)
+            static_cast<u16>(transformComponent.scale.x * static_cast<float>(textureSize.x)),
+            static_cast<u16>(transformComponent.scale.y * static_cast<float>(textureSize.y))
         };
 
         const Vec2<u16> topLeft = {

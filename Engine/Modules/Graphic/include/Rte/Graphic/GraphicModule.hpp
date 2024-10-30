@@ -3,7 +3,6 @@
 #include "Rte/Common.hpp"
 #include "Rte/Ecs/Ecs.hpp"
 #include "Rte/Ecs/Types.hpp"
-#include "Rte/Graphic/Texture.hpp"
 #include "Rte/ModuleManager.hpp"
 
 #include <memory>
@@ -251,15 +250,25 @@ namespace Rte::Graphic {
              */
             [[nodiscard]] virtual Vec2<u16> getWindowSize() const = 0;
 
-            /**
-             * @brief Create a texture.
-             *
-             * @return std::unique_ptr<Texture> unique pointer to the texture.
-             */
-            [[nodiscard]] virtual std::unique_ptr<Texture> createTexture() const = 0;
-
             virtual void loadFontFromMemory(const void *data, u32 size) = 0;
             virtual void loadFontFromFile(const char *path) = 0;
+
+
+
+
+        public: // Texture methods
+            [[nodiscard]] virtual uint32_t createTexture() = 0;
+            virtual void destroyTexture(uint32_t texture) = 0;
+
+            [[nodiscard]] virtual bool loadTextureFromFile(uint32_t texture, const char *path) = 0;
+            [[nodiscard]] virtual bool loadTextureFromMemory(uint32_t texture, const uint8_t *data, const Vec2<u16>& size) = 0;
+
+            virtual void setTextureSmooth(uint32_t texture, bool smooth) = 0;
+            virtual void setTextureRepeated(uint32_t texture, bool repeated) = 0;
+            [[nodiscard]] virtual bool generateTextureMipMaps(uint32_t texture) = 0;
+
+            [[nodiscard]] virtual Vec2<u16> getTextureSize(uint32_t texture) = 0;
+            [[nodiscard]] virtual const u8 *getTexturePixels(uint32_t texture) = 0;
 
 
 

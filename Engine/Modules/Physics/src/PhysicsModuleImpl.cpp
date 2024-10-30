@@ -1,5 +1,7 @@
 #include "PhysicsModuleImpl.hpp"
 #include "PhysicsSystem.hpp"
+#include "Rte/Physics/Sensor.hpp"
+#include "SensorImpl.hpp"
 #include "ShapeBodyImpl.hpp"
 #include "RigidBodyImpl.hpp"
 #include "Rte/BasicComponents.hpp"
@@ -35,8 +37,7 @@ Rte::IModule *createModule() {
 
 PhysicsModuleImpl::PhysicsModuleImpl() : m_timeStep(1.0F / 60.0F), m_subStepCount(4) {
     b2WorldDef worldDef = b2DefaultWorldDef();
-    // worldDef.gravity = b2Vec2{0.0F, -9.81F};
-    worldDef.gravity = b2Vec2{0.0F, 0.F};   // TODO: put back the gravity
+    worldDef.gravity = b2Vec2{0.0F, -20.F};
     m_worldId = b2CreateWorld(&worldDef);
 }
 
@@ -65,7 +66,7 @@ void PhysicsModuleImpl::update() {
     m_physicsSystem->update();
 }
 
-std::vector<Rte::u8> PhysicsModuleImpl::fractureRigidBody(const std::shared_ptr<RigidBody>& rigidBody, Vec2<u16> pixelPos, bool &hasChanged) {
+std::vector<Rte::u8> PhysicsModuleImpl::fractureRigidBody(const std::shared_ptr<RigidBody>& rigidBody, Vec2<u16> pixelPos, std::vector<int> destructionMap, Rte::Vec2<Rte::u16> destructionMapSize, bool &hasChanged) {
     const std::shared_ptr<RigidBodyImpl> rigidBodyImpl = interfaceCast<RigidBodyImpl>(rigidBody);
 
 
@@ -84,18 +85,21 @@ std::vector<Rte::u8> PhysicsModuleImpl::fractureRigidBody(const std::shared_ptr<
 
     // IDK
     std::vector<std::vector<PixelCringe>> rotatedPixels = rigidBodyImpl->getRotatedPixels();
-    for (std::vector<PixelCringe>& rotatedPixelArray : rotatedPixels) {
-        for (PixelCringe& rotatedPixel : rotatedPixelArray) {
-            if (rotatedPixel.pos.x + bodyPos.x - 3 <= static_cast<float>(pixelPos.x) && rotatedPixel.pos.x + bodyPos.x + 3 >= static_cast<float>(pixelPos.x)
-            && rotatedPixel.pos.y + bodyPos.y - 3 <= static_cast<float>(pixelPos.y) && rotatedPixel.pos.y + bodyPos.y + 3 >= static_cast<float>(pixelPos.y)) {
-                if (rotatedPixel.a == 255) {
+    
+    for (int i = 0; i < destructionMapSize.y; i++) {
+        for (int j = 0; j < destructionMapSize.x; j++) {
+            if (destructionMap.at(i * destructionMapSize.x + j) == 1) {
+                Rte::Vec2<int> point = {
+                    i + destructionMapSize.y / 2 + pixelPos.y - static_cast<int>(bodyPos.y),
+                    j + destructionMapSize.x / 2 + pixelPos.x - static_cast<int>(bodyPos.x)
+                };
+                if (point.x >= 0 && point.x < rotatedPixels.size() && point.y >= 0 && point.y < rotatedPixels.at(0).size()) {
+                    rotatedPixels.at(point.x).at(point.y).a = 0;
                     hasChanged = true;
-                    rotatedPixel.a = 0;
                 }
             }
         }
     }
-
 
     // Create the new fractured pixels array
     std::vector<u8> newPixels(rotatedPixels.size() * rotatedPixels.at(0).size() * 4);
@@ -122,9 +126,23 @@ std::shared_ptr<RigidBody> PhysicsModuleImpl::createRigidBody(const std::shared_
 std::shared_ptr<ShapeBody> PhysicsModuleImpl::createShapeBody(const Rte::Vec2<Rte::u16>& size, float density, float friction, const Rte::Vec2<float>& pos, float rotation, bool fixedRotation, bool isStatic, ShapeType shapeType) {
     return std::make_shared<ShapeBodyImpl>(size, density, friction, m_worldId, pos, rotation, fixedRotation, isStatic, shapeType);
 }
+/*
+[[nodiscard]] std::shared_ptr<Sensor> PhysicsModuleImpl::createSensor(const Rte::Vec2<Rte::u16>& size, const Rte::Vec2<float>& pos, float rotation, ShapeType shapeType) {
+    return std::make_shared<SensorImpl>(size, m_worldId, pos, rotation, shapeType);
+} 
+*/
+
+
+void PhysicsModuleImpl::setFriction(const std::shared_ptr<ShapeBody>& ShapeBody, float friction) {
+    interfaceCast<ShapeBodyImpl>(ShapeBody)->setFriction(friction);
+}
 
 void PhysicsModuleImpl::applyForce(const std::shared_ptr<ShapeBody>& ShapeBody, const Vec2<float>& force) {
     interfaceCast<ShapeBodyImpl>(ShapeBody)->applyForce(force);
+}
+
+Rte::Vec2<float> PhysicsModuleImpl::getVelocity(const std::shared_ptr<ShapeBody>& ShapeBody) const {
+    return interfaceCast<ShapeBodyImpl>(ShapeBody)->getVelocity();
 }
 
 void PhysicsModuleImpl::move(const std::shared_ptr<ShapeBody>& ShapeBody, const Vec2<float>& direction) {
@@ -175,3 +193,22 @@ bool PhysicsModuleImpl::colliding(const std::shared_ptr<ShapeBody> &shapeBody1, 
     }
     return false;
 }
+
+bool PhysicsModuleImpl::colliding(const std::shared_ptr<ShapeBody> &shapeBody, const std::shared_ptr<RigidBody> &rigidBody) const {
+    const std::shared_ptr<ShapeBodyImpl> &shapeBodyImpl = interfaceCast<ShapeBodyImpl>(shapeBody);
+    const std::shared_ptr<RigidBodyImpl> &rigidBodyImpl = interfaceCast<RigidBodyImpl>(rigidBody);
+    
+    std::vector<b2ShapeId> rigidBodyshapes = rigidBodyImpl->getShapesIds();
+    std::vector<b2ContactData> contactData(100);
+    b2Body_GetContactData(shapeBodyImpl->getBodyId(), contactData.data(), 100);
+
+    for (const b2ContactData &contact : contactData) {
+        for (const b2ShapeId &shapeId : rigidBodyshapes) {
+            if (shapeId.index1 == contact.shapeIdA.index1 || shapeId.index1 == contact.shapeIdB.index1) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+        

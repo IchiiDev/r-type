@@ -5,15 +5,17 @@
 #include "Rte/Common.hpp"
 #include "Rte/Ecs/Ecs.hpp"
 #include "Rte/Graphic/GraphicModule.hpp"
-#include "Rte/Graphic/Texture.hpp"
+#include "Types.hpp"
 
 #include "SFML/Graphics/Font.hpp"
+#include "SFML/Graphics/Image.hpp"
 #include "SFML/Graphics/RenderWindow.hpp"
 #include "SFML/Graphics/Shader.hpp"
 #include "SFML/Window/Keyboard.hpp"
 #include "SFML/Window/Mouse.hpp"
 #include "TextSystem.hpp"
 
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -261,7 +263,6 @@ namespace Rte::Graphic {
     };
 
 
-
     class GraphicModuleImpl : public GraphicModule {
         public:
             // Module methods
@@ -277,10 +278,23 @@ namespace Rte::Graphic {
 
             [[nodiscard]] Vec2<u16> getWindowSize() const override;
 
-            [[nodiscard]] std::unique_ptr<Texture> createTexture() const override;
-
             void loadFontFromMemory(const void *data, u32 size) override;
             void loadFontFromFile(const char *path) override;
+
+
+            // Texture methods
+            uint32_t createTexture() override;
+            void destroyTexture(uint32_t texture) override;
+
+            bool loadTextureFromFile(uint32_t texture, const char *path) override;
+            bool loadTextureFromMemory(uint32_t texture, const uint8_t *data, const Vec2<u16>& size) override;
+
+            void setTextureSmooth(uint32_t texture, bool smooth) override;
+            void setTextureRepeated(uint32_t texture, bool repeated) override;
+            bool generateTextureMipMaps(uint32_t texture) override;
+
+            Vec2<u16> getTextureSize(uint32_t texture) override;
+            const u8 *getTexturePixels(uint32_t texture) override;
 
 
             // Input methods
@@ -300,6 +314,9 @@ namespace Rte::Graphic {
             std::shared_ptr<RenderSystem> m_renderSystem;
             std::shared_ptr<ButtonSystem> m_buttonSystem;
             std::shared_ptr<TextSystem> m_textSystem;
+
+            std::map<uint32_t, TextureHandle> m_textures;
+            uint32_t m_textureCounter = 0;
     };
 
 }   // namespace Rte::Graphic

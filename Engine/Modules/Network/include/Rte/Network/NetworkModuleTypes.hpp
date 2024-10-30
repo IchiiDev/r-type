@@ -34,6 +34,7 @@ namespace Rte::Network {
         bool moveLeft = false;
         bool moveRight = false;
         bool shoot = false;
+        Vec2<float> shootDirection;
     };
 
     struct PackedTexture {
