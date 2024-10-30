@@ -38,7 +38,7 @@ ServerApp::ServerApp() : m_rightWall(0), m_leftWall(0), m_topWall(0), m_bottomWa
     m_networkModule = Rte::interfaceCast<Rte::Network::NetworkModule>(moduleManager.loadModule("RteNetwork"));
     m_networkModuleServer = m_networkModule->getServer();
     m_networkModuleServer->init(m_ecs);
-    m_networkModuleServer->start(123456);
+    m_networkModuleServer->start(12345);
 
     // Allocs
     m_entities = std::make_shared<std::vector<Rte::Entity>>();

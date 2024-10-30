@@ -25,6 +25,7 @@ namespace bnl {
         struct message_header {
             T id{};
             uint32_t size = 0;
+            
         };
 
         template <typename T>
@@ -41,7 +42,6 @@ namespace bnl {
             }
 
             friend message<T>& operator << (message<T>& msg, const std::string &data) {
-
                 size_t s = msg.body.size();
                 msg.body.resize(s + data.size());
                 std::memcpy(msg.body.data() + s, data.data(), data.size());

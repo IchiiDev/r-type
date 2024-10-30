@@ -15,6 +15,8 @@
 #include <cstdint>
 #include <map>
 #include <memory>
+#include <ostream>
+#include <sys/types.h>
 #include <vector>
 
 using namespace Rte;
@@ -27,7 +29,8 @@ void Rte::Network::NetworkServerModuleAsio::init(const std::shared_ptr<Ecs>& ecs
     }));
 }
 
-void Rte::Network::NetworkServerModuleAsio::start(const unsigned int port) {
+void Rte::Network::NetworkServerModuleAsio::start(const uint16_t port) {
+    std::cout << "one: " << port << std::endl;
     m_server = std::make_unique<CustomServer>(port, m_ecs);
 	m_server->start();
 }

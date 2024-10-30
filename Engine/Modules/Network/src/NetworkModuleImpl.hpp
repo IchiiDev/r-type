@@ -15,6 +15,7 @@
 #include "Rte/Network/NetworkModuleTypes.hpp"
 
 #include <cstdint>
+#include <iostream>
 #include <memory>
 #include <sys/types.h>
 #include <vector>
@@ -41,7 +42,9 @@ namespace Rte::Network {
 
     class CustomServer : public bnl::net::IServer<CustomMsgTypes> {
         public:
-            CustomServer(uint16_t nPort, std::shared_ptr<Ecs>& ecs) : bnl::net::IServer<CustomMsgTypes>(nPort), m_ecs(ecs) {}
+            CustomServer(uint16_t nPort, std::shared_ptr<Ecs>& ecs) : bnl::net::IServer<CustomMsgTypes>(nPort), m_ecs(ecs) {
+                std::cout << "two: " << nPort << std::endl;
+            }
 
         public:
             void sendNewEntity(BasicComponents::Transform transform, const std::vector<u8>& pixels, Vec2<u16> size, BasicComponents::UidComponents uidComponent) {
@@ -119,6 +122,7 @@ namespace Rte::Network {
 
         protected:
             bool onClientConnect(std::shared_ptr<bnl::net::Connection<CustomMsgTypes>> client) override {
+                std::cout << "connection received" << std::endl;
                 bool result = m_connectionsQueue.size() <= 8;
 
                 if (result) {

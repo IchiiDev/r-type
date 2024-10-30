@@ -27,7 +27,7 @@ namespace Rte::Network {
             void update() override;
 
         public:
-            void start(unsigned int port) override;
+            void start(uint16_t port) override;
             void updateEntity(const std::shared_ptr<std::vector<Entity>>& entities) override;
             void updateTexture(std::map<Entity, PackedTexture>& textures) override;
             void sendUpdate() override;

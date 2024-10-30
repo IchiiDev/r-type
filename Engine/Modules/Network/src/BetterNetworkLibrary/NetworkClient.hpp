@@ -30,17 +30,18 @@ namespace bnl {
             public:
                 bool connect(const std::string& host, const unsigned int port) {
                     try {
-                        asio::ip::tcp::resolver resolver(m_io_context);
-                        asio::ip::tcp::resolver::results_type endpoints = resolver.resolve(host, std::to_string(port));
+                        asio::ip::udp::resolver resolver(m_io_context);
+                        asio::ip::udp::endpoint endpoint = *resolver.resolve(host, std::to_string(port));
 
                         m_connection = std::make_unique<Connection<T>>(
                             Connection<T>::owner::client,
                             m_io_context,
-                            asio::ip::tcp::socket(m_io_context),
+                            endpoint, // Here make sure that pass out the correct thing
                             m_receiveQueue
                         );
 
-                        m_connection->connectToServer(endpoints);
+                        std::cout << host << ":" << port << std::endl;
+                        m_connection->connectToServer(endpoint);
 
                         thrContext = std::thread([this]() { m_io_context.run(); });
                     } catch (const std::exception& e) {
@@ -84,7 +85,7 @@ namespace bnl {
             protected:
                 asio::io_context m_io_context;
                 std::thread thrContext;
-                asio::ip::tcp::socket m_socket;
+                asio::ip::udp::socket m_socket;
                 std::unique_ptr<Connection<T>> m_connection;
 
             private:

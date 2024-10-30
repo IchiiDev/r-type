@@ -15,7 +15,7 @@
 namespace Rte::Network {
     class NetworkModuleClient : public IModule {
         public:
-            virtual void connect(const std::string& host, const unsigned int& port) = 0;
+            virtual void connect(const std::string& host, const uint16_t& port) = 0;
             virtual void updateInputs(PackedInput input) = 0;
             virtual void sendUpdate() = 0;
     };

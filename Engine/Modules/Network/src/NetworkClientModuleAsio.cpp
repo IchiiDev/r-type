@@ -21,9 +21,15 @@ void Rte::Network::NetworkClientModuleAsio::init(const std::shared_ptr<Ecs>& ecs
     m_ecs = ecs;
 }
 
-void Rte::Network::NetworkClientModuleAsio::connect(const std::string& host, const unsigned int& port) {
+void Rte::Network::NetworkClientModuleAsio::connect(const std::string& host, const uint16_t& port) {
+    bnl::net::message<CustomMsgTypes> msg;
+    msg.header.id = CustomMsgTypes(-1);
+
+
+    std::cout << "one: " << port << std::endl;
     m_client = std::make_unique<CustomClient>();
 	m_client->connect(host, port);
+    m_client->send(msg);
 }
 
 void Rte::Network::NetworkClientModuleAsio::updateInputs(PackedInput input) {
@@ -94,25 +100,7 @@ void Rte::Network::NetworkClientModuleAsio::update() {
                 m_ecs->sendEvent(event);
 
                 break;
-            } /* case CustomMsgTypes::TestString: {
-                std::string str;
-                str.resize(12);
-
-                msg >> str;
-
-                std::cout << "Received string: " << str << std::endl;
-                break;
-            } case CustomMsgTypes::TestVector: {
-                std::vector<uint32_t> received;
-                received.resize(3);
-
-                msg >> received;
-
-                std::cout << "Received vector: ";
-                for (const auto& val : received) {
-                    std::cout << val << ", ";
-                }
-            } */ // Exemple of receiving vectors and strings
+            }
             break;
         }
     }
