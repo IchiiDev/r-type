@@ -8,11 +8,9 @@
 #include "Rte/Ecs/Types.hpp"
 #include "Rte/Graphic/Components.hpp"
 #include "Rte/Graphic/GraphicModule.hpp"
-#include "Rte/Graphic/Texture.hpp"
 #include "Rte/ModuleManager.hpp"
 #include "SFML/Graphics/Text.hpp"
 #include "SFML/Window/WindowEnums.hpp"
-#include "TextureImpl.hpp"
 
 #include "SFML/Graphics/Rect.hpp"
 #include "SFML/Graphics/Shader.hpp"
@@ -23,6 +21,9 @@
 #include "SFML/Window/Mouse.hpp"
 #include "SFML/Window/VideoMode.hpp"
 
+#include <cassert>
+#include <cstdint>
+#include <iostream>
 #include <memory>
 #include <optional>
 #include <stdexcept>
@@ -193,8 +194,8 @@ void GraphicModuleImpl::update() {
 
     // Clear & display
     m_window.clear();
-    m_renderSystem->update(m_window, m_shader, m_layerCount);
-    m_buttonSystem->update(m_window);
+    m_renderSystem->update(m_window, m_shader, m_layerCount, m_textures);
+    m_buttonSystem->update(m_window, m_textures);
     m_textSystem->update(m_window);
     m_window.display();
 }
@@ -214,10 +215,6 @@ Rte::Vec2<Rte::u16> GraphicModuleImpl::getMousePosition() const {
 
 void GraphicModuleImpl::setDaltonismMode(DaltonismMode mode) {
     m_shader.setUniform("mode", static_cast<int>(mode));
-}
-
-std::unique_ptr<Texture> GraphicModuleImpl::createTexture() const { // NOLINT(readability-convert-member-functions-to-static)
-    return std::make_unique<TextureImpl>();
 }
 
 void GraphicModuleImpl::setWindowTitle(const std::string& title) {
@@ -245,4 +242,70 @@ void GraphicModuleImpl::loadFontFromFile(const char *path) {
 
 void GraphicModuleImpl::setLayerCount(int count) {
     m_layerCount = count;
+}
+
+
+
+
+/////////////////////////////
+////// Texture methods //////
+/////////////////////////////
+
+uint32_t GraphicModuleImpl::createTexture() {
+    TextureHandle handle{};
+    handle.image.resize({1, 1});
+
+    const uint32_t id = m_textureCounter++;
+    m_textures.emplace(id, std::move(handle));
+    return id;
+}
+
+void GraphicModuleImpl::destroyTexture(uint32_t texture) {
+    assert(m_textures.contains(texture) && "Cannot destroy texture: Texture does not exist.");
+    m_textures.erase(texture);
+}
+
+bool GraphicModuleImpl::loadTextureFromFile(uint32_t texture, const char *path) {
+    assert(m_textures.contains(texture) && "Cannot load texture from file: Texture does not exist.");
+    if (!m_textures.at(texture).texture.loadFromFile(path))
+        return false;
+
+    m_textures.at(texture).image = m_textures.at(texture).texture.copyToImage();
+    return true;
+}
+
+bool GraphicModuleImpl::loadTextureFromMemory(uint32_t texture, const uint8_t *data, const Vec2<u16>& size) {
+    assert(m_textures.contains(texture) && "Cannot load texture from memory: Texture does not exist.");
+    if (!m_textures.at(texture).texture.resize({size.x, size.y}))
+        return false;
+    m_textures.at(texture).texture.update(data);
+
+    m_textures.at(texture).image = m_textures.at(texture).texture.copyToImage();
+    return true;
+}
+
+void GraphicModuleImpl::setTextureSmooth(uint32_t texture, bool smooth) {
+    assert(m_textures.contains(texture) && "Cannot set texture smooth: Texture does not exist.");
+    m_textures.at(texture).texture.setSmooth(smooth);
+}
+
+void GraphicModuleImpl::setTextureRepeated(uint32_t texture, bool repeated) {
+    assert(m_textures.contains(texture) && "Cannot set texture repeated: Texture does not exist.");
+    m_textures.at(texture).texture.setRepeated(repeated);
+}
+
+bool GraphicModuleImpl::generateTextureMipMaps(uint32_t texture) {
+    assert(m_textures.contains(texture) && "Cannot set texture mipmap: Texture does not exist.");
+    return m_textures.at(texture).texture.generateMipmap();
+}
+
+Rte::Vec2<Rte::u16> GraphicModuleImpl::getTextureSize(uint32_t texture) {
+    assert(m_textures.contains(texture) && "Cannot get texture size: Texture does not exist.");
+    const sf::Vector2u size = m_textures.at(texture).image.getSize();
+    return {static_cast<u16>(size.x), static_cast<u16>(size.y)};
+}
+
+const Rte::u8 *GraphicModuleImpl::getTexturePixels(uint32_t texture) {
+    assert(m_textures.contains(texture) && "Cannot get texture pixels: Texture does not exist.");
+    return m_textures.at(texture).image.getPixelsPtr();
 }

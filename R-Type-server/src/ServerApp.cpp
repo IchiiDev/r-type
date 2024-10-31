@@ -13,6 +13,7 @@
 
 #include <chrono>
 #include <cmath>
+#include <numbers>
 #include <cstdint>
 #include <iostream>
 #include <memory>
@@ -75,11 +76,14 @@ void ServerApp::run() {
         m_entities->emplace_back(newPlayerEntity);
 
         // Load texture and add to new entities textures
-        auto texture = m_ecs->getComponent<Rte::Graphic::Components::Sprite>(newPlayerEntity).texture;
-        std::vector<Rte::u8> pixelsVector(texture->getPixels(), texture->getPixels() + static_cast<ptrdiff_t>(texture->getSize().x * texture->getSize().y) * 4);
+        uint32_t texture = m_ecs->getComponent<Rte::Graphic::Components::Sprite>(newPlayerEntity).textureId;
+        const uint8_t* texturePixels = m_graphicModule->getTexturePixels(texture);
+        const Rte::Vec2<Rte::u16> textureSize = m_graphicModule->getTextureSize(texture);
+
+        std::vector<Rte::u8> pixelsVector(texturePixels, texturePixels + static_cast<ptrdiff_t>(textureSize.x * textureSize.y) * 4);
 
         Rte::Network::PackedTexture packedTexture{};
-        packedTexture.size = texture->getSize();
+        packedTexture.size = textureSize;
         packedTexture.pixels = pixelsVector;
 
         m_newEntitiesTextures[newPlayerEntity] = packedTexture;
@@ -108,18 +112,23 @@ void ServerApp::run() {
         const Rte::Network::PackedInput& packedInput = event.getParameter<Rte::Network::PackedInput>(Rte::Network::Events::Params::INPUT);
         uint32_t playerId = event.getParameter<uint32_t>(Rte::Network::Events::Params::PLAYER_ID);
 
-        if (packedInput.moveLeft)
-            m_players.at(playerId)->move({-20, 0});
-        if (packedInput.moveRight)
-            m_players.at(playerId)->move({20, 0});
-
         if (packedInput.moveUp)
-            m_players.at(playerId)->move({0, 20});
-        if (packedInput.moveDown)
-            m_players.at(playerId)->move({0, -20});
+            m_players.at(playerId)->fly({0, 3});
+
+        if (packedInput.moveLeft)
+            m_players.at(playerId)->move({-10, 0});
+        else if (packedInput.moveRight)
+            m_players.at(playerId)->move({10, 0});
+        else {
+            m_players.at(playerId)->move({0, 0});
+        }
 
         if (packedInput.shoot) {
-            Rte::Entity projectile = m_players.at(playerId)->shoot(0);
+            const float shootAngle = -std::atan2(
+                static_cast<float>(m_players.at(playerId)->getPos().x) - (static_cast<float>(packedInput.shootDirection.x) - m_graphicModule->getWindowSize().x / 2.F),
+                static_cast<float>(m_players.at(playerId)->getPos().y) - (static_cast<float>(packedInput.shootDirection.y) - m_graphicModule->getWindowSize().y / 2.F)
+            ) - std::numbers::pi_v<float> / 2;
+            Rte::Entity projectile = m_players.at(playerId)->shoot(shootAngle);
             if (projectile != 0)
                 createProjectile(projectile);
         }

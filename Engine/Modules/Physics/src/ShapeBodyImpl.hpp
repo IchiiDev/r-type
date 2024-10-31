@@ -19,10 +19,11 @@ namespace Rte::Physics {
             ShapeBodyImpl& operator=(ShapeBodyImpl&&) noexcept = default;
 
             [[nodiscard]] b2BodyId getBodyId() const;
+            [[nodiscard]] Rte::Vec2<float> getVelocity() const;
             [[nodiscard]] b2ShapeId getShapeId() const;
+            void setFriction(float friction);
             void applyForce(const Vec2<float>& force);
             void move(const Vec2<float>& direction);
-
         private:
             b2BodyId m_bodyId{};
             b2ShapeId m_shapeId{};

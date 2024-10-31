@@ -1,3 +1,4 @@
+#include "Rte/Physics/Tool.hpp"
 #include "ServerApp.hpp"
 
 #include "Rte/Common.hpp"
@@ -7,11 +8,12 @@
 #include "Rte/Physics/Components.hpp"
 #include <cstdlib>
 #include <memory>
+#include <vector>
 
 void ServerApp::createProjectile(Rte::Entity projectile) {
     // Add projectile to the entities list
     m_ecs->addComponent(projectile, Rte::BasicComponents::UidComponents{m_currentUid++});
-    
+
     // Add projectile to the projectiles list
     m_projectiles.push_back(std::make_unique<Rte::Entity>(projectile));
 
@@ -19,11 +21,11 @@ void ServerApp::createProjectile(Rte::Entity projectile) {
     m_entities->emplace_back(projectile);
 
     // Load texture and add to new entities textures
-    auto texture = m_ecs->getComponent<Rte::Graphic::Components::Sprite>(projectile).texture;
-    std::vector<Rte::u8> pixelsVector(texture->getPixels(), texture->getPixels() + static_cast<ptrdiff_t>(texture->getSize().x * texture->getSize().y) * 4);
-    
+    uint32_t texture = m_ecs->getComponent<Rte::Graphic::Components::Sprite>(projectile).textureId;
+    std::vector<Rte::u8> pixelsVector(m_graphicModule->getTexturePixels(texture), m_graphicModule->getTexturePixels(texture) + static_cast<ptrdiff_t>(m_graphicModule->getTextureSize(texture).x * m_graphicModule->getTextureSize(texture).y) * 4);
+
     Rte::Network::PackedTexture packedTexture{};
-    packedTexture.size = texture->getSize();
+    packedTexture.size = m_graphicModule->getTextureSize(texture);
     packedTexture.pixels = pixelsVector;
     m_newEntitiesTextures[projectile] = packedTexture;
 }
@@ -71,6 +73,7 @@ void ServerApp::updateProjectiles() {
 
 void ServerApp::destroyProjectile(const Rte::Entity& projectile) {
     const Rte::BasicComponents::UidComponents uid = m_ecs->getComponent<Rte::BasicComponents::UidComponents>(projectile);
+    m_ecs->getComponent<Rte::Physics::Components::Physics>(projectile).shapeBody.reset();
     for (size_t j = 0; j < m_entities->size(); j++) {
         if (m_ecs->getComponent<Rte::BasicComponents::UidComponents>((*m_entities)[j]).uid == uid.uid) {
             m_entities->erase(m_entities->begin() + static_cast<std::vector<Rte::Entity>::difference_type>(j));

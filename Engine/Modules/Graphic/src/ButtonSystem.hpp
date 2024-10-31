@@ -2,10 +2,12 @@
 
 #include "Rte/Ecs/Ecs.hpp"
 #include "Rte/Ecs/Types.hpp"
+#include "Types.hpp"
 
 #include "SFML/Graphics/RenderWindow.hpp"
 
 #include <memory>
+#include <map>
 
 namespace Rte::Graphic {
 
@@ -20,7 +22,7 @@ namespace Rte::Graphic {
             ButtonSystem& operator=(ButtonSystem&&) = default;
 
             void init(const std::shared_ptr<Rte::Ecs>& ecs);
-            void update(sf::RenderWindow& window);
+            void update(sf::RenderWindow& window, const std::map<uint32_t, TextureHandle> &textures);
 
         private:
             std::shared_ptr<Rte::Ecs> m_ecs;

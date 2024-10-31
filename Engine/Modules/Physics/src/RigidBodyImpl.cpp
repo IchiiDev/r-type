@@ -498,7 +498,7 @@ RigidBodyImpl::RigidBodyImpl(const u8* pixels, const Vec2<u16>& size, const b2Wo
         shapeDef.friction = properties.friction;
 
         // Create the shape
-        b2CreatePolygonShape(m_bodyId, &shapeDef, &triangle);
+        m_shapes.push_back(b2CreatePolygonShape(m_bodyId, &shapeDef, &triangle));
     }
 }
 
@@ -550,6 +550,8 @@ RigidBodyImpl::RigidBodyImpl(const std::shared_ptr<RigidBodyImpl>& rigidBody, co
         };
 
         const b2Hull hull = b2ComputeHull(vertices.data(), 3);
+        if (!b2ValidateHull(&hull))
+            continue;
         const b2Polygon triangle = b2MakePolygon(&hull, 0);
 
         // Create a shape definition
@@ -559,15 +561,21 @@ RigidBodyImpl::RigidBodyImpl(const std::shared_ptr<RigidBodyImpl>& rigidBody, co
         shapeDef.friction = properties.friction;
 
         // Create the shape
-        b2CreatePolygonShape(m_bodyId, &shapeDef, &triangle);
+        m_shapes.push_back(b2CreatePolygonShape(m_bodyId, &shapeDef, &triangle));
     }
 }
 
 RigidBodyImpl::~RigidBodyImpl() {
-    b2DestroyBody(m_bodyId);
     //Destroy the shapes.
+    for (const auto& shape : m_shapes)
+        b2DestroyShape(shape);
+    b2DestroyBody(m_bodyId);
 }
 
 b2BodyId RigidBodyImpl::getBodyId() const {
     return m_bodyId;
+}
+
+std::vector<b2ShapeId> RigidBodyImpl::getShapesIds() const {
+    return m_shapes;
 }

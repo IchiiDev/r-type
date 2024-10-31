@@ -3,7 +3,6 @@
 #include "Rte/Common.hpp"
 #include "Rte/Ecs/Types.hpp"
 #include "Rte/Graphic/Components.hpp"
-#include "Rte/Graphic/Texture.hpp"
 #include "Rte/Network/NetworkModuleTypes.hpp"
 #include "Rte/Physics/Components.hpp"
 
@@ -15,19 +14,19 @@
 void ServerApp::createEnemy(Rte::Vec2<float> pos) {
     // New enemy creation
     std::unique_ptr<Enemy> enemy = std::make_unique<Enemy>(m_ecs, m_graphicModule, m_physicsModule, m_currentUid++, pos);
-        
+
     // Add enemy to the entities list
     m_entities->emplace_back(enemy->getEntity());
-    
+
     // Load texture and add to new entities textures
-    auto texture = m_ecs->getComponent<Rte::Graphic::Components::Sprite>(enemy->getEntity()).texture;
-    std::vector<Rte::u8> pixelsVector(texture->getPixels(), texture->getPixels() + static_cast<ptrdiff_t>(texture->getSize().x * texture->getSize().y) * 4);
-    
+    uint32_t texture = m_ecs->getComponent<Rte::Graphic::Components::Sprite>(enemy->getEntity()).textureId;
+    std::vector<Rte::u8> pixelsVector(m_graphicModule->getTexturePixels(texture), m_graphicModule->getTexturePixels(texture) + static_cast<ptrdiff_t>(m_graphicModule->getTextureSize(texture).x * m_graphicModule->getTextureSize(texture).y) * 4);
+
     Rte::Network::PackedTexture packedTexture{};
-    packedTexture.size = texture->getSize();
+    packedTexture.size = m_graphicModule->getTextureSize(texture);
     packedTexture.pixels = pixelsVector;
     m_newEntitiesTextures[enemy->getEntity()] = packedTexture;
-    
+
     // Add enemy to the enemies list
     m_enemies.insert({enemy->getEntity(), std::move(enemy)});
 }

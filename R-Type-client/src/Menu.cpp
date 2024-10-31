@@ -5,7 +5,6 @@
 #include "Rte/Ecs/Types.hpp"
 #include "Rte/Graphic/Components.hpp"
 #include "Rte/Graphic/GraphicModule.hpp"
-#include "Rte/Graphic/Texture.hpp"
 
 #include <iostream>
 #include <memory>
@@ -83,13 +82,16 @@ void ClientApp::createOptionsButtons() {
 
 void ClientApp::menuLoop() {
     // 1*1 red texture for the buttons
-    m_transparentTexture = m_graphicModule->createTexture();
-    m_transparentTexture->loadFromMemory(std::vector<Rte::u8>{0, 0, 0, 0}.data(), {1, 1});
+    uint32_t m_transparentTexture = m_graphicModule->createTexture();
+    if (!m_graphicModule->loadTextureFromMemory(m_transparentTexture, std::vector<Rte::u8>{0, 0, 0, 0}.data(), {1, 1}))
+        throw std::runtime_error("Failed to create texture from memory");
 
-    std::shared_ptr<Rte::Graphic::Texture> backgroundTexture = m_graphicModule->createTexture();
-    backgroundTexture->loadFromFile("../assets/test.jpg");
+    uint32_t backgroundTexture = m_graphicModule->createTexture();
+    if (!m_graphicModule->loadTextureFromFile(backgroundTexture, "../assets/test.jpg"))
+        throw std::runtime_error("Failed to load texture: \"../assets/test.jpg\"");
+
     Rte::Entity backgroundEntity = m_ecs->createEntity();
-    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(backgroundEntity, Rte::Graphic::Components::Sprite(backgroundTexture));
+    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(backgroundEntity, Rte::Graphic::Components::Sprite{.textureId = backgroundTexture, .offset = {0, 0}, .layer = 0});
     m_ecs->addComponent<Rte::BasicComponents::Transform>(backgroundEntity, Rte::BasicComponents::Transform{.position = {0, 0}});
 
     createMenuButtons();
