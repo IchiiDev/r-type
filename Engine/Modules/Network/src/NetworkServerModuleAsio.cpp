@@ -52,6 +52,7 @@ void Rte::Network::NetworkServerModuleAsio::deletePlayer(BasicComponents::UidCom
 
 void Rte::Network::NetworkServerModuleAsio::update() {
     m_server->update();
+    m_server->checkClientTimeouts();
 }
 
 void Rte::Network::NetworkServerModuleAsio::sendUpdate() {

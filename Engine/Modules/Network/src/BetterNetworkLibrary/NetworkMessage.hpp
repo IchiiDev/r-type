@@ -25,7 +25,6 @@ namespace bnl {
         struct message_header {
             T id{};
             uint32_t size = 0;
-            
         };
 
         template <typename T>

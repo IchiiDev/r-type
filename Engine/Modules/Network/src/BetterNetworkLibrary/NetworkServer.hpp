@@ -11,7 +11,6 @@
 #include "NetworkConnection.hpp"
 #include "NetworkMessage.hpp"
 #include "asio/io_context.hpp"
-#include "asio/ip/tcp.hpp"
 #include <cstddef>
 #include <cstdint>
 #include <deque>
@@ -112,9 +111,8 @@ namespace bnl {
 
                     for (auto& connection : m_connectionsQueue) {
                         if (connection && connection->isConnected()) {
-                            if (connection != ignoredClient) {
+                            if (connection != ignoredClient)
                                 connection->send(msg);
-                            }
                         } else {
                             onClientDisconnect(connection);
                             connection.reset();

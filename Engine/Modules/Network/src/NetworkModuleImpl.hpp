@@ -52,7 +52,7 @@ namespace Rte::Network {
 
                 std::array<u8, 250 * 250> pixelArray; // TODO: REMOVE THIS !!!!!!??????
                 if (pixels.size() > 62500) {
-                    std::cout << "Yohan nerf le gros cul de ton asteroid sinon je le send pas !" << std::endl;
+                    std::cout << "Yohan nerf le gros cul de ton asteroid sinon je le send pas ! " << pixels.size() << std::endl;
                     return;
                 }
                 memcpy(pixelArray.data(), pixels.data(), pixels.size());
@@ -77,6 +77,23 @@ namespace Rte::Network {
                 msg << uidComponent;
 
                 messageAllClient(msg);
+            }
+
+            void checkClientTimeouts() {
+                auto now = std::chrono::steady_clock::now();
+                std::vector<std::shared_ptr<bnl::net::Connection<CustomMsgTypes>>> clientsToRemove;
+
+                for (auto & it : m_lastMessageTime) {
+                    auto client = it.first;
+                    auto lastMessageTime = it.second;
+
+                    // Check if the time since the last message exceeds the timeout threshold
+                    if (std::chrono::duration_cast<std::chrono::seconds>(now - lastMessageTime).count() > 1) {
+                        // Add client to removal list and disconnect
+                        std::cout << "Disconnecting client " << client->getId() << " due to inactivity." << std::endl;
+                        client->disconnect();
+                    }
+                }
             }
 
             /*
@@ -123,49 +140,58 @@ namespace Rte::Network {
             PackedInput getCurrentInput() { return m_currentInput; }
 
         protected:
-            bool onClientConnect(std::shared_ptr<bnl::net::Connection<CustomMsgTypes>> client) override {
-                bool result = m_connectionsQueue.size() <= 8;
+        bool onClientConnect(std::shared_ptr<bnl::net::Connection<CustomMsgTypes>> client) override {
+            bool result = m_connectionsQueue.size() <= 8;
 
-                if (result) {
-                    Event event(Rte::Network::Events::PLAYER_CREATED);
-                    event.setParameter<uint32_t>(Events::Params::PLAYER_ID, client->getId());
-                    m_ecs->sendEvent(event);
+            if (result) {
+                // Track the new client with the current time as the last message time
+                m_lastMessageTime[client] = std::chrono::steady_clock::now();
 
-                    event = Event(Events::MICRO_EVENT);
-                    m_ecs->sendEvent(event);
-                }
-
-                return result;
-            }
-
-            void onClientDisconnect(std::shared_ptr<bnl::net::Connection<CustomMsgTypes>> client) override {
-                Event event(Rte::Network::Events::PLAYER_DELETED);
+                Event event(Rte::Network::Events::PLAYER_CREATED);
                 event.setParameter<uint32_t>(Events::Params::PLAYER_ID, client->getId());
+                m_ecs->sendEvent(event);
+
+                event = Event(Events::MICRO_EVENT);
                 m_ecs->sendEvent(event);
             }
 
-            void onMessageReceived (std::shared_ptr<bnl::net::Connection<CustomMsgTypes>> client, bnl::net::message<CustomMsgTypes>& msg) override {
-                switch (msg.header.id) {
-                    case CustomMsgTypes::Input: {
-                        PackedInput input;
-                        msg >> input;
-                        m_currentInput = input;
+            return result;
+        }
 
-                        Event event(Rte::Network::Events::INPUT);
-                        event.setParameter<PackedInput>(Rte::Network::Events::Params::INPUT, input);
-                        event.setParameter<uint32_t>(Rte::Network::Events::Params::PLAYER_ID, client->getId());
-                        m_ecs->sendEvent(event);
+        void onClientDisconnect(std::shared_ptr<bnl::net::Connection<CustomMsgTypes>> client) override {
+            Event event(Rte::Network::Events::PLAYER_DELETED);
+            event.setParameter<uint32_t>(Events::Params::PLAYER_ID, client->getId());
+            m_ecs->sendEvent(event);
 
-                        break;
-                    }
-                    case CustomMsgTypes::EntityUpdated:
-                    case CustomMsgTypes::EntityCreated:
-                    case CustomMsgTypes::EntityDeleted:
-                      break;
-                    }
+            // Remove client from the last message time map if they disconnect
+            m_lastMessageTime.erase(client);
+        }
+
+        void onMessageReceived(std::shared_ptr<bnl::net::Connection<CustomMsgTypes>> client, bnl::net::message<CustomMsgTypes>& msg) override {
+            // Update the last message time for the client
+            m_lastMessageTime[client] = std::chrono::steady_clock::now();
+
+            switch (msg.header.id) {
+                case CustomMsgTypes::Input: {
+                    PackedInput input;
+                    msg >> input;
+                    m_currentInput = input;
+
+                    Event event(Rte::Network::Events::INPUT);
+                    event.setParameter<PackedInput>(Rte::Network::Events::Params::INPUT, input);
+                    event.setParameter<uint32_t>(Rte::Network::Events::Params::PLAYER_ID, client->getId());
+                    m_ecs->sendEvent(event);
+                    break;
+                }
+                case CustomMsgTypes::EntityUpdated:
+                case CustomMsgTypes::EntityCreated:
+                case CustomMsgTypes::EntityDeleted:
+                    break;
             }
+        }
         private:
             std::shared_ptr<Ecs> m_ecs;
             PackedInput m_currentInput;
+            std::unordered_map<std::shared_ptr<bnl::net::Connection<CustomMsgTypes>>, std::chrono::steady_clock::time_point> m_lastMessageTime;
     };
 } // namespace Rte::Network
