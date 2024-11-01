@@ -14,8 +14,10 @@
 #include "Rte/Network/NetworkModuleTypes.hpp"
 
 #include <algorithm>
+#include <cstdint>
 #include <memory>
 #include <thread>
+#include <vector>
 
 ClientApp::ClientApp() {
     m_ecs = std::make_shared<Rte::Ecs>();
@@ -49,6 +51,8 @@ ClientApp::ClientApp() {
 }
 
 void ClientApp::run() {
+    menuLoop();
+
     // Disconnect event
     m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Network::Events::DISCONNECTED, [&](const Rte::Event& /* UNUSED */) {
         m_running = false;
