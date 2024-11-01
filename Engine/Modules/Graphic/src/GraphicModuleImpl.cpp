@@ -223,7 +223,7 @@ void GraphicModuleImpl::update() {
             static_cast<float>(drawInfo.position.x) + static_cast<float>(m_window.getSize().x) / 2,
             static_cast<float>(drawInfo.position.y) + static_cast<float>(m_window.getSize().y) / 2
         });
-        text.setOrigin({text.getLocalBounds().size.x / 2.0F, text.getLocalBounds().size.y / 2.0F});
+        // text.setOrigin({text.getLocalBounds().size.x / 2.0F, text.getLocalBounds().size.y / 2.0F});
 
         m_window.draw(text);
     }
@@ -276,12 +276,12 @@ void GraphicModuleImpl::setLayerCount(int count) {
     m_layerCount = count;
 }
 
-void GraphicModuleImpl::drawRectangle(const Vec2<u16>& position, const Vec2<u16>& scale, uint32_t texture) {
+void GraphicModuleImpl::drawRectangle(const Vec2<int>& position, const Vec2<u16>& scale, uint32_t texture) {
     assert(m_textures.contains(texture) && "Cannot draw rectangle: Texture does not exist.");
     m_directDrawSprites.push_back({position, scale, texture});
 }
 
-void GraphicModuleImpl::drawText(const Vec2<u16>& position, const std::string& text, u32 characterSize) {
+void GraphicModuleImpl::drawText(const Vec2<int>& position, const std::string& text, u32 characterSize) {
     m_directDrawTexts.push_back({position, text, characterSize});
 }
 

@@ -266,13 +266,13 @@ namespace Rte::Graphic {
 
 
     struct DirectDrawSpriteInfo {
-        Vec2<u16> position;
+        Vec2<int> position;
         Vec2<u16> scale;
         uint32_t texture;
     };
 
     struct DirectDrawTextInfo {
-        Vec2<u16> position;
+        Vec2<int> position;
         std::string text;
         u32 characterSize;
     };
@@ -314,8 +314,8 @@ namespace Rte::Graphic {
 
 
             // Direct draw methods
-            void drawRectangle(const Vec2<u16>& position, const Vec2<u16>& scale, uint32_t texture) override;
-            void drawText(const Vec2<u16>& position, const std::string& text, u32 characterSize) override;
+            void drawRectangle(const Vec2<int>& position, const Vec2<u16>& scale, uint32_t texture) override;
+            void drawText(const Vec2<int>& position, const std::string& text, u32 characterSize) override;
 
 
             // Input methods
