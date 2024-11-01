@@ -47,9 +47,9 @@ class ClientApp {
         // Menu Related //
         //////////////////
         std::vector<std::unique_ptr<Button>> m_menuButtons;
-        uint32_t m_transparentTexture{};
         bool m_switchedOptionsState = false;
         bool m_showOptions = false;
+        bool m_isInMenu = true;
         void createMenuButtons();
         void createOptionsButtons();
 

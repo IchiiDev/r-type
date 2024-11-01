@@ -9,7 +9,7 @@ namespace Rte::Graphic::Components {
 
     struct Sprite {
         uint32_t textureId{};
-        Rte::Vec2<uint32_t> offset{};
+        Rte::Vec2<int> offset{};
         int layer = 0;  // Must be < 7
     };
 

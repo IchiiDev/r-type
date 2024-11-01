@@ -273,6 +273,28 @@ namespace Rte::Graphic {
 
 
 
+        public: // Direc draw methods
+            /**
+             * @brief Add a sprite to the draw list, and draw it when the update method is called.
+             *
+             * @param position Position of the sprite.
+             * @param scale Scale of the sprite.
+             * @param texture Texture of the sprite.
+             */
+            virtual void drawRectangle(const Vec2<u16>& position, const Vec2<u16>& scale, uint32_t texture) =0;
+
+            /**
+             * @brief Add a text to the draw list, and draw it when the update method is called.
+             *
+             * @param position Position of the text.
+             * @param text Text to draw.
+             * @param characterSize Size of the characters.
+             */
+            virtual void drawText(const Vec2<u16>& position, const std::string& text, u32 characterSize) =0;
+
+
+
+
         public:  // Input methods
             /**
              * @brief Check if a key is pressed.

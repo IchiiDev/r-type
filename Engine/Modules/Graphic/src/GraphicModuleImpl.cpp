@@ -9,17 +9,21 @@
 #include "Rte/Graphic/Components.hpp"
 #include "Rte/Graphic/GraphicModule.hpp"
 #include "Rte/ModuleManager.hpp"
-#include "SFML/Graphics/Text.hpp"
-#include "SFML/Window/WindowEnums.hpp"
+#include "Types.hpp"
 
 #include "SFML/Graphics/Rect.hpp"
 #include "SFML/Graphics/Shader.hpp"
+#include "SFML/Graphics/Sprite.hpp"
+#include "SFML/Graphics/Text.hpp"
+#include "SFML/Graphics/Text.hpp"
 #include "SFML/Graphics/View.hpp"
 #include "SFML/System/Vector2.hpp"
 #include "SFML/Window/Event.hpp"
 #include "SFML/Window/Keyboard.hpp"
 #include "SFML/Window/Mouse.hpp"
 #include "SFML/Window/VideoMode.hpp"
+#include "SFML/Window/WindowEnums.hpp"
+
 
 #include <cassert>
 #include <cstdint>
@@ -197,6 +201,34 @@ void GraphicModuleImpl::update() {
     m_renderSystem->update(m_window, m_shader, m_layerCount, m_textures);
     m_buttonSystem->update(m_window, m_textures);
     m_textSystem->update(m_window);
+
+    for (const DirectDrawSpriteInfo& drawInfo : m_directDrawSprites) {
+        const TextureHandle& textureHandle = m_textures.at(drawInfo.texture);
+
+        sf::Sprite sprite(textureHandle.texture);
+        sprite.setPosition({
+            static_cast<float>(drawInfo.position.x) + static_cast<float>(m_window.getSize().x) / 2,
+            static_cast<float>(drawInfo.position.y) + static_cast<float>(m_window.getSize().y) / 2
+        });
+        sprite.setOrigin({static_cast<float>(textureHandle.texture.getSize().x) / 2.F, static_cast<float>(textureHandle.texture.getSize().y) / 2.F});
+        sprite.setScale({static_cast<float>(drawInfo.scale.x), static_cast<float>(drawInfo.scale.y)});
+
+        m_window.draw(sprite, &m_shader);
+    }
+    m_directDrawSprites.clear();
+
+    for (const DirectDrawTextInfo& drawInfo : m_directDrawTexts) {
+        sf::Text text(m_font, drawInfo.text, drawInfo.characterSize);
+        text.setPosition({
+            static_cast<float>(drawInfo.position.x) + static_cast<float>(m_window.getSize().x) / 2,
+            static_cast<float>(drawInfo.position.y) + static_cast<float>(m_window.getSize().y) / 2
+        });
+        text.setOrigin({text.getLocalBounds().size.x / 2.0F, text.getLocalBounds().size.y / 2.0F});
+
+        m_window.draw(text);
+    }
+    m_directDrawTexts.clear();
+
     m_window.display();
 }
 
@@ -242,6 +274,15 @@ void GraphicModuleImpl::loadFontFromFile(const char *path) {
 
 void GraphicModuleImpl::setLayerCount(int count) {
     m_layerCount = count;
+}
+
+void GraphicModuleImpl::drawRectangle(const Vec2<u16>& position, const Vec2<u16>& scale, uint32_t texture) {
+    assert(m_textures.contains(texture) && "Cannot draw rectangle: Texture does not exist.");
+    m_directDrawSprites.push_back({position, scale, texture});
+}
+
+void GraphicModuleImpl::drawText(const Vec2<u16>& position, const std::string& text, u32 characterSize) {
+    m_directDrawTexts.push_back({position, text, characterSize});
 }
 
 
