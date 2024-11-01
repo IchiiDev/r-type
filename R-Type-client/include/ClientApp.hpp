@@ -8,6 +8,7 @@
 #include "Rte/ModuleManager.hpp"
 #include "Rte/Network/NetworkModuleClient.hpp"
 
+#include <cstdint>
 #include <memory>
 #include <mutex>
 #include <vector>
@@ -39,6 +40,8 @@ class ClientApp {
         std::shared_ptr<Rte::Audio::AudioModule> m_audioModule;
         std::shared_ptr<Rte::Network::NetworkModuleClient> m_networkModuleClient;
 
+        void handleDevConsole();
+        void handleConsoleInput();
 
         //////////////////
         // Menu Related //
@@ -52,6 +55,15 @@ class ClientApp {
 
         int m_soundVolume = 5;
 
+        /////////////////
+        // Dev Console //
+        /////////////////
+
+        Rte::Entity m_devConsoleEntity;
+        bool m_showDevConsole = false;
+        std::string m_devConsoleInput;
+        std::vector<std::string> m_devConsoleHistory;
+        int m_devConsoleHistoryIndex = -1;
 
         //////////////////
         // Game Related //

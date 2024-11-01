@@ -14,8 +14,65 @@
 #include "Rte/Network/NetworkModuleTypes.hpp"
 
 #include <algorithm>
+#include <cstdint>
 #include <memory>
 #include <thread>
+
+using KeyCharacter = struct {
+    Rte::Graphic::Key key;
+    char character;
+};
+using KeyCharacterArray = std::vector<KeyCharacter>;
+const KeyCharacterArray CHARS = {
+    {Rte::Graphic::Key::A, 'a'},
+    {Rte::Graphic::Key::B, 'b'},
+    {Rte::Graphic::Key::C, 'c'},
+    {Rte::Graphic::Key::D, 'd'},
+    {Rte::Graphic::Key::E, 'e'},
+    {Rte::Graphic::Key::F, 'f'},
+    {Rte::Graphic::Key::G, 'g'},
+    {Rte::Graphic::Key::H, 'h'},
+    {Rte::Graphic::Key::I, 'i'},
+    {Rte::Graphic::Key::J, 'j'},
+    {Rte::Graphic::Key::K, 'k'},
+    {Rte::Graphic::Key::L, 'l'},
+    {Rte::Graphic::Key::M, 'm'},
+    {Rte::Graphic::Key::N, 'n'},
+    {Rte::Graphic::Key::O, 'o'},
+    {Rte::Graphic::Key::P, 'p'},
+    {Rte::Graphic::Key::Q, 'q'},
+    {Rte::Graphic::Key::R, 'r'},
+    {Rte::Graphic::Key::S, 's'},
+    {Rte::Graphic::Key::T, 't'},
+    {Rte::Graphic::Key::U, 'u'},
+    {Rte::Graphic::Key::V, 'v'},
+    {Rte::Graphic::Key::W, 'w'},
+    {Rte::Graphic::Key::X, 'x'},
+    {Rte::Graphic::Key::Y, 'y'},
+    {Rte::Graphic::Key::Z, 'z'},
+    {Rte::Graphic::Key::Num0, '0'},
+    {Rte::Graphic::Key::Num1, '1'},
+    {Rte::Graphic::Key::Num2, '2'},
+    {Rte::Graphic::Key::Num3, '3'},
+    {Rte::Graphic::Key::Num4, '4'},
+    {Rte::Graphic::Key::Num5, '5'},
+    {Rte::Graphic::Key::Num6, '6'},
+    {Rte::Graphic::Key::Num7, '7'},
+    {Rte::Graphic::Key::Num8, '8'},
+    {Rte::Graphic::Key::Num9, '9'},
+    {Rte::Graphic::Key::Space, ' '},
+    {Rte::Graphic::Key::Comma, ','},
+    {Rte::Graphic::Key::Period, '.'},
+    {Rte::Graphic::Key::Semicolon, ';'},
+    {Rte::Graphic::Key::Apostrophe, '\''},
+    {Rte::Graphic::Key::Grave, '`'},
+    {Rte::Graphic::Key::Equal, '='},
+    {Rte::Graphic::Key::Hyphen, '-'},
+    {Rte::Graphic::Key::Slash, '/'},
+    {Rte::Graphic::Key::Backslash, '\\'},
+    {Rte::Graphic::Key::LBracket, '{'},
+    {Rte::Graphic::Key::RBracket, '}'}
+};
 
 ClientApp::ClientApp() {
     m_ecs = std::make_shared<Rte::Ecs>();
@@ -80,6 +137,18 @@ void ClientApp::run() {
         }
         m_entitiesMutex.unlock();
     }));
+
+    // Create Dev Console
+    m_devConsoleEntity = m_ecs->createEntity();
+    uint32_t devConsoleTexture = m_graphicModule->createTexture();
+    if (!m_graphicModule->loadTextureFromFile(devConsoleTexture, "../assets/devConsole.png"))
+        throw std::runtime_error("Failed to load texture: \"../assets/devConsole.png\"");
+    m_ecs->addComponent<Rte::BasicComponents::Transform>(m_devConsoleEntity, Rte::BasicComponents::Transform{
+        .position = {0, 0},
+        .scale = {1, 1},
+        .rotation = 0
+    });
+    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(m_devConsoleEntity, {.textureId = devConsoleTexture, .offset = {0, 0}, .layer = 1});
 
     // Create sky
     Rte::Entity sky = m_ecs->createEntity();
@@ -153,17 +222,49 @@ void ClientApp::run() {
             m_networkModuleClient->update();
     });
 
+    // Dev console event listener
+    m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Graphic::Events::KEY_PRESSED, [&](Rte::Event& event) {
+        Rte::Graphic::Key key = event.getParameter<Rte::Graphic::Key>(Rte::Graphic::Events::Params::KEY_PRESSED);
+
+        if (key == Rte::Graphic::Key::F12) {
+            m_showDevConsole = !m_showDevConsole;
+        }
+        if (!m_showDevConsole) {
+
+            // Handle special inputs
+            if (key == Rte::Graphic::Key::Backspace) {
+                if (!m_devConsoleInput.empty())
+                    m_devConsoleInput.pop_back();
+            }
+            if (key == Rte::Graphic::Key::Enter) {
+                if (!m_devConsoleInput.empty()) {
+                    this->handleConsoleInput();
+                    m_devConsoleInput.clear();
+                }
+            }
+
+            // Handle text input
+            for (const KeyCharacter& keyChar : CHARS) {
+                if (keyChar.key == key) {
+                    m_devConsoleInput += keyChar.character;
+                    break;
+                }
+            }
+        }
+    }));
+
     // Main loop
     while(m_running) {
-        // Get inputs from player
-        m_networkModuleClient->updateInputs(Rte::Network::PackedInput{
-            .moveUp = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Up),
-            .moveDown = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Down),
-            .moveLeft = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Left),
-            .moveRight = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Right),
-            .shoot = m_graphicModule->isMouseButtonPressed(Rte::Graphic::MouseButton::Left),
-            .shootDirection = {static_cast<float>(m_graphicModule->getMousePosition().x), static_cast<float>(m_graphicModule->getMousePosition().y)}
-        });
+        // Get inputs from player (disabled if dev console is open)
+        if (!m_showDevConsole)
+            m_networkModuleClient->updateInputs(Rte::Network::PackedInput{
+                .moveUp = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Up),
+                .moveDown = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Down),
+                .moveLeft = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Left),
+                .moveRight = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Right),
+                .shoot = m_graphicModule->isMouseButtonPressed(Rte::Graphic::MouseButton::Left),
+                .shootDirection = {static_cast<float>(m_graphicModule->getMousePosition().x), static_cast<float>(m_graphicModule->getMousePosition().y)}
+            });
 
         m_ecs->getComponent<Rte::BasicComponents::Transform>(sky).position.x -= 5;
         if (m_ecs->getComponent<Rte::BasicComponents::Transform>(sky).position.x <= -1920)
@@ -179,4 +280,17 @@ void ClientApp::run() {
     }
 
     networkThread.join();
+}
+
+void ClientApp::handleConsoleInput() {
+    m_devConsoleHistory.emplace_back(">> " + m_devConsoleInput);
+    if (m_devConsoleInput == "exit") {
+        m_running = false;
+    }
+    else if (m_devConsoleInput == "clear") {
+        m_devConsoleHistory.clear();
+    }
+    else {
+        m_devConsoleHistory.emplace_back("Unknown command :( ");
+    }
 }
