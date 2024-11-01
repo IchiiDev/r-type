@@ -281,7 +281,7 @@ namespace Rte::Graphic {
              * @param scale Scale of the sprite.
              * @param texture Texture of the sprite.
              */
-            virtual void drawRectangle(const Vec2<u16>& position, const Vec2<u16>& scale, uint32_t texture) =0;
+            virtual void drawRectangle(const Vec2<int>& position, const Vec2<u16>& scale, uint32_t texture) =0;
 
             /**
              * @brief Add a text to the draw list, and draw it when the update method is called.
@@ -290,7 +290,7 @@ namespace Rte::Graphic {
              * @param text Text to draw.
              * @param characterSize Size of the characters.
              */
-            virtual void drawText(const Vec2<u16>& position, const std::string& text, u32 characterSize) =0;
+            virtual void drawText(const Vec2<int>& position, const std::string& text, u32 characterSize) =0;
 
 
 

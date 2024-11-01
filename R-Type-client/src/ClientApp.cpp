@@ -159,7 +159,7 @@ void ClientApp::run() {
 
     // Main loop
     while(m_running) {
-        // Get inputs from player
+        // Get inputs from player (disabled if dev console is open)
         m_networkModuleClient->updateInputs(Rte::Network::PackedInput{
             .moveUp = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Up),
             .moveDown = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Down),
