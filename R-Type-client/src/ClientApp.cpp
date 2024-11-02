@@ -14,8 +14,10 @@
 #include "Rte/Network/NetworkModuleTypes.hpp"
 
 #include <algorithm>
+#include <cstdint>
 #include <memory>
 #include <thread>
+#include <vector>
 
 ClientApp::ClientApp() {
     m_ecs = std::make_shared<Rte::Ecs>();
@@ -49,6 +51,8 @@ ClientApp::ClientApp() {
 }
 
 void ClientApp::run() {
+    menuLoop();
+
     // Disconnect event
     m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Network::Events::DISCONNECTED, [&](const Rte::Event& /* UNUSED */) {
         m_running = false;
@@ -155,7 +159,7 @@ void ClientApp::run() {
 
     // Main loop
     while(m_running) {
-        // Get inputs from player
+        // Get inputs from player (disabled if dev console is open)
         m_networkModuleClient->updateInputs(Rte::Network::PackedInput{
             .moveUp = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Up),
             .moveDown = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Down),

@@ -2,7 +2,7 @@
 
 A game engine that roars!
 
-*For Documentation, check out [CONTRIBUTING.md]()*
+*For Documentation, check out [CONTRIBUTING.md](CONTRIBUTING.md) and [the repository's wiki](https://github.com/IchiiDev/r-type/wiki)*
 
 ## Build
 
@@ -36,9 +36,12 @@ This project features a R-Type clone made from scratch in C++ using our game eng
 ## Dependencies
 
 - [SFML](https://www.sfml-dev.org/)
+- [Asio](https://github.com/chriskohlhoff/asio)
+- [Box2D](https://github.com/erincatto/box2d)
+- [Poly2Tri](https://github.com/jhasse/poly2tri)
 
 ## License
-TODO: Add license
+[MIT License](LICENSE)
 
 ## Supported Platforms
 - Windows

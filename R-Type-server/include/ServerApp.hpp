@@ -32,10 +32,21 @@ class ServerApp {
 
     private:
 
+        // Dev Console
+        void handleDevConsole();
+        void handleConsoleInput();
+
+        bool m_showDevConsole = false;
+        std::string m_devConsoleInput;
+        std::vector<std::string> m_devConsoleHistory;
+        int m_devConsoleHistoryIndex = -1;
+        uint32_t m_devConsoleTexture = 0;
+        void drawDevConsole();
+
         // Scene
         void initScene();
         void updateScene();
-        
+
         // Players
         void updatePlayers();
 
@@ -43,7 +54,7 @@ class ServerApp {
         void createEnemy(Rte::Vec2<float> pos);
         void updateEnemies();
         void destroyEnemy(const Rte::Entity& enemy);
-        
+
         // Projectiles
         void createProjectile(Rte::Entity projectile);
         void updateProjectiles();
@@ -53,7 +64,7 @@ class ServerApp {
         void createPowerup(Rte::Vec2<float> pos);
         void updatePowerups();
         void destroyPowerup(const Rte::Entity& powerup);
-        
+
         // Breakables
         Rte::Entity createBreakable(Rte::Vec2<float> pos, std::string spritePath);
         Rte::Entity createBreakable(Rte::Vec2<float> pos, std::vector<Rte::u8> texture, std::vector<Rte::u8> material, Rte::Vec2<Rte::u16> size);
