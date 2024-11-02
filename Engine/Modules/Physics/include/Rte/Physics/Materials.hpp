@@ -83,11 +83,11 @@ namespace Rte::Physics {
 
     const std::map<MaterialType, MaterialDef> mats = {
         {MaterialType::AIR,          {0.F, 0.F, true,  0.F, 0.F, 0.F,  false, Comportement::NOTHING}},
-        {MaterialType::STATIC_WOOD,  {1.F, .3F, false, .10F, .3F, .0F, false, Comportement::SOLID}},
-        {MaterialType::DYNAMIC_WOOD, {1.F, .3F, true,  .10F, .3F, .0F, false, Comportement::SOLID}},
-        {MaterialType::SAND,         {1.F, .3F, true,  .0F, .0F, .0F,  false, Comportement::POWDER}},
-        {MaterialType::WATER,        {1.F, .3F, true,  .0F, .0F, .0F,  false, Comportement::LIQUID}},
-        {MaterialType::ACID,         {1.F, .3F, true,  .0F, .0F, .0F,  true,  Comportement::LIQUID}}
+        {MaterialType::STATIC_WOOD,  {1.F, .01F, false, .10F, .3F, .0F, false, Comportement::SOLID}},
+        {MaterialType::DYNAMIC_WOOD, {1.F, .01F, true,  .10F, .3F, .0F, false, Comportement::SOLID}},
+        {MaterialType::SAND,         {1.F, .01F, true,  .0F, .0F, .0F,  false, Comportement::POWDER}},
+        {MaterialType::WATER,        {1.F, .01F, true,  .0F, .0F, .0F,  false, Comportement::LIQUID}},
+        {MaterialType::ACID,         {1.F, .01F, true,  .0F, .0F, .0F,  true,  Comportement::LIQUID}}
     };
 
 }   // namespace Rte::Physics

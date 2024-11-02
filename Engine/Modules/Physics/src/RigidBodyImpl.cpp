@@ -17,6 +17,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdlib>
+#include <iostream>
 #include <iterator>
 #include <memory>
 #include <numbers>
@@ -307,6 +308,9 @@ std::vector<Rte::Vec2<float>> douglasPeucker(const std::vector<Rte::Vec2<float>>
 }
 
 std::vector<Triangle> polygoneToTriangles(std::vector<Rte::Vec2<float>> polygone) {
+    if (polygone.at(0).x == polygone.at(polygone.size() - 1).x && polygone.at(0).y == polygone.at(polygone.size() - 1).y)
+        polygone.pop_back();
+
     std::vector<p2t::Point *> points(polygone.size());
     for (int i = 0; i < polygone.size(); i++)
         points.at(i) = new p2t::Point(polygone.at(i).x, polygone.at(i).y);  // NOLINT (cppcoreguidelines-owning-memory)
@@ -490,6 +494,8 @@ RigidBodyImpl::RigidBodyImpl(const u8* pixels, const Vec2<u16>& size, const b2Wo
         };
 
         const b2Hull hull = b2ComputeHull(vertices.data(), 3);
+        if (!b2ValidateHull(&hull))
+            continue;
         const b2Polygon triangle = b2MakePolygon(&hull, 0);
 
         // Create a shape definition

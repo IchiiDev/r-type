@@ -45,8 +45,7 @@ ServerApp::ServerApp() : m_rightWall(0), m_leftWall(0), m_topWall(0), m_bottomWa
     m_entities = std::make_shared<std::vector<Rte::Entity>>();
 
     // Time init
-    m_EnemyClock = std::chrono::high_resolution_clock::now();
-    m_ObstacleClock = std::chrono::high_resolution_clock::now();
+    m_enemyClock = std::chrono::high_resolution_clock::now();
     m_startTime = std::chrono::high_resolution_clock::now();
 }
 
@@ -68,7 +67,6 @@ void ServerApp::run() {
     m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Network::Events::PLAYER_CREATED, [&](Rte::Event& event) {
         // New player creation
         const uint32_t playerId = event.getParameter<uint32_t>(Rte::Network::Events::Params::PLAYER_ID);
-        std::cout << "Creating player " << playerId << std::endl;
         m_players.insert({playerId, std::make_unique<Player>(m_ecs, m_graphicModule, m_physicsModule, m_currentUid++)});
 
         // Add to entity list

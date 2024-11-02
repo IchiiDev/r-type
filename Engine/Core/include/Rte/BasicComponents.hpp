@@ -16,4 +16,8 @@ namespace Rte::BasicComponents {
         uint32_t uid;
     };
 
+    struct Tag {
+        std::string tag;
+    };
+
 }   // namespace Rte::BasicComponents

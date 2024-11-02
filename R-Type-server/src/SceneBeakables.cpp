@@ -41,7 +41,7 @@ void ServerApp::fractureBreakable(const Rte::Vec2<Rte::u16>& position) {
     }
 }
 
-void ServerApp::createBreakable(Rte::Vec2<float> pos, std::string spritePath) {
+Rte::Entity ServerApp::createBreakable(Rte::Vec2<float> pos, std::string spritePath) {
     // Add breakable to the entities list
     Rte::Entity breakable = m_ecs->createEntity();
     // Load texture
@@ -86,9 +86,11 @@ void ServerApp::createBreakable(Rte::Vec2<float> pos, std::string spritePath) {
     packedTexture.size = textureSize;
     packedTexture.pixels = pixelsVector;
     m_newEntitiesTextures[breakable] = packedTexture;
+    
+    return (breakable);
 }
 
-void ServerApp::createBreakable(Rte::Vec2<float> pos, std::vector<Rte::u8> texture, std::vector<Rte::u8> material, Rte::Vec2<Rte::u16> size) {
+Rte::Entity ServerApp::createBreakable(Rte::Vec2<float> pos, std::vector<Rte::u8> texture, std::vector<Rte::u8> material, Rte::Vec2<Rte::u16> size) {
     // Add breakable to the entities list
     Rte::Entity breakable = m_ecs->createEntity();
     // Load texture
@@ -132,9 +134,11 @@ void ServerApp::createBreakable(Rte::Vec2<float> pos, std::vector<Rte::u8> textu
     packedTexture.size = textureSize;
     packedTexture.pixels = pixelsVector;
     m_newEntitiesTextures[breakable] = packedTexture;
+
+    return (breakable);
 }
 
-void ServerApp::createBreakable(Rte::Entity breakable, std::vector<Rte::u8> texture, std::vector<Rte::u8> material, Rte::Vec2<Rte::u16> size) {
+Rte::Entity ServerApp::createBreakable(Rte::Entity breakable, std::vector<Rte::u8> texture, std::vector<Rte::u8> material, Rte::Vec2<Rte::u16> size) {
     // Add breakable to the entities list
     Rte::Entity newBreakables = m_ecs->createEntity();
     // Load texture
@@ -179,6 +183,8 @@ void ServerApp::createBreakable(Rte::Entity breakable, std::vector<Rte::u8> text
     packedTexture.size = textureSize;
     packedTexture.pixels = pixelsVector;
     m_newEntitiesTextures[newBreakables] = packedTexture;
+ 
+    return (breakable);
 }
 
 void ServerApp::updateBreakables() {

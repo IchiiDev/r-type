@@ -11,6 +11,7 @@
 #include "Rte/Physics/PhysicsModule.hpp"
 #include "Rte/Physics/Tool.hpp"
 
+#include <array>
 #include <cstdint>
 #include <map>
 #include <memory>
@@ -54,17 +55,23 @@ class ServerApp {
         void destroyPowerup(const Rte::Entity& powerup);
         
         // Breakables
-        void createBreakable(Rte::Vec2<float> pos, std::string spritePath);
-        void createBreakable(Rte::Vec2<float> pos, std::vector<Rte::u8> texture, std::vector<Rte::u8> material, Rte::Vec2<Rte::u16> size);
-        void createBreakable(Rte::Entity breakable, std::vector<Rte::u8> texture, std::vector<Rte::u8> material, Rte::Vec2<Rte::u16> size);
+        Rte::Entity createBreakable(Rte::Vec2<float> pos, std::string spritePath);
+        Rte::Entity createBreakable(Rte::Vec2<float> pos, std::vector<Rte::u8> texture, std::vector<Rte::u8> material, Rte::Vec2<Rte::u16> size);
+        Rte::Entity createBreakable(Rte::Entity breakable, std::vector<Rte::u8> texture, std::vector<Rte::u8> material, Rte::Vec2<Rte::u16> size);
         void updateBreakables();
         void fractureBreakable(const Rte::Vec2<Rte::u16>& position);
         void destroyBreakable(const Rte::Entity& breakable);
+
+        // Terrain
+        Rte::Entity generateTerrainBlock(int width, int maxHeight, Rte::Vec2<float> pos);
+        void updateTerrain();
         
         Rte::ModuleManager moduleManager;
         std::shared_ptr<Rte::Ecs> m_ecs;
 
         bool m_running = true;
+
+        float terrainPos = 0;
 
         std::shared_ptr<Rte::Physics::PhysicsModule> m_physicsModule;
         std::shared_ptr<Rte::Network::NetworkModule> m_networkModule;
@@ -85,9 +92,12 @@ class ServerApp {
         std::map<Rte::Entity, Rte::Network::PackedTexture> m_newEntitiesTextures;
 
         std::map<std::string, std::vector<Rte::Physics::PixelCringe>> projectilesMaps;
+        
+        int m_terrainBlockWidth = 64;
+        int m_terrainBlockHeight = 64;
+        std::vector<Rte::Entity> m_terrains;
 
-        std::chrono::time_point<std::chrono::high_resolution_clock> m_EnemyClock;
-        std::chrono::time_point<std::chrono::high_resolution_clock> m_ObstacleClock;
+        std::chrono::time_point<std::chrono::high_resolution_clock> m_enemyClock;
         std::chrono::time_point<std::chrono::high_resolution_clock> m_startTime;
 
         uint32_t m_currentUid = 0;
