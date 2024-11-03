@@ -13,67 +13,10 @@
 
 #include <chrono>
 #include <cmath>
-#include <numbers>
 #include <cstdint>
 #include <iostream>
 #include <memory>
 #include <vector>
-
-using KeyCharacter = struct {
-    Rte::Graphic::Key key;
-    char character;
-};
-using KeyCharacterArray = std::vector<KeyCharacter>;
-const KeyCharacterArray CHARS = {
-    {Rte::Graphic::Key::A, 'a'},
-    {Rte::Graphic::Key::B, 'b'},
-    {Rte::Graphic::Key::C, 'c'},
-    {Rte::Graphic::Key::D, 'd'},
-    {Rte::Graphic::Key::E, 'e'},
-    {Rte::Graphic::Key::F, 'f'},
-    {Rte::Graphic::Key::G, 'g'},
-    {Rte::Graphic::Key::H, 'h'},
-    {Rte::Graphic::Key::I, 'i'},
-    {Rte::Graphic::Key::J, 'j'},
-    {Rte::Graphic::Key::K, 'k'},
-    {Rte::Graphic::Key::L, 'l'},
-    {Rte::Graphic::Key::M, 'm'},
-    {Rte::Graphic::Key::N, 'n'},
-    {Rte::Graphic::Key::O, 'o'},
-    {Rte::Graphic::Key::P, 'p'},
-    {Rte::Graphic::Key::Q, 'q'},
-    {Rte::Graphic::Key::R, 'r'},
-    {Rte::Graphic::Key::S, 's'},
-    {Rte::Graphic::Key::T, 't'},
-    {Rte::Graphic::Key::U, 'u'},
-    {Rte::Graphic::Key::V, 'v'},
-    {Rte::Graphic::Key::W, 'w'},
-    {Rte::Graphic::Key::X, 'x'},
-    {Rte::Graphic::Key::Y, 'y'},
-    {Rte::Graphic::Key::Z, 'z'},
-    {Rte::Graphic::Key::Num0, '0'},
-    {Rte::Graphic::Key::Num1, '1'},
-    {Rte::Graphic::Key::Num2, '2'},
-    {Rte::Graphic::Key::Num3, '3'},
-    {Rte::Graphic::Key::Num4, '4'},
-    {Rte::Graphic::Key::Num5, '5'},
-    {Rte::Graphic::Key::Num6, '6'},
-    {Rte::Graphic::Key::Num7, '7'},
-    {Rte::Graphic::Key::Num8, '8'},
-    {Rte::Graphic::Key::Num9, '9'},
-    {Rte::Graphic::Key::Space, ' '},
-    {Rte::Graphic::Key::Comma, ','},
-    {Rte::Graphic::Key::Period, '.'},
-    {Rte::Graphic::Key::Semicolon, ';'},
-    {Rte::Graphic::Key::Apostrophe, '\''},
-    {Rte::Graphic::Key::Grave, '`'},
-    {Rte::Graphic::Key::Equal, '='},
-    {Rte::Graphic::Key::Hyphen, '-'},
-    {Rte::Graphic::Key::Slash, '/'},
-    {Rte::Graphic::Key::Backslash, '\\'},
-    {Rte::Graphic::Key::LBracket, '{'},
-    {Rte::Graphic::Key::RBracket, '}'}
-};
 
 ServerApp::ServerApp() : m_rightWall(0), m_leftWall(0), m_topWall(0), m_bottomWall(0) {
     m_ecs = std::make_shared<Rte::Ecs>();
@@ -95,13 +38,14 @@ ServerApp::ServerApp() : m_rightWall(0), m_leftWall(0), m_topWall(0), m_bottomWa
     m_networkModule = Rte::interfaceCast<Rte::Network::NetworkModule>(moduleManager.loadModule("RteNetwork"));
     m_networkModuleServer = m_networkModule->getServer();
     m_networkModuleServer->init(m_ecs);
-    m_networkModuleServer->start(12345);
+    m_networkModuleServer->start(123456);
 
     // Allocs
     m_entities = std::make_shared<std::vector<Rte::Entity>>();
 
     // Time init
-    m_enemyClock = std::chrono::high_resolution_clock::now();
+    m_EnemyClock = std::chrono::high_resolution_clock::now();
+    m_ObstacleClock = std::chrono::high_resolution_clock::now();
     m_startTime = std::chrono::high_resolution_clock::now();
 }
 
@@ -119,17 +63,11 @@ void ServerApp::run() {
     // Init scene
     initScene();
 
-    // Semi transparent texture
-    m_devConsoleTexture = m_graphicModule->createTexture();
-    std::vector<Rte::u8> semiTransparentPixel = {0, 0, 0, 200};
-
-    if (!m_graphicModule->loadTextureFromMemory(m_devConsoleTexture, semiTransparentPixel.data(), {1, 1}))
-        throw std::runtime_error("Failed to create texture from memory");
-
     // Player creation event
     m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Network::Events::PLAYER_CREATED, [&](Rte::Event& event) {
         // New player creation
         const uint32_t playerId = event.getParameter<uint32_t>(Rte::Network::Events::Params::PLAYER_ID);
+        std::cout << "Creating player " << playerId << std::endl;
         m_players.insert({playerId, std::make_unique<Player>(m_ecs, m_graphicModule, m_physicsModule, m_currentUid++)});
 
         // Add to entity list
@@ -173,59 +111,22 @@ void ServerApp::run() {
         const Rte::Network::PackedInput& packedInput = event.getParameter<Rte::Network::PackedInput>(Rte::Network::Events::Params::INPUT);
         uint32_t playerId = event.getParameter<uint32_t>(Rte::Network::Events::Params::PLAYER_ID);
 
-        if (packedInput.moveUp)
-            m_players.at(playerId)->fly({0, 3});
-
         if (packedInput.moveLeft)
-            m_players.at(playerId)->move({-10, 0});
-        else if (packedInput.moveRight)
-            m_players.at(playerId)->move({10, 0});
-        else {
-            m_players.at(playerId)->move({0, 0});
-        }
+            m_players.at(playerId)->move({-20, 0});
+        if (packedInput.moveRight)
+            m_players.at(playerId)->move({20, 0});
+
+        if (packedInput.moveUp)
+            m_players.at(playerId)->move({0, 20});
+        if (packedInput.moveDown)
+            m_players.at(playerId)->move({0, -20});
 
         if (packedInput.shoot) {
-            const float shootAngle = -std::atan2(
-                static_cast<float>(m_players.at(playerId)->getPos().x) - (static_cast<float>(packedInput.shootDirection.x) - m_graphicModule->getWindowSize().x / 2.F),
-                static_cast<float>(m_players.at(playerId)->getPos().y) - (static_cast<float>(packedInput.shootDirection.y) - m_graphicModule->getWindowSize().y / 2.F)
-            ) - std::numbers::pi_v<float> / 2;
-            Rte::Entity projectile = m_players.at(playerId)->shoot(shootAngle);
+            Rte::Entity projectile = m_players.at(playerId)->shoot(0);
             if (projectile != 0)
                 createProjectile(projectile);
         }
     }));
-
-    // Dev console event listener
-    m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Graphic::Events::KEY_PRESSED, [&](Rte::Event& event) {
-        Rte::Graphic::Key key = event.getParameter<Rte::Graphic::Key>(Rte::Graphic::Events::Params::KEY_PRESSED);
-
-        if (key == Rte::Graphic::Key::F12) {
-            m_showDevConsole = !m_showDevConsole;
-        }
-        if (m_showDevConsole) {
-
-            // Handle special inputs
-            if (key == Rte::Graphic::Key::Backspace) {
-                if (!m_devConsoleInput.empty())
-                    m_devConsoleInput.pop_back();
-            }
-            if (key == Rte::Graphic::Key::Enter) {
-                if (!m_devConsoleInput.empty()) {
-                    this->handleConsoleInput();
-                    m_devConsoleInput.clear();
-                }
-            }
-
-            // Handle text input
-            for (const KeyCharacter& keyChar : CHARS) {
-                if (keyChar.key == key) {
-                    m_devConsoleInput += keyChar.character;
-                    break;
-                }
-            }
-        }
-    }));
-
 
 
     // Player disconnected
@@ -246,8 +147,6 @@ void ServerApp::run() {
     // Main loop
     while (m_running) {
         m_physicsModule->update();
-        if (m_showDevConsole)
-            drawDevConsole();
         m_graphicModule->update();
 
         updateScene();
@@ -255,45 +154,5 @@ void ServerApp::run() {
         m_networkModuleServer->updateTexture(m_newEntitiesTextures);
         m_networkModuleServer->updateEntity(m_entities);
         m_networkModuleServer->sendUpdate();
-    }
-}
-
-void ServerApp::handleConsoleInput() {
-    m_devConsoleHistory.emplace_back(">> " + m_devConsoleInput);
-    if (m_devConsoleInput == "exit") {
-        m_running = false;
-    }
-    else if (m_devConsoleInput == "clear") {
-        m_devConsoleHistory.clear();
-    }
-    else if (m_devConsoleInput == "uwu") {
-
-        m_devConsoleHistory.emplace_back("     _");
-        m_devConsoleHistory.emplace_back("   _| |");
-        m_devConsoleHistory.emplace_back(" _| | |");
-        m_devConsoleHistory.emplace_back("| | | |");
-        m_devConsoleHistory.emplace_back("| | | | __");
-        m_devConsoleHistory.emplace_back("| | | |/  \\");
-        m_devConsoleHistory.emplace_back("|       /\\ \\");
-        m_devConsoleHistory.emplace_back("|      /  \\/");
-        m_devConsoleHistory.emplace_back("|      \\  /\\");
-        m_devConsoleHistory.emplace_back("|       \\/ /");
-        m_devConsoleHistory.emplace_back(" \\        /");
-        m_devConsoleHistory.emplace_back("  |     /");
-        m_devConsoleHistory.emplace_back("  |    /");
-
-    }
-    else {
-        m_devConsoleHistory.emplace_back("Unknown command :( ");
-    }
-}
-
-void ServerApp::drawDevConsole() {
-    m_graphicModule->drawRectangle({0, 0}, {1920, 540}, m_devConsoleTexture);
-    m_graphicModule->drawText({-960, 270}, ">> " + m_devConsoleInput, 30);
-
-    // Draw history starting from the bottom up
-    for (int i = 0; i < static_cast<int>(m_devConsoleHistory.size()); i++) {
-        m_graphicModule->drawText({-960, 270 - (i + 1) * 30}, m_devConsoleHistory[m_devConsoleHistory.size() - i - 1], 30);
     }
 }

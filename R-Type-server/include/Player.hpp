@@ -20,10 +20,8 @@ class Player {
         Player& operator=(Player&&) noexcept = default;
 
 
-        void setFriction(float friction);
         void move(Rte::Vec2<float> direction);
         void fly(Rte::Vec2<float> direction);
-        Rte::Vec2<float> getVelocity() const;
 
         Rte::Entity shoot(float angle);
         void update();
@@ -42,8 +40,6 @@ class Player {
         std::shared_ptr<Rte::Ecs> m_ecs;
         std::shared_ptr<Rte::Graphic::GraphicModule> m_graphicModule;
         std::shared_ptr<Rte::Physics::PhysicsModule> m_physicsModule;
-
-        bool is_jumping = false;
 
         float m_health = 100.F;
         float m_mana = 100.F;

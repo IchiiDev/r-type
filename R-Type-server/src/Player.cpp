@@ -13,7 +13,6 @@
 #include <cstddef>
 #include <memory>
 #include <numbers>
-#include <stdexcept>
 
 
 
@@ -52,30 +51,19 @@ Rte::Entity Player::getEntity() const {
     return m_player;
 }
 
-void Player::setFriction(float friction) {
-    m_physicsModule->setFriction(m_ecs->getComponent<Rte::Physics::Components::Physics>(m_player).shapeBody, friction);
-}
-
 void Player::move(Rte::Vec2<float> direction) {
     m_physicsModule->move(m_ecs->getComponent<Rte::Physics::Components::Physics>(m_player).shapeBody, direction);
 }
 
 void Player::fly(Rte::Vec2<float> direction) {
-    //if (is_jumping)
-    //    return;
     m_physicsModule->applyForce(m_ecs->getComponent<Rte::Physics::Components::Physics>(m_player).shapeBody, direction);
-    is_jumping = true;
-}
-
-Rte::Vec2<float> Player::getVelocity() const {
-    return m_physicsModule->getVelocity(m_ecs->getComponent<Rte::Physics::Components::Physics>(m_player).shapeBody);
 }
 
 Rte::Entity Player::shoot(float angle) {
     //Shoot projectile
     if (m_mana < 20 || m_shootCooldown > 0)
         return 0;
-    //m_mana -= 20;
+    m_mana -= 20;
     Rte::Vec2<float> playerPos = m_ecs->getComponent<Rte::BasicComponents::Transform>(m_player).position;
     uint32_t projectileTexture = m_graphicModule->createTexture();
     if (!m_graphicModule->loadTextureFromFile(projectileTexture, "../assets/projectile.png"))

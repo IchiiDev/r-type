@@ -3,15 +3,12 @@
 #include "Enemy.hpp"
 #include "Player.hpp"
 #include "Rte/Ecs/Ecs.hpp"
-#include "Rte/Ecs/Types.hpp"
 #include "Rte/Graphic/GraphicModule.hpp"
 #include "Rte/ModuleManager.hpp"
 #include "Rte/Network/NetworkModule.hpp"
 #include "Rte/Network/NetworkModuleServer.hpp"
 #include "Rte/Physics/PhysicsModule.hpp"
-#include "Rte/Physics/Tool.hpp"
 
-#include <array>
 #include <cstdint>
 #include <map>
 #include <memory>
@@ -32,17 +29,6 @@ class ServerApp {
 
     private:
 
-        // Dev Console
-        void handleDevConsole();
-        void handleConsoleInput();
-
-        bool m_showDevConsole = false;
-        std::string m_devConsoleInput;
-        std::vector<std::string> m_devConsoleHistory;
-        int m_devConsoleHistoryIndex = -1;
-        uint32_t m_devConsoleTexture = 0;
-        void drawDevConsole();
-
         // Scene
         void initScene();
         void updateScene();
@@ -52,8 +38,8 @@ class ServerApp {
 
         // Enemies
         void createEnemy(Rte::Vec2<float> pos);
-        void updateEnemies();
         void destroyEnemy(const Rte::Entity& enemy);
+        void updateEnemies();
 
         // Projectiles
         void createProjectile(Rte::Entity projectile);
@@ -61,28 +47,19 @@ class ServerApp {
         void destroyProjectile(const Rte::Entity& projectile);
 
         // Powerups
-        void createPowerup(Rte::Vec2<float> pos);
         void updatePowerups();
+        void createPowerup(Rte::Vec2<float> pos);
         void destroyPowerup(const Rte::Entity& powerup);
 
-        // Breakables
-        Rte::Entity createBreakable(Rte::Vec2<float> pos, std::string spritePath);
-        Rte::Entity createBreakable(Rte::Vec2<float> pos, std::vector<Rte::u8> texture, std::vector<Rte::u8> material, Rte::Vec2<Rte::u16> size);
-        Rte::Entity createBreakable(Rte::Entity breakable, std::vector<Rte::u8> texture, std::vector<Rte::u8> material, Rte::Vec2<Rte::u16> size);
-        void updateBreakables();
-        void fractureBreakable(const Rte::Vec2<Rte::u16>& position);
-        void destroyBreakable(const Rte::Entity& breakable);
+        // Powerups
+        void updateObstacles();
+        void createObstacle(Rte::Vec2<float> pos);
+        void destroyObstacle(const Rte::Entity& obstacle);
 
-        // Terrain
-        Rte::Entity generateTerrainBlock(int width, int maxHeight, Rte::Vec2<float> pos);
-        void updateTerrain();
-        
         Rte::ModuleManager moduleManager;
         std::shared_ptr<Rte::Ecs> m_ecs;
 
         bool m_running = true;
-
-        float terrainPos = 0;
 
         std::shared_ptr<Rte::Physics::PhysicsModule> m_physicsModule;
         std::shared_ptr<Rte::Network::NetworkModule> m_networkModule;
@@ -92,9 +69,8 @@ class ServerApp {
         std::map<uint32_t, std::unique_ptr<Player>> m_players;
         std::shared_ptr<std::vector<Rte::Entity>> m_entities;
         std::vector<std::unique_ptr<Rte::Entity>> m_projectiles;
-        std::map<std::string, std::pair<Rte::Vec2<Rte::u16>, std::vector<int>>> m_destructionMaps;
         std::vector<std::unique_ptr<Rte::Entity>> m_powerups;
-        std::vector<std::unique_ptr<Rte::Entity>> m_breakables;
+        std::vector<std::unique_ptr<Rte::Entity>> m_obstacles;
         std::map<uint32_t, std::unique_ptr<Enemy>> m_enemies;
         Rte::Entity m_rightWall;
         Rte::Entity m_leftWall;
@@ -102,13 +78,8 @@ class ServerApp {
         Rte::Entity m_bottomWall;
         std::map<Rte::Entity, Rte::Network::PackedTexture> m_newEntitiesTextures;
 
-        std::map<std::string, std::vector<Rte::Physics::PixelCringe>> projectilesMaps;
-        
-        int m_terrainBlockWidth = 64;
-        int m_terrainBlockHeight = 64;
-        std::vector<Rte::Entity> m_terrains;
-
-        std::chrono::time_point<std::chrono::high_resolution_clock> m_enemyClock;
+        std::chrono::time_point<std::chrono::high_resolution_clock> m_EnemyClock;
+        std::chrono::time_point<std::chrono::high_resolution_clock> m_ObstacleClock;
         std::chrono::time_point<std::chrono::high_resolution_clock> m_startTime;
 
         uint32_t m_currentUid = 0;

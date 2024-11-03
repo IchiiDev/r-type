@@ -14,10 +14,10 @@
 #include "Rte/Network/NetworkModuleTypes.hpp"
 
 #include <algorithm>
-#include <cstdint>
+#include <cmath>
+#include <iostream>
 #include <memory>
 #include <thread>
-#include <vector>
 
 ClientApp::ClientApp() {
     m_ecs = std::make_shared<Rte::Ecs>();
@@ -39,7 +39,7 @@ ClientApp::ClientApp() {
     const std::shared_ptr<Rte::Network::NetworkModule> networkModule = Rte::interfaceCast<Rte::Network::NetworkModule>(moduleManager.loadModule("RteNetwork"));
     m_networkModuleClient = networkModule->getClient();
     m_networkModuleClient->init(m_ecs);
-    m_networkModuleClient->connect("127.0.0.1", 12345);
+    m_networkModuleClient->connect("127.0.0.1", 123456);
 
     // Event callback to close window
     m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Graphic::Events::QUIT,
@@ -51,8 +51,6 @@ ClientApp::ClientApp() {
 }
 
 void ClientApp::run() {
-    menuLoop();
-
     // Disconnect event
     m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Network::Events::DISCONNECTED, [&](const Rte::Event& /* UNUSED */) {
         m_running = false;
@@ -104,7 +102,7 @@ void ClientApp::run() {
         .scale = {10, 10},
         .rotation = 0
     });
-    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(sky1, {.textureId = skytexture, .offset = {0, 0}, .layer = 0});
+    m_ecs->addComponent<Rte::Graphic::Components::Sprite>(sky1, {skytexture, 0});
 
     // Load audio module
     const std::shared_ptr<Rte::Audio::AudioModule> audioModule = Rte::interfaceCast<Rte::Audio::AudioModule>(moduleManager.loadModule("RteAudio"));
@@ -157,29 +155,29 @@ void ClientApp::run() {
             m_networkModuleClient->update();
     });
 
+    float shootAngle = 0;
     // Main loop
     while(m_running) {
-        // Get inputs from player (disabled if dev console is open)
+        // Get inputs from player
         m_networkModuleClient->updateInputs(Rte::Network::PackedInput{
             .moveUp = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Up),
             .moveDown = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Down),
             .moveLeft = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Left),
             .moveRight = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Right),
-            .shoot = m_graphicModule->isMouseButtonPressed(Rte::Graphic::MouseButton::Left),
-            .shootDirection = {static_cast<float>(m_graphicModule->getMousePosition().x), static_cast<float>(m_graphicModule->getMousePosition().y)}
+            .shoot = m_graphicModule->isKeyPressed(Rte::Graphic::Key::Space)
         });
 
+        m_entitiesMutex.lock(); {
+            m_graphicModule->update();
+            m_networkModuleClient->sendUpdate();
+        }
         m_ecs->getComponent<Rte::BasicComponents::Transform>(sky).position.x -= 5;
         if (m_ecs->getComponent<Rte::BasicComponents::Transform>(sky).position.x <= -1920)
             m_ecs->getComponent<Rte::BasicComponents::Transform>(sky).position.x = 1920;
         m_ecs->getComponent<Rte::BasicComponents::Transform>(sky1).position.x -= 5;
         if (m_ecs->getComponent<Rte::BasicComponents::Transform>(sky1).position.x <= -1920)
             m_ecs->getComponent<Rte::BasicComponents::Transform>(sky1).position.x = 1920;
-
-        m_entitiesMutex.lock(); {
-            m_graphicModule->update();
-            m_networkModuleClient->sendUpdate();
-        } m_entitiesMutex.unlock();
+        m_entitiesMutex.unlock();
     }
 
     networkThread.join();
