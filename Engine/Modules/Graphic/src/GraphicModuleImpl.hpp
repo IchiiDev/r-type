@@ -19,6 +19,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 namespace Rte::Graphic {
 
@@ -263,6 +264,21 @@ namespace Rte::Graphic {
     };
 
 
+
+    struct DirectDrawSpriteInfo {
+        Vec2<int> position;
+        Vec2<u16> scale;
+        uint32_t texture;
+    };
+
+    struct DirectDrawTextInfo {
+        Vec2<int> position;
+        std::string text;
+        u32 characterSize;
+    };
+
+
+
     class GraphicModuleImpl : public GraphicModule {
         public:
             // Module methods
@@ -297,6 +313,11 @@ namespace Rte::Graphic {
             const u8 *getTexturePixels(uint32_t texture) override;
 
 
+            // Direct draw methods
+            void drawRectangle(const Vec2<int>& position, const Vec2<u16>& scale, uint32_t texture) override;
+            void drawText(const Vec2<int>& position, const std::string& text, u32 characterSize) override;
+
+
             // Input methods
             [[nodiscard]] bool isKeyPressed(Key key) const override;
             [[nodiscard]] bool isMouseButtonPressed(MouseButton button) const override;
@@ -314,6 +335,9 @@ namespace Rte::Graphic {
             std::shared_ptr<RenderSystem> m_renderSystem;
             std::shared_ptr<ButtonSystem> m_buttonSystem;
             std::shared_ptr<TextSystem> m_textSystem;
+
+            std::vector<DirectDrawSpriteInfo> m_directDrawSprites;
+            std::vector<DirectDrawTextInfo> m_directDrawTexts;
 
             std::map<uint32_t, TextureHandle> m_textures;
             uint32_t m_textureCounter = 0;

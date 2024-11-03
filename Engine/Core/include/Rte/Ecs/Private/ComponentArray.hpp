@@ -5,6 +5,7 @@
 #include <array>
 #include <cassert>
 #include <cstdlib>
+#include <iostream>
 #include <unordered_map>
 
 namespace Rte {

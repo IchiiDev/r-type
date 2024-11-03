@@ -1,7 +1,9 @@
+#include "Rte/BasicComponents.hpp"
 #include "ServerApp.hpp"
 #include "Utils/BinaryMap.hpp"
 
 #include "Rte/Physics/Components.hpp"
+#include <iostream>
 
 void ServerApp::initScene() {
     // Init destruction map
@@ -72,4 +74,19 @@ void ServerApp::initScene() {
 
     // Breakables
     createBreakable({0, 1080 / 2 - 200}, "mushroom");
+
+    // Terrain
+
+    m_terrains.push_back(generateTerrainBlock(m_terrainBlockWidth, m_terrainBlockHeight, {-1920/2, static_cast<float>(1080 / 2 - m_terrainBlockHeight / 2 * 8)}));
+
+    while (m_ecs->getComponent<Rte::BasicComponents::Transform>(m_terrains.at(m_terrains.size() - 1)).position.x < 1920) {
+        m_terrains.push_back(generateTerrainBlock(
+            m_terrainBlockWidth,
+            m_terrainBlockHeight,
+            {
+                m_ecs->getComponent<Rte::BasicComponents::Transform>(m_terrains.at(m_terrains.size() - 1)).position.x + m_terrainBlockWidth * 8 - (1920 / 2) - 16,
+                static_cast<float>(1080 / 2 - m_terrainBlockHeight / 2 * 8)
+            }
+        ));
+    }
 }

@@ -8,6 +8,7 @@
 #include "Rte/ModuleManager.hpp"
 #include "Rte/Network/NetworkModuleClient.hpp"
 
+#include <cstdint>
 #include <memory>
 #include <mutex>
 #include <vector>
@@ -39,19 +40,17 @@ class ClientApp {
         std::shared_ptr<Rte::Audio::AudioModule> m_audioModule;
         std::shared_ptr<Rte::Network::NetworkModuleClient> m_networkModuleClient;
 
-
         //////////////////
         // Menu Related //
         //////////////////
         std::vector<std::unique_ptr<Button>> m_menuButtons;
-        uint32_t m_transparentTexture{};
         bool m_switchedOptionsState = false;
         bool m_showOptions = false;
+        bool m_isInMenu = true;
         void createMenuButtons();
         void createOptionsButtons();
 
         int m_soundVolume = 5;
-
 
         //////////////////
         // Game Related //

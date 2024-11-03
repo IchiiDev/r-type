@@ -3,6 +3,7 @@
 #include "Rte/Common.hpp"
 
 #include <cstdint>
+#include <string>
 
 namespace Rte::BasicComponents {
 
@@ -14,6 +15,10 @@ namespace Rte::BasicComponents {
 
     struct UidComponents {
         uint32_t uid;
+    };
+
+    struct Tag {
+        std::string tag;
     };
 
 }   // namespace Rte::BasicComponents
