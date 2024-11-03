@@ -7,13 +7,13 @@
 
 
 #include "Rte/Ecs/Event.hpp"
-#include "Rte/Network/NetworkModuleTypes.hpp"
 #include "NetworkClientModuleAsio.hpp"
 #include "NetworkModuleImpl.hpp"
+#include "Rte/Network/NetworkModuleTypes.hpp"
 
 #include <array>
-#include <iostream>
 #include <memory>
+#include <vector>
 
 using namespace Rte;
 
@@ -21,9 +21,14 @@ void Rte::Network::NetworkClientModuleAsio::init(const std::shared_ptr<Ecs>& ecs
     m_ecs = ecs;
 }
 
-void Rte::Network::NetworkClientModuleAsio::connect(const std::string& host, const unsigned int& port) {
+void Rte::Network::NetworkClientModuleAsio::connect(const std::string& host, const uint16_t& port) {
+    bnl::net::message<CustomMsgTypes> msg;
+    msg.header.id = CustomMsgTypes(-1);
+
+
     m_client = std::make_unique<CustomClient>();
 	m_client->connect(host, port);
+    m_client->send(msg);
 }
 
 void Rte::Network::NetworkClientModuleAsio::updateInputs(PackedInput input) {
@@ -52,7 +57,7 @@ void Rte::Network::NetworkClientModuleAsio::update() {
             case Rte::Network::CustomMsgTypes::EntityCreated: {
                 BasicComponents::UidComponents id{};
                 BasicComponents::Transform transform;
-                std::array<u8, 1000 * 1000> pixels; // TODO: REMOVE THIS !!!!!!??????
+                std::array<u8, 250 * 250> pixels; // TODO: REMOVE THIS !!!!!!??????
                 Vec2<u16> size{};
 
                 msg >> size >> pixels >> transform >> id;
@@ -92,6 +97,8 @@ void Rte::Network::NetworkClientModuleAsio::update() {
                 Event event(Rte::Network::Events::ENTITY_DELETED);
                 event.setParameter<BasicComponents::UidComponents>(Rte::Network::Events::Params::ENTITY_ID, id);
                 m_ecs->sendEvent(event);
+
+                break;
             }
             break;
         }

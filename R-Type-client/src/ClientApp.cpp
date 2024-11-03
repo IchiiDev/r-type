@@ -37,7 +37,7 @@ ClientApp::ClientApp() {
     const std::shared_ptr<Rte::Network::NetworkModule> networkModule = Rte::interfaceCast<Rte::Network::NetworkModule>(moduleManager.loadModule("RteNetwork"));
     m_networkModuleClient = networkModule->getClient();
     m_networkModuleClient->init(m_ecs);
-    m_networkModuleClient->connect("127.0.0.1", 123456);
+    m_networkModuleClient->connect("127.0.0.1", 12345);
 
     // Event callback to close window
     m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Graphic::Events::QUIT,
