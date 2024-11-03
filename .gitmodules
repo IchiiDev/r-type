@@ -10,3 +10,9 @@
 [submodule "external/poly2tri"]
 	path = external/poly2tri
 	url = https://github.com/jhasse/poly2tri.git
+[submodule "external/lua"]
+	path = external/lua
+	url = https://github.com/lua/lua.git
+[submodule "external/sol2"]
+	path = external/sol2
+	url = https://github.com/ThePhD/sol2.git

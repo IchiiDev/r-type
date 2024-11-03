@@ -3,6 +3,7 @@
 #include "Rte/Common.hpp"
 
 #include <cstdint>
+#include <string>
 
 namespace Rte::BasicComponents {
 
