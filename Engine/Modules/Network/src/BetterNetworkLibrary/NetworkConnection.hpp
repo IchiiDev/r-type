@@ -112,7 +112,7 @@ namespace bnl {
 
                 void writeHeader() {
                     m_socket.async_send_to(
-                        asio::buffer(&m_sendQueue.front().header, sizeof(message_header<T>)),
+                        asio::buffer(&m_sendQueue.front(), sizeof(message_header<T>) + m_sendQueue.front().body.size()),
                         m_remoteEndpoint,
                         [this](std::error_code ec, std::size_t len) {
                             if (!ec) {
