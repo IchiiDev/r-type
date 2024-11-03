@@ -10,6 +10,7 @@
 #include "Rte/Scripting/Components.hpp"
 
 #include <chrono>
+#include <cmath>
 #include <cstdint>
 #include <memory>
 #include <numbers>
@@ -111,7 +112,7 @@ void DemoApp::run() {
                 mousePosCentered.x - playerTransform.position.x,
                 mousePosCentered.y - playerTransform.position.y
             };
-            const float angle = std::atan2(playerMouseOffset.y, playerMouseOffset.x) * 180 / std::numbers::pi + 90;
+            const float angle = atan2(playerMouseOffset.y, playerMouseOffset.x) * 180 / std::numbers::pi + 90;
 
             m_ecs->addComponent<Rte::BasicComponents::Transform>(projectile.entity, Rte::BasicComponents::Transform{.position = playerTransform.position, .scale = {0.01, 0.01}, .rotation = angle});
             m_ecs->addComponent<Rte::Graphic::Components::Sprite>(projectile.entity, Rte::Graphic::Components::Sprite{.textureId = projectileTexture, .layer = 0});
