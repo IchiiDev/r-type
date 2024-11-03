@@ -84,3 +84,32 @@ void func() {
     physicsSystem->update(deltaTime);
 }
 ```
+
+## How to contribute
+
+### Pull Requests
+
+1. Fork the repository
+2. Create a new branch for your feature or bugfix
+3. Make your changes
+4. Test your changes
+5. Open a pull request
+
+### Code Style
+Use clang-tidy to check the code style:
+```bash
+cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DRTE_CLANG_TIDY=ON
+cmake --build build
+```
+
+### Commit Messages
+We are following the conventional commits specification for commit messages. You can find more information [here](https://www.conventionalcommits.org/en/v1.0.0/).
+
+### Code Review
+All submissions, including submissions by project members, require review. We use GitHub pull requests for this purpose. Consult [GitHub Help](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/about-pull-requests) for more information on using pull requests.
+You will have to ask for a review from a project member in order to merge your pull request. (`IchiiDev`, `Asti0s`, `emartin2109`, `YohanDecamps`)
+
+### License
+
+By contributing, you agree that your contributions will be licensed under the [MIT License](LICENSE). This means that anyone can use, modify, and distribute your work for any purpose, including commercial use, without any other conditions or requirements.
+See: [Open Source Initiative](https://opensource.org/licenses/MIT)

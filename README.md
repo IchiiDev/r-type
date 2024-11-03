@@ -15,6 +15,26 @@ Build the project:
 ```bash
 cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
 cmake --build build
+# or
+cmake --build build --parallel # For parallel build (faster)
+```
+
+## Use
+
+Once the project is compiled or [the release is downloaded](https://github.com/IchiiDev/r-type/releases), you can run the server and/or the client.
+
+### Server
+
+```bash
+cd build
+./R-Type-server/R-Type-server
+```
+
+### Client
+
+```bash
+cd build
+./R-Type-client/R-Type-client
 ```
 
 ## Project Description
