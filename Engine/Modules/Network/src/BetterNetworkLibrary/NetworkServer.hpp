@@ -11,7 +11,6 @@
 #include "NetworkConnection.hpp"
 #include "NetworkMessage.hpp"
 #include "asio/io_context.hpp"
-#include "asio/ip/tcp.hpp"
 #include <cstddef>
 #include <cstdint>
 #include <deque>
@@ -28,7 +27,9 @@ namespace bnl {
         template<typename T>
         class IServer {
             public:
-                IServer(const unsigned int port) : m_acceptor(m_asioContext, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), port)) {}
+                IServer(const unsigned int port) 
+                    : m_socket(m_asioContext, asio::ip::udp::endpoint(asio::ip::udp::v4(), port)) {
+                    }
 
                 virtual ~IServer() {
                     stop();
@@ -38,9 +39,9 @@ namespace bnl {
                     try {
                         waitForConnection();
 
-                        m_threadContext = std::thread([this]() {m_asioContext.run(); });
+                        m_threadContext = std::thread([this]() { m_asioContext.run(); });
                     } catch (const std::exception& e) {
-                        std::cerr << "Exception occured during server start: " << e.what() << std::endl;
+                        std::cerr << "Exception occurred during server start: " << e.what() << std::endl;
                         return false;
                     }
 
@@ -57,29 +58,39 @@ namespace bnl {
                 }
 
                 void waitForConnection() {
-                    m_acceptor.async_accept(
-                        [this](std::error_code ec, asio::ip::tcp::socket socket) {
-                            if (!ec) {
-                                std::cout << "[SERVER]: New connection established with: " << socket.remote_endpoint() << std::endl;
+                    m_socket.async_receive_from(
+                        asio::buffer(&m_tempHeader, sizeof(message_header<T>)),
+                        m_remoteEndpoint,
+                        [this](std::error_code ec, std::size_t length) {
+                            if (int(m_tempHeader.id) != -1) {
+                                waitForConnection();
+                                return;
+                            }
 
-                                std::shared_ptr<Connection<T>> newConnection = std::make_shared<Connection<T>>(Connection<T>::owner::server,
-                                    m_asioContext, std::move(socket), m_receivedMessage);
+                            if (!ec) {
+                                std::shared_ptr<Connection<T>> newConnection = std::make_shared<Connection<T>>(
+                                    Connection<T>::owner::server, 
+                                    m_asioContext, 
+                                    m_remoteEndpoint, 
+                                    m_receivedMessage
+                                );
 
                                 newConnection->setId(m_idCounter++);
 
                                 if (onClientConnect(newConnection)) {
-                                    m_connectionsQueue.push_back(std::move(newConnection));
+                                    m_connectionsQueue.push_back(newConnection);
+                                    std::cout << "[SERVER]: Connection approved with client at: " << m_remoteEndpoint << std::endl;
 
-                                    m_connectionsQueue.back()->connectToClient();
-
-                                    std::cout << "[" << m_connectionsQueue.back()->getId() << "] Connection approved" << std::endl;
+                                    // Start reading from the new connection
+                                    newConnection->connectToClient(); // SUUUUUUUUUUUUUUUUS
                                 } else {
-                                    std::cout << "[------]: Connection denied" << std::endl;
+                                    std::cout << "[SERVER]: Connection denied" << std::endl;
                                 }
                             } else {
-                                std::cout << "[SERVER]: New connection error: " << ec.message() << std::endl;
+                                std::cout << "[SERVER]: Connection error: " << ec.message() << std::endl;
                             }
 
+                            // Continue waiting for the next client connection
                             waitForConnection();
                         }
                     );
@@ -98,12 +109,10 @@ namespace bnl {
                 void messageAllClient(const message<T>& msg, std::shared_ptr<Connection<T>> ignoredClient = nullptr) {
                     bool invalidClient = false;
 
-
                     for (auto& connection : m_connectionsQueue) {
                         if (connection && connection->isConnected()) {
-                            if (connection!= ignoredClient) {
+                            if (connection != ignoredClient)
                                 connection->send(msg);
-                            }
                         } else {
                             onClientDisconnect(connection);
                             connection.reset();
@@ -124,7 +133,6 @@ namespace bnl {
 
                         msgNbrCount++;
                     }
-
                 }
 
             protected:
@@ -148,9 +156,12 @@ namespace bnl {
                 asio::io_context m_asioContext;
                 std::thread m_threadContext;
 
-                asio::ip::tcp::acceptor m_acceptor;
+                asio::ip::udp::socket m_socket;
+                asio::ip::udp::endpoint m_remoteEndpoint;
 
                 uint32_t m_idCounter = 10000;
+
+                message_header<T> m_tempHeader;  // Temporary storage for received message header
         };
     } // namespace net
 } // namespace bnl
