@@ -1,9 +1,6 @@
+# lua_project/CMakeLists.txt
 cmake_minimum_required(VERSION 3.16)
-project(RteScripting CXX)
-
-# Options
-set(CMAKE_CXX_STANDARD 20)
-set(BUILD_SHARED_LIBS FALSE)    # Build static libraries
+project(lua_project C)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Lua build
@@ -15,6 +12,14 @@ target_include_directories(lua
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/external/lua>
 )
+
+cmake_minimum_required(VERSION 3.16)
+project(RteScripting CXX)
+
+# Options
+set(CMAKE_CXX_STANDARD 20)
+set(BUILD_SHARED_LIBS FALSE)    # Build static libraries
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Luacpp submodule
 add_subdirectory(${CMAKE_SOURCE_DIR}/external/sol2 ${CMAKE_BINARY_DIR}/external/sol2)
