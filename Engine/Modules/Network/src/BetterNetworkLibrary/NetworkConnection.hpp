@@ -65,6 +65,7 @@ namespace bnl {
 
             public:
                 void send(const message<T>& msg) {
+                    if (!isConnected()) return;
                     asio::post(m_asioContext,
                     [this, msg]() {
                         bool messageBeingWritten = !m_sendQueue.empty();
@@ -91,6 +92,10 @@ namespace bnl {
                                 }
                             } else {
                                 std::cerr << "[Connection]: Read header error: " << ec.message() << std::endl;
+                                if (this->isConnected()) {
+                                    std::cerr << "[Connection]: Minor error continuing execution" << std::endl;
+                                    readHeader();
+                                }
                             }
                         }
                     );
@@ -105,12 +110,17 @@ namespace bnl {
                                 addToIncomingMessageQueue();
                             } else {
                                 std::cerr << "[Connection]: Read body error: " << ec.message() << std::endl;
+                                if (this->isConnected()) readHeader();
                             }
                         }
                     );
                 }
 
                 void writeHeader() {
+                    if (!this->isConnected()) {
+                        std::cerr << "[Connection]: Socket is closed, cannot write" << std::endl;
+                        return;
+                    }
                     m_socket.async_send_to(
                         asio::buffer(&m_sendQueue.front(), sizeof(message_header<T>) + m_sendQueue.front().body.size()),
                         m_remoteEndpoint,
@@ -132,7 +142,7 @@ namespace bnl {
                 }
 
                 void writeBody() {
-                    if (!m_socket.is_open()) {
+                    if (!this->isConnected()) {
                         std::cerr << "[Connection]: Socket is closed, cannot write" << std::endl;
                         return;
                     }

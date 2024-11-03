@@ -23,7 +23,7 @@ void Rte::Network::NetworkClientModuleAsio::init(const std::shared_ptr<Ecs>& ecs
 
 void Rte::Network::NetworkClientModuleAsio::connect(const std::string& host, const uint16_t& port) {
     bnl::net::message<CustomMsgTypes> msg;
-    msg.header.id = CustomMsgTypes(-1);
+    msg.header.id = CustomMsgTypes(int(-1));
 
 
     m_client = std::make_unique<CustomClient>();

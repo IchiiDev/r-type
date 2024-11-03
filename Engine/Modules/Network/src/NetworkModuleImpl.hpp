@@ -84,7 +84,7 @@ namespace Rte::Network {
                 std::vector<std::shared_ptr<bnl::net::Connection<CustomMsgTypes>>> clientsToRemove;
 
                 for (auto & it : m_lastMessageTime) {
-                    auto client = it.first;
+                    std::shared_ptr<bnl::net::Connection<CustomMsgTypes>> client = it.first;
                     auto lastMessageTime = it.second;
 
                     // Check if the time since the last message exceeds the timeout threshold
