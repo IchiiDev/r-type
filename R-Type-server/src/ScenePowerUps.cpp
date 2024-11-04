@@ -34,7 +34,9 @@ void ServerApp::createPowerup(Rte::Vec2<float> pos) {
     m_powerups.push_back(std::make_unique<Rte::Entity>(powerup));
 
     // Add powerup to the entities list
+    m_entitiesMutex.lock();
     m_entities->emplace_back(powerup);
+    m_entitiesMutex.unlock();
 
     // Load texture and add to new entities textures
     uint32_t texture = m_ecs->getComponent<Rte::Graphic::Components::Sprite>(powerup).textureId;
@@ -72,5 +74,4 @@ void ServerApp::destroyPowerup(const Rte::Entity& powerup) {
         if (*m_powerups[i] == powerup)
             m_powerups.erase(std::next(m_powerups.begin(), static_cast<std::ptrdiff_t>(i)));
     m_networkModuleServer->deleteEntity(uid);
-    m_networkModuleServer->updateEntity(m_entities);
 }

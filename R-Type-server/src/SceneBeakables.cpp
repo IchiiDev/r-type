@@ -73,7 +73,9 @@ Rte::Entity ServerApp::createBreakable(Rte::Vec2<float> pos, std::string spriteP
     m_breakables.push_back(std::make_unique<Rte::Entity>(breakable));
 
     // Add breakable to the entities list
+    m_entitiesMutex.lock();
     m_entities->emplace_back(breakable);
+    m_entitiesMutex.unlock();
 
     // Load texture and add to new entities textures
     uint32_t texture = m_ecs->getComponent<Rte::Graphic::Components::Sprite>(breakable).textureId;
@@ -122,7 +124,9 @@ Rte::Entity ServerApp::createBreakable(Rte::Vec2<float> pos, std::vector<Rte::u8
     m_breakables.push_back(std::make_unique<Rte::Entity>(breakable));
 
     // Add breakable to the entities list
+    m_entitiesMutex.lock();
     m_entities->emplace_back(breakable);
+    m_entitiesMutex.unlock();
 
     // Load texture and add to new entities textures
     const uint8_t *texturePixels = m_graphicModule->getTexturePixels(breakableTexture);
@@ -171,7 +175,9 @@ Rte::Entity ServerApp::createBreakable(Rte::Entity breakable, std::vector<Rte::u
     m_breakables.push_back(std::make_unique<Rte::Entity>(newBreakables));
 
     // Add breakable to the entities list
+    m_entitiesMutex.lock();
     m_entities->emplace_back(newBreakables);
+    m_entitiesMutex.unlock();
 
     // Load texture and add to new entities textures
     const uint8_t *texturePixels = m_graphicModule->getTexturePixels(breakableTexture);
@@ -213,5 +219,4 @@ void ServerApp::destroyBreakable(const Rte::Entity& breakable) {
         if (*m_breakables[i] == breakable)
             m_breakables.erase(std::next(m_breakables.begin(), static_cast<std::ptrdiff_t>(i)));
     m_networkModuleServer->deleteEntity(uid);
-    m_networkModuleServer->updateEntity(m_entities);
 }

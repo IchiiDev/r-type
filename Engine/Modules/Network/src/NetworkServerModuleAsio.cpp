@@ -72,6 +72,5 @@ void Rte::Network::NetworkServerModuleAsio::sendUpdate() {
         } else {
             m_server->sendUpdatedEntity(transformComponent, uidComponent);
         }
-
     }
 }

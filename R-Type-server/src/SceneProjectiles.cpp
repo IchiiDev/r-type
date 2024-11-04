@@ -18,7 +18,9 @@ void ServerApp::createProjectile(Rte::Entity projectile) {
     m_projectiles.push_back(std::make_unique<Rte::Entity>(projectile));
 
     // Add projectile to the entities list
+    m_entitiesMutex.lock();
     m_entities->emplace_back(projectile);
+    m_entitiesMutex.unlock();
 
     // Load texture and add to new entities textures
     uint32_t texture = m_ecs->getComponent<Rte::Graphic::Components::Sprite>(projectile).textureId;
@@ -85,5 +87,4 @@ void ServerApp::destroyProjectile(const Rte::Entity& projectile) {
         if (*m_projectiles[i] == projectile)
             m_projectiles.erase(m_projectiles.begin() + static_cast<std::vector<std::unique_ptr<Rte::Entity>>::difference_type>(i));
     m_networkModuleServer->deleteEntity(uid);
-    m_networkModuleServer->updateEntity(m_entities);
 }

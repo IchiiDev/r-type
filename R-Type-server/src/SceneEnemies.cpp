@@ -16,7 +16,9 @@ void ServerApp::createEnemy(Rte::Vec2<float> pos) {
     std::unique_ptr<Enemy> enemy = std::make_unique<Enemy>(m_ecs, m_graphicModule, m_physicsModule, m_currentUid++, pos);
 
     // Add enemy to the entities list
+    m_entitiesMutex.lock();
     m_entities->emplace_back(enemy->getEntity());
+    m_entitiesMutex.unlock();
 
     // Load texture and add to new entities textures
     uint32_t texture = m_ecs->getComponent<Rte::Graphic::Components::Sprite>(enemy->getEntity()).textureId;
@@ -60,5 +62,4 @@ void ServerApp::destroyEnemy(const Rte::Entity& enemy) {
     m_ecs->destroyEntity(enemy);
     m_enemies.erase(enemy);
     m_networkModuleServer->deleteEntity(uid);
-    m_networkModuleServer->updateEntity(m_entities);
 }

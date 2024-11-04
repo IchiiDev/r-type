@@ -110,7 +110,10 @@ namespace bnl {
                                 addToIncomingMessageQueue();
                             } else {
                                 std::cerr << "[Connection]: Read body error: " << ec.message() << std::endl;
-                                if (this->isConnected()) readHeader();
+                                if (this->isConnected()) {
+                                    std::cerr << "[Connection]: Minor error continuing execution" << std::endl;
+                                    readHeader();
+                                }
                             }
                         }
                     );
