@@ -35,12 +35,6 @@ ClientApp::ClientApp() {
     m_audioModule = Rte::interfaceCast<Rte::Audio::AudioModule>(moduleManager.loadModule("RteAudio"));
     m_audioModule->init(m_ecs);
 
-    // Load the network module
-    const std::shared_ptr<Rte::Network::NetworkModule> networkModule = Rte::interfaceCast<Rte::Network::NetworkModule>(moduleManager.loadModule("RteNetwork"));
-    m_networkModuleClient = networkModule->getClient();
-    m_networkModuleClient->init(m_ecs);
-    m_networkModuleClient->connect("127.0.0.1", 12345);
-
     // Event callback to close window
     m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Graphic::Events::QUIT,
         [&](const Rte::Event& /* UNUSED */) {
@@ -52,6 +46,12 @@ ClientApp::ClientApp() {
 
 void ClientApp::run() {
     menuLoop();
+
+    // Load the network module
+    const std::shared_ptr<Rte::Network::NetworkModule> networkModule = Rte::interfaceCast<Rte::Network::NetworkModule>(moduleManager.loadModule("RteNetwork"));
+    m_networkModuleClient = networkModule->getClient();
+    m_networkModuleClient->init(m_ecs);
+    m_networkModuleClient->connect("127.0.0.1", 12345);
 
     // Disconnect event
     m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Network::Events::DISCONNECTED, [&](const Rte::Event& /* UNUSED */) {

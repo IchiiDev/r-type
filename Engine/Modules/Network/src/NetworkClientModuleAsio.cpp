@@ -36,8 +36,9 @@ void Rte::Network::NetworkClientModuleAsio::updateInputs(PackedInput input) {
 }
 
 void Rte::Network::NetworkClientModuleAsio::sendUpdate() {
-    if (m_client != nullptr)
+    if (m_client != nullptr) {
         m_client->sendInputs(m_input);
+    }
 }
 
 void Rte::Network::NetworkClientModuleAsio::update() {
