@@ -11,12 +11,12 @@
 #include "Rte/Physics/PhysicsModule.hpp"
 #include "Rte/Physics/Tool.hpp"
 
-#include <array>
+#include <chrono>
 #include <cstdint>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <vector>
-#include <chrono>
 
 class ServerApp {
     public:
@@ -76,7 +76,7 @@ class ServerApp {
         // Terrain
         Rte::Entity generateTerrainBlock(int width, int maxHeight, Rte::Vec2<float> pos);
         void updateTerrain();
-        
+
         Rte::ModuleManager moduleManager;
         std::shared_ptr<Rte::Ecs> m_ecs;
 
@@ -104,7 +104,7 @@ class ServerApp {
         std::map<Rte::Entity, Rte::Network::PackedTexture> m_newEntitiesTextures;
 
         std::map<std::string, std::vector<Rte::Physics::PixelCringe>> projectilesMaps;
-        
+
         int m_terrainBlockWidth = 64;
         int m_terrainBlockHeight = 64;
         std::vector<Rte::Entity> m_terrains;
