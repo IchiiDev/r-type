@@ -4,6 +4,7 @@
 #include "Rte/Ecs/Types.hpp"
 
 #include <cassert>
+#include <iterator>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -98,6 +99,7 @@ namespace Rte {
              */
             template<typename T>
             T& getComponent(Entity entity) {
+                // std::cout << typeid(T).name() << std::endl;
                 assert(m_componentTypes.find(typeid(T).name()) != m_componentTypes.end() && "Cannot get component: component not registered before use.");
                 return getComponentArray<T>()->getComponent(entity);
             }

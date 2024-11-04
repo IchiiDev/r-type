@@ -13,6 +13,7 @@
 #include "Rte/Network/NetworkModuleTypes.hpp"
 #include <algorithm>
 #include <cstdint>
+#include <cstring>
 #include <map>
 #include <memory>
 #include <ostream>

@@ -128,6 +128,7 @@ void ServerApp::run() {
 
     // Player creation event
     m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Network::Events::PLAYER_CREATED, [&](Rte::Event& event) {
+        m_entitiesMutex.lock();
         // New player creation
         const uint32_t playerId = event.getParameter<uint32_t>(Rte::Network::Events::Params::PLAYER_ID);
         m_players.insert({playerId, std::make_unique<Player>(m_ecs, m_graphicModule, m_physicsModule, m_currentUid++)});
@@ -148,11 +149,14 @@ void ServerApp::run() {
         packedTexture.pixels = pixelsVector;
 
         m_newEntitiesTextures[newPlayerEntity] = packedTexture;
+        m_entitiesMutex.unlock();
     }));
 
 
     // Player destroyed event
     m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Network::Events::PLAYER_DELETED, [&](Rte::Event& event) {
+        m_entitiesMutex.lock();
+
         const uint32_t playerId = event.getParameter<uint32_t>(Rte::Network::Events::Params::PLAYER_ID);
         const Rte::Entity playerEntity = m_players.at(playerId)->getEntity();
 
@@ -164,7 +168,8 @@ void ServerApp::run() {
 
         for (auto& [playerId, player] : m_players)
             m_networkModuleServer->deletePlayer(uid, playerId);
-        m_networkModuleServer->updateEntity(m_entities);
+
+        m_entitiesMutex.unlock();
     }));
 
 
@@ -230,10 +235,12 @@ void ServerApp::run() {
 
     // Player disconnected
     m_ecs->addEventListener(LAMBDA_LISTENER(Rte::Network::Events::DISCONNECTED, [&](const Rte::Event& /* UNUSED */) {
+        m_entitiesMutex.lock();
         for (auto entity : *m_entities)
             m_ecs->destroyEntity(entity);
         m_entities->clear();
         m_players.clear();
+        m_entitiesMutex.unlock();
     }));
 
 

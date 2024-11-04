@@ -90,6 +90,7 @@ class ServerApp {
         std::shared_ptr<Rte::Network::NetworkModuleServer> m_networkModuleServer;
 
         std::map<uint32_t, std::unique_ptr<Player>> m_players;
+        std::mutex m_entitiesMutex;
         std::shared_ptr<std::vector<Rte::Entity>> m_entities;
         std::vector<std::unique_ptr<Rte::Entity>> m_projectiles;
         std::map<std::string, std::pair<Rte::Vec2<Rte::u16>, std::vector<int>>> m_destructionMaps;
