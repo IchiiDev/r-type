@@ -24,3 +24,7 @@ void SoundImpl::stop() {
 void SoundImpl::setBuffer(const std::shared_ptr<SoundBuffer>& buffer) {
     m_sound = std::make_unique<sf::Sound>(interfaceCast<SoundBufferImpl>(buffer)->getBuffer());
 }
+
+void SoundImpl::loop(bool loop) {
+    m_sound->setLooping(loop);
+}

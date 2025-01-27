@@ -19,3 +19,6 @@ add_subdirectory(R-Type-server)
 
 # Game demo
 add_subdirectory(R-Type-demo)
+
+# Flappy bird
+add_subdirectory(FlappyBird)

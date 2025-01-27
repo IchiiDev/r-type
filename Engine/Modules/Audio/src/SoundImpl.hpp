@@ -25,6 +25,7 @@ namespace Rte::Audio {
             void play() override;
             void pause() override;
             void stop() override;
+            void loop(bool loop) override;
 
         private:
             std::unique_ptr<sf::Sound> m_sound;

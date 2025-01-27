@@ -289,6 +289,7 @@ namespace Rte::Graphic {
             // Specific methods
             void setWindowTitle(const std::string& title) override;
             void setWindowSize(const Vec2<u16>& size) override;
+            void setWindowPosition(const Vec2<int>& position) override;
             void setDaltonismMode(DaltonismMode mode) override;
             void setLayerCount(int count) override;
 

@@ -229,6 +229,13 @@ namespace Rte::Graphic {
             virtual void setWindowSize(const Vec2<u16>& size) = 0;
 
             /**
+             * @brief Set the position of the window.
+             *
+             * @param position Position of the window.
+             */
+            virtual void setWindowPosition(const Vec2<int>& position) = 0;
+
+            /**
              * @brief Set the Daltonism mode.
              *
              * @param mode Daltonism mode (NONE, PROTANOPIA, DEUTERANOPIA, TRITANOPIA).

@@ -257,6 +257,10 @@ void GraphicModuleImpl::setWindowSize(const Vec2<u16>& size) {
     m_window.setSize({size.x, size.y});
 }
 
+void GraphicModuleImpl::setWindowPosition(const Vec2<int>& position) {
+    m_window.setPosition({position.x, position.y});
+}
+
 Rte::Vec2<Rte::u16> GraphicModuleImpl::getWindowSize() const {
     const sf::Vector2<u32> size = m_window.getSize();
     return {static_cast<u16>(size.x), static_cast<u16>(size.y)};
