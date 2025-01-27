@@ -37,6 +37,20 @@ cd build
 ./R-Type-client/R-Type-client
 ```
 
+## Demos
+
+### Flappy Quentin
+```bash
+cd build
+./FlappyBird/FlappyBird
+```
+
+### Demo
+```bash
+cd build
+./R-Type-demo/R-Type-demo
+```
+
 ## Project Description
 
 The R-Type is a project revolving around building a correct and robust architecture for a game engine. The project is divided into several parts, each part focusing on a specific aspect of the engine. The project is divided into the following parts:
