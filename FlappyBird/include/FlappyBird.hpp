@@ -34,6 +34,9 @@ class FlappyBird {
         bool playerPipeCollide(const Rte::Entity &player, const Rte::Entity &pipe);
         bool playerScore(const Rte::Entity &player, std::tuple<Rect, Rte::Entity, bool> &pipe);
 
+        Rte::Entity createSpriteEntity(const std::string &texturePath, Rte::Vec2<float> position, Rte::Vec2<float> scale, float rotation, int layer);
+        Rte::Entity createSpriteEntityFromTexture(uint32_t texture, Rte::Vec2<float> position, Rte::Vec2<float> scale, float rotation, int layer);
+
         void run();
 
 
